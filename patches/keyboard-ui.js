@@ -2,6 +2,7 @@ const __wtKeyboardUi=(()=>{
  const storageKey='wuwatappo-keyboard-ui-v1',modes=['hidden','letters','wuwa','controller'];
  const lastModeKey='wuwatappo-keyboard-last-mode-v1';
  const controlsKey='wuwatappo-mapping-controls-v1';
+ const positionKey='wuwatappo-mapping-position-v1';
  const css=`
 .wt-input-ui{position:relative;z-index:15;width:200px;box-sizing:border-box;margin:-24px 0 5px;color:#8e5e43;font:11px "Microsoft YaHei",sans-serif;pointer-events:auto;user-select:none;touch-action:none}
 .wt-controls-hidden .wt-input-toolbar,.wt-controls-hidden .wt-record-controls,.wt-controls-hidden .wt-export-controls,.wt-controls-hidden .wt-pad-device,.wt-controls-hidden .wt-pad-actions,.wt-controls-hidden .wt-pad-options,.wt-controls-hidden .wt-pad-exports{display:none!important}.wt-controls-hidden:not(.wt-is-recording)>.wt-status,.wt-controls-hidden .wt-pad:not(.wt-pad-recording-active)>.wt-pad-info{display:none!important}
@@ -12,12 +13,14 @@ const __wtKeyboardUi=(()=>{
  function lastMode(){try{const value=localStorage.getItem(lastModeKey);return ['wuwa','controller'].includes(value)?value:'letters'}catch{return 'letters'}}
  function saveMode(mode){if(!modes.includes(mode))return;try{localStorage.setItem(storageKey,mode)}catch{}return emit('wt-keyboard-config',{mode}).catch(()=>{})}
  function readControls(){try{return localStorage.getItem(controlsKey)!=='hidden'}catch{return true}}
- function settings(ref,toast){const model={mode:ref(readMode()),controls:ref(readControls())};model.set=mode=>{model.mode.value=mode;saveMode(mode);toast('键盘映射已切换')};model.toggleControls=()=>{const visible=!model.controls.value;model.controls.value=visible;try{localStorage.setItem(controlsKey,visible?'visible':'hidden')}catch{}emit('wt-keyboard-config',{controls:visible}).catch(()=>{});toast(visible?'映射控制已显示':'映射控制已隐藏')};return model}
+ function readPosition(){try{const p=localStorage.getItem(positionKey);return ['left','right'].includes(p)?p:'bottom'}catch{return 'bottom'}}
+ function settings(ref,toast){const model={mode:ref(readMode()),controls:ref(readControls()),position:ref(readPosition())};model.set=mode=>{model.mode.value=mode;saveMode(mode);toast('键盘映射已切换')};model.setPosition=p=>{if(!['bottom','left','right'].includes(p))return;model.position.value=p;try{localStorage.setItem(positionKey,p)}catch{}emit('wt-keyboard-config',{position:p}).catch(()=>{})};model.toggleControls=()=>{const visible=!model.controls.value;model.controls.value=visible;try{localStorage.setItem(controlsKey,visible?'visible':'hidden')}catch{}emit('wt-keyboard-config',{controls:visible}).catch(()=>{});toast(visible?'映射控制已显示':'映射控制已隐藏')};return model}
  function renderSettings(h,model){
   return h('div',{style:{padding:'12px 0',borderTop:'1px solid #EFD4B7',marginTop:'14px'}},[
    h('div',{style:{fontSize:'18px',color:'#8e5e43',marginBottom:'8px'}},'桌面键盘映射'),
    h('div',{style:{display:'flex',gap:'8px'}},[['hidden','不显示'],['letters','26 字母键'],['wuwa','鸣潮专属'],['controller','手柄']].map(([mode,label])=>h('button',{type:'button',style:{position:'static',padding:'5px 12px',border:'1px solid #E7B77C',borderRadius:'14px',color:'#8e5e43',background:model.mode.value===mode?'#fed291':'#fff3dd',font:'inherit'},onClick:()=>model.set(mode)},label,4))),
    h('button',{type:'button',style:{position:'static',marginTop:'8px',padding:'5px 12px',border:'1px solid #E7B77C',borderRadius:'14px',color:'#8e5e43',background:'#fff3dd',font:'inherit'},onClick:model.toggleControls},model.controls.value?'隐藏映射控制':'显示映射控制',1),
+   h('button',{type:'button',style:{position:'static',marginTop:'8px',padding:'5px 12px',border:'1px solid #E7B77C',borderRadius:'14px',color:'#8e5e43',background:'#fff3dd',font:'inherit'},onClick:()=>model.setPosition(['bottom','left','right'][(['bottom','left','right'].indexOf(model.position.value)+1)%3])},'映射位置：'+({bottom:'下方',left:'左侧',right:'右侧'})[model.position.value],1),
    h('div',{style:{fontSize:'12px',color:'#8e7b6a',marginTop:'8px',lineHeight:'1.5'}},'鸣潮专属只录 1/2/3、Q/E/R、空格、鼠标左右键；开始和结束录制使用下方独立快捷键。')
   ]);
  }
@@ -25,7 +28,7 @@ const __wtKeyboardUi=(()=>{
   const doc=deps.document??document,core=__wtInputRecorder.create(deps.recorderOptions);let mode=readMode(),previousMode=mode==='hidden'?lastMode():mode,root=null,status=null,recordButton=null,exportsBox=null,counter=null,expandButton=null,stopListen=null,stopMouse=null,ticker=null,disposed=false;
   let controller=null,renderId=0;const keys=new Map(),onAt=new Map(),timers=new Map(),urls=[];
   function allow(){return !deps.blocked?.()}
-  function layout(){if(root&&counter){const dock=root.parentElement;if(dock){const shift=root.hidden?0:Math.max(0,root.offsetHeight+10);dock.style.transform=shift?'translateY(-'+shift+'px)':''}}deps.layout?.()}
+  function layout(){deps.layout?.()}
   function button(label,action,parent){const node=doc.createElement('button');node.type='button';node.textContent=label;node.onclick=action;parent.append(node);return node}
   function makeKey(key,label,parent){const node=doc.createElement('kbd');node.textContent=label??key;node.dataset.wtKey=key;node.setAttribute('aria-label',key);parent.append(node);keys.set(key,node);return node}
   function paint(key,down){
@@ -127,12 +130,12 @@ const __wtKeyboardUi=(()=>{
    dock.insertBefore(root,counter);render();
    doc.addEventListener('keydown',domKey,true);doc.addEventListener('keyup',domKey,true);
    for(const name of ['mouseup','pointerup','pointermove'])doc.addEventListener(name,domMouse,true);
-   if(deps.listen)stopListen=await deps.listen('wt-keyboard-config',event=>{if(typeof event.payload?.controls==='boolean'){refresh();layout()}if(modes.includes(event.payload?.mode)&&event.payload.mode!==mode)setMode(event.payload.mode,true)});
+   if(deps.listen)stopListen=await deps.listen('wt-keyboard-config',event=>{if(typeof event.payload?.controls==='boolean'||event.payload?.position){refresh();layout()}if(modes.includes(event.payload?.mode)&&event.payload.mode!==mode)setMode(event.payload.mode,true)});
    if(deps.listen)stopMouse=await deps.listen('wt-raw-mouse',event=>{const p=event.payload;if(p?.button==='right')mouse('right',p.action,deps.pointer?.())});
    ticker=setInterval(refresh,200);
   }
   function dispose(){disposed=true;renderId++;controller?.dispose();controller=null;if(core.active)core.stop('app_closed');stopListen?.();stopMouse?.();clearInterval(ticker);doc.removeEventListener('keydown',domKey,true);doc.removeEventListener('keyup',domKey,true);for(const name of ['mouseup','pointerup','pointermove'])doc.removeEventListener(name,domMouse,true);for(const timer of timers.values())clearTimeout(timer);revoke();core.clear();if(root?.parentElement)root.parentElement.style.transform='';root?.remove();expandButton?.remove();counter?.classList.remove('wt-info-with-keyboard','wt-keyboard-collapsed');root=null}
-  return {mount,dispose,key,mouse,toggle,setMode,get recording(){return core.active||!!controller?.recording},get last(){return core.last}};
+  return {mount,dispose,key,mouse,toggle,setMode,stopRecording:finish,get recording(){return core.active||!!controller?.recording},get last(){return core.last}};
  }
  return {create,settings,renderSettings,readMode,css};
 })();

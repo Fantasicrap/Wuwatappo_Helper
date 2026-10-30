@@ -4,8 +4,9 @@ $ErrorActionPreference='Stop'
 $repoRoot=Split-Path -Parent $PSScriptRoot
 $out=[IO.Path]::GetFullPath($DistributionDirectory)
 $pkg=Get-Content -LiteralPath (Join-Path $repoRoot 'package.json') -Raw|ConvertFrom-Json
-$source=Join-Path $repoRoot 'patches/helper-release/Wuwatappo_Helper.exe'
-$icon=[WuwaHelper.IconResources]::ReadFirst($source)
+$source=Join-Path $repoRoot 'dist/migration-1.0.3.1/payload.exe'
+$iconFile=Join-Path $out 'host-build/application.ico'
+$icon=if(Test-Path -LiteralPath $iconFile){[IO.File]::ReadAllBytes($iconFile)}else{[WuwaHelper.IconResources]::ReadFirst($source)}
 if(-not [WuwaHelper.IconResources]::MatchesAny((Join-Path $out 'Wuwatappo_Helper.exe'),$icon)){throw 'Launcher icon does not preserve the original frames'}
 if($IncludeInstaller -and -not [WuwaHelper.IconResources]::MatchesAny((Join-Path $out ('Wuwatappo_Helper-'+$pkg.releaseVersion+'-Setup.exe')),$icon)){throw 'Installer icon does not preserve the original frames'}
 $frames=for($i=0;$i -lt [BitConverter]::ToUInt16($icon,4);$i++){$at=6+$i*16;[ordered]@{width=if($icon[$at]){[int]$icon[$at]}else{256};height=if($icon[$at+1]){[int]$icon[$at+1]}else{256};bits=[BitConverter]::ToUInt16($icon,$at+6)}}

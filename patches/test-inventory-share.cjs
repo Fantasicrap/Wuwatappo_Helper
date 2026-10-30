@@ -26,7 +26,7 @@ async function main(){
  const loading=api.create(ref,()=>({loggedIn:true,loading:true}),value=>toast=value);await loading.run();assert.match(toast,/加载/);
  // Real offline Canvas rendering of a fixture, never the user's account inventory.
  const native=require('@napi-rs/canvas');
- const css=fs.readFileSync(path.join(__dirname,'assets/index-3cNSfJc6.css'),'utf8');
+ const css=fs.readFileSync(path.join(__dirname,'../dist/upstream-1.0.3/index-C3fG-hsi.css'),'utf8');
  const before=css.slice(css.indexOf('.module-content__bg:before'));const png=before.match(/url\(data:image\/png;base64,([A-Za-z0-9+/=]+)\)/)[1];
  const pattern=await native.loadImage(Buffer.from(png,'base64'));
  const frames=Object.fromEntries(await Promise.all(Object.entries(api.rarityFiles).map(async([rarity,file])=>[rarity,await native.loadImage(path.join(__dirname,'share-fixtures',file))])));

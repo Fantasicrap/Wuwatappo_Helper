@@ -7,7 +7,7 @@ async function __wtBoostLocalClicks(delta){
   __wtBoostBusy=true;__wtBoostNext=now+500;
   const cuid=A.isLoggedIn?String(A.userInfo?.cuid??""):"";
   try{
-    A.addLocalClickCount(delta);
+    A.setLocalClickCount(Math.min(Number.MAX_SAFE_INTEGER,A.localClickCount+delta));
     // No queue of boosts: clicks during this save are ignored. Read the
     // latest cumulative value after saving, and never save it for a new login.
     await Rn();

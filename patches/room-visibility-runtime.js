@@ -15,3 +15,16 @@ function __wtSetAllRoomMembersVisible(visible){
   tn();
   tt();
 }
+// Populate the original per-member hidden set as room snapshots change.
+// Keep individual show overrides; a new Hide All clears those overrides.
+function __wtHideNewRoomMembers(){
+  if(!__wtHideRoomPeers.value)return;
+  const hidden=new Set(Eo.value);let changed=false;
+  for(const member of fe.value){
+    const id=Number(member.id);
+    if(!Number.isFinite(id)||id<=0||id===Number(Wo.value)||__wtShownRoomPeers.value.has(id)||hidden.has(id))continue;
+    hidden.add(id);changed=true;
+  }
+  if(changed){Eo.value=hidden;tn();tt()}
+}
+Oe(fe,__wtHideNewRoomMembers,{deep:true});

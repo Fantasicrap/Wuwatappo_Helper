@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$DistributionDirectory)
+param([Parameter(Mandatory=$true)][string]$DistributionDirectory,[string]$PayloadPath)
 $ErrorActionPreference='Stop'
 $repoRoot=Split-Path -Parent $PSScriptRoot
 $out=[IO.Path]::GetFullPath($DistributionDirectory)
@@ -29,7 +29,7 @@ public static class HelperManifestReader {
  }
 }
 '@
-$payload=Join-Path $repoRoot 'patches/helper-release/Wuwatappo_Helper.exe'
+$payload=if($PayloadPath){[IO.Path]::GetFullPath($PayloadPath)}else{Join-Path $repoRoot 'dist/migration-1.0.3.1/payload.exe'}
 if([HelperManifestReader]::Read($payload) -notmatch 'level="requireAdministrator"'){throw 'Upstream privilege declaration unexpectedly changed'}
 if([HelperManifestReader]::Read($exe) -notmatch 'level="asInvoker"'){throw 'Outer launcher should not force elevation'}
 $embedded=$assembly.GetManifestResourceStream('WuwaTappo.exe')

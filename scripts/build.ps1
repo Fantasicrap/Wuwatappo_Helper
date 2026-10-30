@@ -6,24 +6,11 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $sourceFile = (Resolve-Path -LiteralPath $SourceExe).Path
-$compilerFile = (Resolve-Path -LiteralPath $IsccPath).Path
-$distDir = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $repoRoot 'dist' }
-New-Item -ItemType Directory -Path $distDir -Force | Out-Null
+if((Get-FileHash -LiteralPath $sourceFile -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'cedc37d0c11d112f4d933647fb6cf00e1dca847fc763250984c647080f849080'){
+ throw 'Only the reviewed WuwaTappo 1.0.3 source is supported'
+}
 $previousSource = $env:WUWA_SOURCE_EXE
 try {
     $env:WUWA_SOURCE_EXE = $sourceFile
-    & node (Join-Path $PSScriptRoot 'prepare-source.cjs') $sourceFile
-    if ($LASTEXITCODE -ne 0) { throw 'Resource preparation failed' }
-    & node (Join-Path $repoRoot 'patches/build-auto-chest.cjs') --helper-release
-    if ($LASTEXITCODE -ne 0) { throw 'Patch build failed' }
-    $manifestFile = Join-Path $repoRoot 'patches/helper-release/patch-manifest.json'
-    & (Join-Path $repoRoot 'patches/verify-patched-exe.ps1') -ManifestPath $manifestFile
-    if ($LASTEXITCODE -ne 0) { throw 'Independent resource verification failed' }
-    & node (Join-Path $PSScriptRoot 'test-migration.cjs')
-    if ($LASTEXITCODE -ne 0) { throw 'Migration checks failed' }
-    & (Join-Path $PSScriptRoot 'build-controller-host.ps1') -OutputDirectory $distDir
-    if ($LASTEXITCODE -ne 0) { throw 'Controller launcher failed' }
-    & (Join-Path $PSScriptRoot 'test-launcher.ps1') -DistributionDirectory $distDir
-    & (Join-Path $PSScriptRoot 'test-controller-events.ps1') -DistributionDirectory $distDir
-    & (Join-Path $PSScriptRoot 'package.ps1') -IsccPath $compilerFile -OutputDirectory $distDir
+    & (Join-Path $PSScriptRoot 'build-v103.ps1') -SourceExe $sourceFile -IsccPath $IsccPath -OutputDirectory $OutputDirectory
 } finally { $env:WUWA_SOURCE_EXE = $previousSource }

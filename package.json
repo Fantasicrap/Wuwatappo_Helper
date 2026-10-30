@@ -1,17 +1,18 @@
 {
   "name": "wuwatappo-helper",
-  "version": "1.0.2-10",
+  "version": "1.0.3-1",
   "private": true,
-  "description": "Non-official WuwaTappo 1.0.2 helper patches and Windows packaging",
+  "description": "Non-official WuwaTappo 1.0.3 helper patches and Windows packaging",
   "scripts": {
-    "test": "node patches/test-auto-chest.cjs && node patches/test-room-visibility.cjs && node patches/test-hotkeys.cjs && node patches/test-emote-hotkeys.cjs && node patches/test-native-hotkeys.cjs && node patches/test-panel-capture.cjs && node patches/test-inventory-share.cjs && node patches/test-inventory-luck.cjs && node patches/test-input-recorder.cjs && node scripts/test-controller-core.cjs && node patches/test-room-history.cjs",
-    "test:keyboard-ui": "node scripts/test-keyboard-ui.cjs",
+    "test": "node scripts/test-v103-suite.cjs",
+    "test:settings-ui": "node scripts/test-v103-settings-ui.cjs",
     "test:controller": "node scripts/test-controller-service.cjs",
-    "test:room-history": "node scripts/test-room-history-ui.cjs"
+    "test:room-history": "node scripts/test-v103-room-history.cjs",
+    "test:migration": "node scripts/test-v103-suite.cjs --ui"
   },
   "devDependencies": {
     "@napi-rs/canvas": "0.1.100",
     "playwright": "1.62.1"
   },
-  "releaseVersion": "1.0.2.10"
+  "releaseVersion": "1.0.3.1"
 }

@@ -2,17 +2,23 @@
 
 **仅供娱乐使用，创作者概不负责。**
 
-WuwaTappo 1.0.2 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
+WuwaTappo 1.0.3 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前为 **Helper 1.0.2.10 预览版**，适配官方 1.0.2。
+当前版本为 **Helper 1.0.3.1**，适配官方 1.0.3。本地启动及“+10000”修复已由用户确认正常；其他实际环境的验证范围见下文。
+
+本地适配版接回库存分享、欧非统计、自动宝箱、历史房间、持续隐藏、映射位置和录制。显隐、游戏模式和切屏快捷键使用官方 1.0.3 的设置；Helper 单独提供刷新、录制和六槽表情快捷键。键盘长按手部动作只在本机保持，未实现联机具体按键共享。
+
+同版本修复“+10000”点击无效：改用新版官方计数设置方法，保留防连点保护。旧版构建与旧版本专属检测已移除；构建只支持下方列明的官方 1.0.3 原件。
+
+鼠标左右键映射通过启动器内的独立本地鼠标事件通道补充，不再沿用 1.0.2 的机器码偏移；事件只在本机内存短暂保留，不自动上传。设置窗口外部点击保留依赖原生兼容指令，真实窗口行为仍需实机确认。
 
 修复 1.0.2.5 启动器报“请求的操作需要提升”的问题：保留官方内层程序的管理员权限声明，改由 Windows 正常请求 UAC 确认；取消时清理并退出。安装包本身仍无需管理员权限。
 
-[下载安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.2.10/Wuwatappo_Helper-1.0.2.10-Setup.exe) · [下载免安装版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.2.10/Wuwatappo_Helper-1.0.2.10-Portable.zip)
+[下载安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper-1.0.3.1-Setup.exe) · [下载免安装版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper-1.0.3.1-Portable.zip) · [下载单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper.exe)
 
 [此前已发布的版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
 
-右键显示和录制使用独立的原生 wt-raw-mouse 通道，覆盖桌宠内外的按下与松开，窗口内保留释放补充处理；正常长按不使用固定超时清除。自动宝箱现在等待至少 5 秒再领取。
+左右键显示和录制使用启动器的本地鼠标事件队列补充桌宠内外的按下与松开；事件缺失或通道断开时停止录制并释放高亮，正常长按不使用固定超时清除。自动宝箱等待至少 5 秒再领取。
 
 桌宠外的全局左键显示和录制已增加补充事件源，同时保留原生拖动与点击处理。26 键模式也支持空格和左右鼠标键的高亮与松开。
 
@@ -44,7 +50,7 @@ WuwaTappo 1.0.2 的非官方 Windows 辅助修改版本。原程序、角色、�
 - 点击“开始录制”或按 **Ctrl+Alt+F10** 开始，再次触发结束。这个独立快捷键可在设置中修改，并参加已有冲突检测。
 - **只录 1/2/3、Q/E/R、空格、鼠标左右键**。录制状态和时长始终在键盘下显示；没有自动开始或后台隐藏录制。
 - 结束后点击“导出 TXT”。内容包含相对时间、按下/松开、按住时长。记录仅在本机内存中保留，不会自动上传；“清除”、退出或新一轮录制会清理上一轮数据。
-- 键盘高亮复用原程序的 `key-press` / `key-release` 与 `mouse-button` 事件及独立右键 `wt-raw-mouse` 通道。隔离浏览器已测试布局、事件适配和导出；本预览版尚未验证原生全局事件在真实游戏中的覆盖范围。
+- 键盘高亮复用原程序的 `key-press` / `key-release`；鼠标使用启动器本地通道，不可用时回退原程序的 `mouse-button` 事件。隔离浏览器已测试布局、事件适配和导出；本预览版尚未验证原生全局事件在真实游戏中的覆盖范围。
 
 ## 库存分享
 
@@ -71,12 +77,12 @@ Ctrl+Alt+1～6 发送表情菜单中对应槽位当前装备的表情，无需�
 - 联机页一键显示、隐藏其他成员的桌宠，仅影响本机显示。隐藏默认持续到点击“一键可见”或退出程序；后来加入、重连或换房的其他成员也默认隐藏，单独显示某成员可作为例外，再次一键隐藏会清除例外。
 - 自定义刷新、游戏模式、屏幕切换和桌宠显隐快捷键，提供冲突提醒，保留 PrtScr 截图键。
 - 本地“+10000”按钮增加防连点保护：间隔至少 0.5 秒，保存未完成时重复点击会被忽略，不会积攒待执行点击；面板普通刷新合并为每秒最多 5 次。本地显示变化不代表服务器已接受或已发放奖励。
-- F7/F8/F9 不再由原生层全局注册占用：桌宠运行期间这三个键会正常传给其他程序，对应动作由原程序已有的全局键盘钩子触发；改键或清空后不会再出现“按键被吞掉但无功能”的情况。
+- 显隐、游戏模式及切屏保留官方 1.0.3 的原生快捷键机制；不再套用 1.0.2 的取消注册机器码补丁。若 F7/F8/F9 与其他软件冲突，请在官方快捷键区域修改或清空。
 
 ## 安装与使用
 
 1. 退出正在运行的 WuwaTappo 或旧版修改程序。
-2. 下载并运行 `Wuwatappo_Helper-1.0.2.10-Setup.exe`，选择安装目录；桌面快捷方式可选。也可解压免安装版后运行 `Wuwatappo_Helper.exe`。
+2. 下载并运行 `Wuwatappo_Helper-1.0.3.1-Setup.exe`，选择安装目录；桌面快捷方式可选。也可解压免安装版后运行 `Wuwatappo_Helper.exe`。
 3. 登录并打开库存，等库存加载结束后点击“分享库存长图”。
 4. 生成完成后点击“保存 PNG”或“复制图片”。
 
@@ -102,8 +108,8 @@ TXT 和库存 PNG 均通过内置 WebView2 下载，程序没有固定保存目�
 本版本只适配以下原始文件：
 
 ```text
-WuwaTappo.exe 1.0.2 / 77,981,408 bytes
-SHA-256: 099b62be14efe2cc99bb0ad3d37860488c42fb0f4e6282b5687e6335ab178573
+WuwaTappo.exe 1.0.3 / 78,064,864 bytes
+SHA-256: cedc37d0c11d112f4d933647fb6cf00e1dca847fc763250984c647080f849080
 ```
 
 ## 从本地原件构建
@@ -117,8 +123,8 @@ pnpm install --frozen-lockfile
 pwsh -File scripts/build.ps1 -SourceExe 'F:\WuwaTappo\WuwaTappo.exe' -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
 ```
 
-脚本会核验原件摘要，提取构建所需资源并生成离线测试样例，运行检查，输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/`。不会改动输入原件，也不会请求账号业务接口。
+脚本会核验原件摘要，提取构建所需资源，运行检查，默认输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/local-1.0.3.1/`。不会改动输入原件，也不会请求账号业务接口。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
 
-安装 Edge 后可运行 `pnpm test:keyboard-ui` 进行隔离界面与下载测试；也可通过 `WUWA_TEST_BROWSER` 指定本机兼容浏览器路径。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1`。
+安装 Edge 后可运行 `pnpm test:migration` 进行迁移与设置界面的隔离回归。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.3.1`。
 
 详见 [免责声明](DISCLAIMER.txt) 与 [第三方说明](THIRD_PARTY_NOTICES.md)。

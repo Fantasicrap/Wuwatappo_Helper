@@ -15,11 +15,12 @@ const members=[
  {id:2,online:true,dockVisible:true}
 ];
 const original=JSON.stringify(members);
-const ctx={Ie:()=>false,Eo:{value:new Set([3,40])},fe:{value:members},Go:member=>member.id===1,
+const styles=[];let watcher;const ctx={Oe:(source,callback)=>{watcher=callback},document:{createElement:()=>({}),head:{append:node=>styles.push(node)}},Ie:()=>false,Eo:{value:new Set([3,40])},fe:{value:members},Go:member=>member.id===1,
  Md:()=>{ctx.Eo.value=new Set()},xo:()=>updates.hover++,tn:()=>updates.layout++,tt:()=>updates.panel++};
 vm.createContext(ctx,{codeGeneration:{strings:false,wasm:false}});
 ctx.W=value=>({value});ctx.Wo={value:1};
 vm.runInContext(fs.readFileSync(path.join(__dirname,'room-visibility-policy.js'),'utf8')+runtime+';this.setVisible=__wtSetAllRoomMembersVisible;this.hidden=no;this.individual=cl;this.reset=Md',ctx,{timeout:1000});
+assert(styles[0].textContent.includes('.room-cat-shell--ui-hidden *{pointer-events:none!important}'));
 ctx.setVisible(false);assert.deepEqual([...ctx.Eo.value].sort((a,b)=>a-b),[2,3,40]);
 ctx.setVisible(false);assert.deepEqual([...ctx.Eo.value].sort((a,b)=>a-b),[2,3,40]);
 assert(!ctx.Eo.value.has(1));assert(!ctx.Eo.value.has(4));assert(!ctx.Eo.value.has(5));assert(!ctx.Eo.value.has(-1));
@@ -36,9 +37,12 @@ vm.createContext(ui);vm.runInContext(uiCode+';this.bulk=__wtBulkRoomVisible',ui,
  for(const event of events)ctx.setVisible(event.visible);
  assert.equal(ctx.Eo.value.size,0);
  ctx.setVisible(false);assert(ctx.hidden(200),'Late joiner must be hidden before first render');
+ members.push({id:200,online:true,dockVisible:true});watcher();assert(ctx.Eo.value.has(200),'Actual per-member hidden set is updated when a new snapshot arrives');
+ assert(ctx.hidden('200'),'String-form member IDs follow the same hide rule');assert(!ctx.hidden('1'),'String-form local ID stays visible');
  assert(ctx.hidden(4)&&ctx.hidden(5),'Previously offline or dock-hidden peers stay hidden on return');
  assert(!ctx.hidden(1)&&!ctx.hidden(-1)&&!ctx.hidden(NaN),'Never hide self or invalid IDs');
  ctx.individual(200,false);assert(!ctx.hidden(200),'An explicit individual show overrides the default');
+ watcher();assert(!ctx.hidden(200),'Snapshot updates preserve explicit show overrides');
  assert(ctx.hidden(201));ctx.setVisible(false);assert(ctx.hidden(200),'Hide all clears per-member show exceptions');
  ctx.reset();assert(ctx.hidden(202),'Original room reset must not clear the session hide default');
  ctx.setVisible(true);assert(!ctx.hidden(200)&&!ctx.hidden(203),'Show all restores future joiners too');
