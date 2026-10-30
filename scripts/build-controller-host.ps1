@@ -20,12 +20,13 @@ $roomCore=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/room-history-core
 $roomUi=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/room-history-ui.js'))
 $uiFile=Join-Path $hostDir 'controller-ui.js'
 $luck=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/inventory-luck.js'))
-[IO.File]::WriteAllText($uiFile,$core+"`n"+$ui+"`n"+$roomCore+"`n"+$roomUi+"`n"+$luck,[Text.UTF8Encoding]::new($false))
+$monitor=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/monitor-preference.js'))
+[IO.File]::WriteAllText($uiFile,$core+"`n"+$ui+"`n"+$roomCore+"`n"+$roomUi+"`n"+$luck+"`n"+$monitor,[Text.UTF8Encoding]::new($false))
 $pkg=Get-Content -LiteralPath (Join-Path $repoRoot 'package.json') -Raw|ConvertFrom-Json
 $hash=(Get-FileHash -LiteralPath $payload -Algorithm SHA256).Hash.ToLowerInvariant()
 $runtimeId=Join-Path $hostDir 'runtime-id'
 [IO.File]::WriteAllText($runtimeId,($pkg.releaseVersion+'-'+$hash.Substring(0,12)))
-$exe=Join-Path $out 'Wuwatappo_Helper.exe'
+$exe=Join-Path $out ("Wuwatappo_Helper-"+$pkg.releaseVersion+".exe")
 $license=Join-Path $repoRoot 'licenses/SDL3-LICENSE.txt'
 & $compiler /nologo /target:winexe /platform:x64 /optimize+ ('/win32icon:'+$iconFile) /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:System.Core.dll ('/out:'+$exe) ('/resource:'+$payload+',WuwaTappo.exe') ('/resource:'+$SdlPath+',SDL3.dll') ('/resource:'+$license+',SDL3-LICENSE.txt') ('/resource:'+$uiFile+',controller-ui.js') ('/resource:'+$runtimeId+',runtime-id') (Join-Path $repoRoot 'native/ControllerHost.cs') (Join-Path $repoRoot 'native/MouseCapture.cs')
 if($LASTEXITCODE -ne 0){throw 'Controller launcher compilation failed'}

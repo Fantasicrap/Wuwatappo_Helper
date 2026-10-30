@@ -14,7 +14,7 @@ WuwaTappo 1.0.3 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 修复 1.0.2.5 启动器报“请求的操作需要提升”的问题：保留官方内层程序的管理员权限声明，改由 Windows 正常请求 UAC 确认；取消时清理并退出。安装包本身仍无需管理员权限。
 
-[下载安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper-1.0.3.1-Setup.exe) · [下载免安装版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper-1.0.3.1-Portable.zip) · [下载单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper.exe)
+[下载安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper-1.0.3.1-Setup.exe) · [下载免安装版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper-1.0.3.1-Portable.zip) · [下载单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper-1.0.3.1.exe)
 
 [此前已发布的版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
 
@@ -54,6 +54,7 @@ WuwaTappo 1.0.3 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 ## 库存分享
 
+- 同版本修复：角色、配件和表情的图下注明各自的官方素材名称，不再把配件、表情统一显示为角色名；官方名称缺失时明确标注未加载。
 - 一键读取当前账号已拥有的完整库存，按角色、配件、表情分区，每行 5 个。
 - 使用原程序的背景纹理、四种稀有度底图和库存图片：Epic 彩色、Rare 紫色、Uncommon 蓝色、Common 绿色。
 - 各分类内按稀有度从高到低、系列名称、角色名排序；名称按中文拼音自然顺序排列，同名按素材 ID 保持稳定顺序。
@@ -72,6 +73,7 @@ Ctrl+Alt+1～6 发送表情菜单中对应槽位当前装备的表情，无需�
 
 ## 其他功能
 
+- 默认显示器：保存启动时优先使用的屏幕，支持立即切换、断开回退主屏和重连恢复；保留临时切屏快捷键。详见[使用说明](docs/使用说明.md#默认显示器)。
 - 设置面板请求取消置顶、显示在任务栏，点击外部保留面板，保留关闭按钮。
 - 保留自动宝箱开关：默认关闭，倒计时结束至少等 5 秒，检查领取条件，失败后退避重试。
 - 联机页一键显示、隐藏其他成员的桌宠，仅影响本机显示。隐藏默认持续到点击“一键可见”或退出程序；后来加入、重连或换房的其他成员也默认隐藏，单独显示某成员可作为例外，再次一键隐藏会清除例外。
@@ -82,7 +84,7 @@ Ctrl+Alt+1～6 发送表情菜单中对应槽位当前装备的表情，无需�
 ## 安装与使用
 
 1. 退出正在运行的 WuwaTappo 或旧版修改程序。
-2. 下载并运行 `Wuwatappo_Helper-1.0.3.1-Setup.exe`，选择安装目录；桌面快捷方式可选。也可解压免安装版后运行 `Wuwatappo_Helper.exe`。
+2. 下载并运行 `Wuwatappo_Helper-1.0.3.1-Setup.exe`，选择安装目录；桌面快捷方式可选。也可解压免安装版后运行 `Wuwatappo_Helper-1.0.3.1.exe`。
 3. 登录并打开库存，等库存加载结束后点击“分享库存长图”。
 4. 生成完成后点击“保存 PNG”或“复制图片”。
 

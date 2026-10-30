@@ -15,7 +15,7 @@ $setupArgs = '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOCLOSEAPPLICATIONS /NOR
 $setupProcess = Start-Process -FilePath $setupFile -ArgumentList $setupArgs -WindowStyle Hidden -PassThru -Wait
 if ($setupProcess.ExitCode -ne 0) { throw ('Package test installer failed: ' + $setupProcess.ExitCode) }
 $files = @{
-    'Wuwatappo_Helper.exe' = (Join-Path $distDir 'Wuwatappo_Helper.exe')
+    'Wuwatappo_Helper.exe' = (Join-Path $distDir "Wuwatappo_Helper-$helperVersion.exe")
     'README.md' = (Join-Path $repoRoot 'README.md')
     'DISCLAIMER.txt' = (Join-Path $repoRoot 'DISCLAIMER.txt')
     'THIRD_PARTY_NOTICES.md' = (Join-Path $repoRoot 'THIRD_PARTY_NOTICES.md')
@@ -33,7 +33,8 @@ if (Test-Path -LiteralPath (Join-Path $targetPath 'unins000.exe')) { throw 'Pack
 $zipFile = Join-Path $distDir "Wuwatappo_Helper-$helperVersion-Portable.zip"
 $zipTarget = $targetPath + '-zip'
 Expand-Archive -LiteralPath $zipFile -DestinationPath $zipTarget
-$zipExe = Join-Path $zipTarget 'Wuwatappo_Helper/Wuwatappo_Helper.exe'
+$zipExe = Join-Path $zipTarget "Wuwatappo_Helper/Wuwatappo_Helper-$helperVersion.exe"
+if (@(Get-ChildItem -LiteralPath (Split-Path -Parent $zipExe) -Filter 'Wuwatappo_Helper*.exe' -File).Count -ne 1) { throw 'Portable package contains stale executable names' }
 if ((Get-FileHash -LiteralPath $zipExe -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $files['Wuwatappo_Helper.exe'] -Algorithm SHA256).Hash) { throw 'Portable EXE hash mismatch' }
 $result = [ordered]@{ passed=$true; installedFilesMatch=$true; portableExeMatches=$true; appStarted=$false; testModeSkipsShortcutsAndUninstallRegistry=$true; nativeUiTested=$false }
 $result | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $distDir 'package-verification.json') -Encoding utf8NoBOM

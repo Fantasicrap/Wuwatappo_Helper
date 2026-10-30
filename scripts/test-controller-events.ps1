@@ -1,7 +1,8 @@
 param([Parameter(Mandatory=$true)][string]$DistributionDirectory)
 $ErrorActionPreference='Stop'
 $out=[IO.Path]::GetFullPath($DistributionDirectory)
-$assembly=[Reflection.Assembly]::LoadFile((Join-Path $out 'Wuwatappo_Helper.exe'))
+$pkg=Get-Content -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'package.json') -Raw|ConvertFrom-Json
+$assembly=[Reflection.Assembly]::LoadFile((Join-Path $out ("Wuwatappo_Helper-"+$pkg.releaseVersion+".exe")))
 $hostType=$assembly.GetType('HelperHost')
 $stateType=$assembly.GetType('HelperHost+State')
 $flags=[Reflection.BindingFlags]'Static,NonPublic'

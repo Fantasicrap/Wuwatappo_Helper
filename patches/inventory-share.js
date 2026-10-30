@@ -7,6 +7,7 @@ const __wtInventoryShare=(()=>{
   const width=1000,pad=30,gap=14,columns=5,cell=(width-pad*2-gap*4)/5,rowHeight=206,maxHeight=32000;
   function translated(prefix,value,fallback){
     const key=prefix+value;
+    try{const name=dictLookup(prefix==='select_role_'?'character':'series',String(value));if(name)return name}catch{}
     try{const zh=i18n.global.getLocaleMessage('zh'),result=zh?.[key]??i18n.global.t(key);if(result&&result!==key)return String(result)}catch{}
     return fallback;
   }
@@ -69,7 +70,8 @@ const __wtInventoryShare=(()=>{
     });
   }
   function caption(item){
-    return roleName(item);
+    let name;try{name=resolveAssetDisplayName(item.asset_type,item.asset_name)}catch{}
+    return name||'名称未加载 #'+item.asset_id;
   }
   function text(ctx,value,x,y,maxSize){
     let output=String(value);while(output.length&&ctx.measureText(output).width>maxSize)output=output.slice(0,-1);
@@ -186,7 +188,7 @@ const __wtInventoryShare=(()=>{
   function render(h,model){
     return h('div',{style:{display:'flex',justifyContent:'flex-end',margin:'0 0 12px'}},[h('button',{type:'button',disabled:model.busy.value,title:'导出全部已拥有的角色、配件、表情，每行5个',style:{position:'static',padding:'8px 16px',border:'1px solid #E7B77C',borderRadius:'18px',background:'#fed291',color:'#8e5e43',font:'inherit',cursor:'pointer'},onMousedown:event=>event.stopPropagation(),onClick:event=>{event.stopPropagation();model.run()}},model.label.value,9,['disabled'])]);
   }
-  return {owned,layout,positions,draw,create,render,compare,roleName,seriesName,rarityFiles,width,columns,maxHeight};
+  return {owned,layout,positions,draw,create,render,compare,roleName,seriesName,caption,rarityFiles,width,columns,maxHeight};
 })();
 async function __wtNormalPanel(panel){
   await panel.setAlwaysOnTop(false);

@@ -10,13 +10,15 @@ if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
 & (Join-Path $PSScriptRoot 'test-icon.ps1') -DistributionDirectory $distDir -IncludeInstaller
 $portableDir = Join-Path $distDir 'portable/Wuwatappo_Helper'
 New-Item -ItemType Directory -Path $portableDir -Force | Out-Null
-Copy-Item -LiteralPath (Join-Path $distDir 'Wuwatappo_Helper.exe') -Destination $portableDir -Force
+Get-ChildItem -LiteralPath $portableDir -File -Filter 'Wuwatappo_Helper*.exe' | ForEach-Object { Remove-Item -LiteralPath $_.FullName }
+$exeName="Wuwatappo_Helper-$helperVersion.exe"
+Copy-Item -LiteralPath (Join-Path $distDir $exeName) -Destination $portableDir -Force
 foreach ($name in @('README.md','DISCLAIMER.txt','THIRD_PARTY_NOTICES.md')) { Copy-Item -LiteralPath (Join-Path $repoRoot $name) -Destination $portableDir -Force }
 foreach ($doc in @('使用说明.md','手柄使用说明.md','库存欧非判定.md')) { Copy-Item -LiteralPath (Join-Path $repoRoot ('docs/'+$doc)) -Destination $portableDir -Force }
 New-Item -ItemType Directory -Path (Join-Path $portableDir 'licenses') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repoRoot 'licenses/SDL3-LICENSE.txt') -Destination (Join-Path $portableDir 'licenses') -Force
 Compress-Archive -LiteralPath $portableDir -DestinationPath (Join-Path $distDir "Wuwatappo_Helper-$helperVersion-Portable.zip") -Force
-$releaseNames = @('Wuwatappo_Helper.exe',"Wuwatappo_Helper-$helperVersion-Setup.exe","Wuwatappo_Helper-$helperVersion-Portable.zip")
+$releaseNames = @($exeName,"Wuwatappo_Helper-$helperVersion-Setup.exe","Wuwatappo_Helper-$helperVersion-Portable.zip")
 $checksums = foreach ($name in $releaseNames) { $digest = (Get-FileHash -LiteralPath (Join-Path $distDir $name) -Algorithm SHA256).Hash.ToLower(); "$digest  $name" }
 Set-Content -LiteralPath (Join-Path $distDir 'SHA256SUMS.txt') -Value $checksums -Encoding utf8NoBOM
 Write-Output "Release artifacts: $distDir"
