@@ -4,7 +4,7 @@ $ErrorActionPreference='Stop'
 $repoRoot=Split-Path -Parent $PSScriptRoot
 $out=[IO.Path]::GetFullPath($DistributionDirectory)
 $pkg=Get-Content -LiteralPath (Join-Path $repoRoot 'package.json') -Raw|ConvertFrom-Json
-$source=Join-Path $repoRoot 'dist/migration-1.0.3.1/payload.exe'
+$source=Join-Path $repoRoot 'dist/migration-1.0.3.2/payload.exe'
 $iconFile=Join-Path $out 'host-build/application.ico'
 $icon=if(Test-Path -LiteralPath $iconFile){[IO.File]::ReadAllBytes($iconFile)}else{[WuwaHelper.IconResources]::ReadFirst($source)}
 if(-not [WuwaHelper.IconResources]::MatchesAny((Join-Path $out ("Wuwatappo_Helper-"+$pkg.releaseVersion+".exe")),$icon)){throw 'Launcher icon does not preserve the original frames'}

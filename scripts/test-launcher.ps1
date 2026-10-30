@@ -30,7 +30,7 @@ public static class HelperManifestReader {
  }
 }
 '@
-$payload=if($PayloadPath){[IO.Path]::GetFullPath($PayloadPath)}else{Join-Path $repoRoot 'dist/migration-1.0.3.1/payload.exe'}
+$payload=if($PayloadPath){[IO.Path]::GetFullPath($PayloadPath)}else{Join-Path $repoRoot 'dist/migration-1.0.3.2/payload.exe'}
 if([HelperManifestReader]::Read($payload) -notmatch 'level="requireAdministrator"'){throw 'Upstream privilege declaration unexpectedly changed'}
 if([HelperManifestReader]::Read($exe) -notmatch 'level="asInvoker"'){throw 'Outer launcher should not force elevation'}
 $embedded=$assembly.GetManifestResourceStream('WuwaTappo.exe')

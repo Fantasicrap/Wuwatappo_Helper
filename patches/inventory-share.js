@@ -171,15 +171,16 @@ const __wtInventoryShare=(()=>{
       if(!total){notify('当前没有可分享的库存');return}
       busy.value=true;const controller=new AbortController(),ui=preview(document,()=>controller.abort());let bg;
       try{
-        label.value='正在生成…';const module=await import('http://127.0.0.1:48642/ui.js'),luck={module:module.InventoryLuck,data:await module.InventoryLuck.prepare(groups,snapshot.user,()=>userInfo().then(unwrapApiData),()=>get().user)};ui.status('正在读取 WuwaTappo 背景…');bg=await background(document,controller.signal);
-        const pages=layout(groups,maxHeight,module.InventoryLuck.headerHeight),date=new Date(),timestamp=date.toLocaleString(),stamp=date.toISOString().replace(/[:.]/g,'-');let done=0,failed=0;
+        label.value='正在生成…';let module;try{module=await import('http://127.0.0.1:48642/ui.js')}catch{try{module=await import('http://127.0.0.1:48642/ui.js?retry='+Date.now())}catch{}}
+        const luck=module?{module:module.InventoryLuck,data:await module.InventoryLuck.prepare(groups,snapshot.user,()=>userInfo().then(unwrapApiData),()=>get().user)}:null;ui.status('正在读取 WuwaTappo 背景…');bg=await background(document,controller.signal);
+        const pages=layout(groups,maxHeight,module?.InventoryLuck.headerHeight??144),date=new Date(),timestamp=date.toLocaleString(),stamp=date.toISOString().replace(/[:.]/g,'-');let done=0,failed=0;
         for(let index=0;index<pages.length;index++){
           if(controller.signal.aborted)throw Error('已取消生成');
           const result=await draw(pages[index],groups,{document,luck,background:bg,signal:controller.signal,loadImage:url=>image(url,controller.signal),resolveUrl:item=>resolveBagAppearanceImageUrl(snapshot.host,item),timestamp,pageLabel:(index+1)+' / '+pages.length,progress(){done++;ui.status('正在生成 '+done+' / '+total)}});
           if(controller.signal.aborted)throw Error('已取消生成');
           failed+=result.failed;ui.add(result,'WuwaTappo-库存-'+stamp+(pages.length>1?'-'+(index+1):'')+'.png');
         }
-        ui.status(failed?'已生成，有 '+failed+' 个素材加载失败；关闭后重试可补全':pages.length>1?'已生成 '+pages.length+' 张长图（库存较多，已分段）':'长图已生成，可保存或复制分享');
+        ui.status(!luck?'库存图已生成；本地模块未连接，未附欧非统计。请退出全部桌宠后重新运行带版本号的 Helper，并检查本机 48642 端口访问。':failed?'已生成，有 '+failed+' 个素材加载失败；关闭后重试可补全':pages.length>1?'已生成 '+pages.length+' 张长图（库存较多，已分段）':'长图已生成，可保存或复制分享');
       }catch(error){ui.status('生成失败：'+String(error?.message||error))}
       finally{bg?.pattern?.close?.();Object.values(bg?.frames??{}).forEach(bitmap=>bitmap.close?.());busy.value=false;label.value='分享库存长图';ui.finish()}
     }

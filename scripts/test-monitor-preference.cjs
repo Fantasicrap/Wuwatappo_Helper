@@ -20,7 +20,7 @@ async function fixture(){
  return{control,win,storage,moves,replies,events,timers,dom,listRequests:()=>listRequests,start:async()=>{win.__wtMainReady=true;dom.get('wt-main-ready')();await settle()},setMonitors:v=>monitors=v,setHere:v=>here=v,here:()=>here,setSuccess:v=>success=v,unlistens:()=>stopped};
 }
 async function productionBridge(){
- const code=fs.readFileSync('dist/migration-1.0.3.1/switchDisplayMonitor-B50jXMGD.js','utf8'),fns={};
+ const code=fs.readFileSync('dist/migration-1.0.3.2/switchDisplayMonitor-B50jXMGD.js','utf8'),fns={};
  traverse(babelParse(code,'bridge.mjs',true),{FunctionDeclaration(p){if(['Aa','An','p','qe','j'].includes(p.node.id.name))fns[p.node.id.name]=code.slice(p.node.start,p.node.end)}});assert.equal(Object.keys(fns).length,5);
  let here=primary,monitors=[primary,secondary],confirm=true;const calls=[],cache=new Map(),c={Date,Math,console:{warn:()=>{},error:()=>{}},O:null,pa:'position',localStorage:{setItem:(k,v)=>cache.set(k,v)},ye:async()=>({}),me:async()=>monitors,H:async()=>primary,K:async()=>here,w:()=>{},ne:async()=>({}),ot:()=>({}),Ea:async()=>{calls.push('prepare');return true},ga:async()=>true,Sa:async()=>true,rt:async()=>{},ct:async fn=>fn(),_e:()=>{},u:async(name,args)=>{calls.push(name);if(name==='set_main_window_monitor_bounds'&&confirm)here=monitors.find(m=>m.position.x===args.payload.x)}};
  vm.createContext(c);vm.runInContext(Object.values(fns).join(';')+';this.switchTo=An;',c);

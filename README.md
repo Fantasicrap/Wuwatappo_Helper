@@ -4,7 +4,7 @@
 
 WuwaTappo 1.0.3 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前版本为 **Helper 1.0.3.1**，适配官方 1.0.3。本地启动及“+10000”修复已由用户确认正常；其他实际环境的验证范围见下文。
+当前版本为 **Helper 1.0.3.2**，适配官方 1.0.3。本次包含游戏模式键鼠补充、本地服务进程跟踪、库存模块加载容错及重连隐藏修复；实际环境的验证范围见下文。
 
 本地适配版接回库存分享、欧非统计、自动宝箱、历史房间、持续隐藏、映射位置和录制。显隐、游戏模式和切屏快捷键使用官方 1.0.3 的设置；Helper 单独提供刷新、录制和六槽表情快捷键。键盘长按手部动作只在本机保持，未实现联机具体按键共享。
 
@@ -14,7 +14,7 @@ WuwaTappo 1.0.3 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 修复 1.0.2.5 启动器报“请求的操作需要提升”的问题：保留官方内层程序的管理员权限声明，改由 Windows 正常请求 UAC 确认；取消时清理并退出。安装包本身仍无需管理员权限。
 
-[下载安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper-1.0.3.1-Setup.exe) · [下载免安装版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper-1.0.3.1-Portable.zip) · [下载单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.1/Wuwatappo_Helper-1.0.3.1.exe)
+[下载安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.2/Wuwatappo_Helper-1.0.3.2-Setup.exe) · [下载免安装版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.2/Wuwatappo_Helper-1.0.3.2-Portable.zip) · [下载单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.2/Wuwatappo_Helper-1.0.3.2.exe)
 
 [此前已发布的版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
 
@@ -84,7 +84,7 @@ Ctrl+Alt+1～6 发送表情菜单中对应槽位当前装备的表情，无需�
 ## 安装与使用
 
 1. 退出正在运行的 WuwaTappo 或旧版修改程序。
-2. 下载并运行 `Wuwatappo_Helper-1.0.3.1-Setup.exe`，选择安装目录；桌面快捷方式可选。也可解压免安装版后运行 `Wuwatappo_Helper-1.0.3.1.exe`。
+2. 下载并运行 `Wuwatappo_Helper-1.0.3.2-Setup.exe`，选择安装目录；桌面快捷方式可选。也可解压免安装版后运行 `Wuwatappo_Helper-1.0.3.2.exe`。
 3. 登录并打开库存，等库存加载结束后点击“分享库存长图”。
 4. 生成完成后点击“保存 PNG”或“复制图片”。
 
@@ -125,8 +125,8 @@ pnpm install --frozen-lockfile
 pwsh -File scripts/build.ps1 -SourceExe 'F:\WuwaTappo\WuwaTappo.exe' -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
 ```
 
-脚本会核验原件摘要，提取构建所需资源，运行检查，默认输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/local-1.0.3.1/`。不会改动输入原件，也不会请求账号业务接口。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
+脚本会核验原件摘要，提取构建所需资源，运行检查，默认输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/local-1.0.3.2/`。不会改动输入原件，也不会请求账号业务接口。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
 
-安装 Edge 后可运行 `pnpm test:migration` 进行迁移与设置界面的隔离回归。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.3.1`。
+安装 Edge 后可运行 `pnpm test:migration` 进行迁移与设置界面的隔离回归。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.3.2`。
 
 详见 [免责声明](DISCLAIMER.txt) 与 [第三方说明](THIRD_PARTY_NOTICES.md)。

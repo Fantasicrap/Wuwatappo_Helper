@@ -1,6 +1,6 @@
 const fs=require('fs'),path=require('path'),assert=require('assert/strict'),{chromium}=require('playwright');
-const source=fs.readFileSync('patches/monitor-preference.js','utf8').replace(/export /g,''),out=path.resolve(process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/monitor-preview-1.0.3.1');fs.mkdirSync(out,{recursive:true});
-const settings=fs.readFileSync('dist/migration-1.0.3.1/index-CiT_jZa7.js','utf8'),panel=fs.readFileSync('dist/migration-1.0.3.1/index-pp8VWaUF.js','utf8');
+const source=fs.readFileSync('patches/monitor-preference.js','utf8').replace(/export /g,''),out=path.resolve(process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/monitor-preview-1.0.3.2');fs.mkdirSync(out,{recursive:true});
+const settings=fs.readFileSync('dist/migration-1.0.3.2/index-CiT_jZa7.js','utf8'),panel=fs.readFileSync('dist/migration-1.0.3.2/index-pp8VWaUF.js','utf8');
 assert(settings.includes('id:"wt-monitor-settings"')&&settings.includes('m.mountDefaultMonitorSettings('));assert(panel.indexOf('window.__wtMainReady=1')>panel.indexOf('ta=await wv(gp),na=await bv(kp)'));
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});

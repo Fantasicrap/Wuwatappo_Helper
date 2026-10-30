@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const {babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const read=name=>fs.readFileSync('dist/migration-1.0.3.1/'+name,'utf8');
+const read=name=>fs.readFileSync('dist/migration-1.0.3.2/'+name,'utf8');
 const panel=read('index-pp8VWaUF.js'),settings=read('index-CiT_jZa7.js'),common=read('index-CuzHFfJW.js');
 function functions(source,names){const found={};traverse(babelParse(source,'production.mjs',true),{FunctionDeclaration(p){if(names.includes(p.node.id.name))found[p.node.id.name]=source.slice(p.node.start,p.node.end)}});for(const name of names)assert(found[name],'Missing production function '+name);return found}
 const panelFns=functions(panel,['__wtBoostLocalClicks','__wtDisposeCounter','it','__wtFlushPanel','jp']);

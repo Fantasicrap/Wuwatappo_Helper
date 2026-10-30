@@ -1,5 +1,5 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const common=fs.readFileSync('dist/migration-1.0.3.1/index-CuzHFfJW.js','utf8'),functions=new Map();
+const common=fs.readFileSync('dist/migration-1.0.3.2/index-CuzHFfJW.js','utf8'),functions=new Map();
 traverse(babelParse(common,'common.mjs',true),{FunctionDeclaration(p){functions.set(p.node.id.name,common.slice(p.node.start,p.node.end))}});
 const names=['dictLookup','stripAssetExt','dictLookupByAssetName','parseRoleAssetName','parseAccessoryAssetName','parseEmoteAssetName','joinDisplayParts','resolveCharacterSkinDisplayName','resolveAccessoryDisplayName','resolveEmoteDisplayName','resolveAssetDisplayName'];
 for(const name of names)assert(functions.has(name),'Missing official resolver '+name);

@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const calls=[],replies=[],ctx={
  fetch:async()=>{const reply=replies.shift();if(reply instanceof Error)throw reply;return{ok:true,json:async()=>reply}},
  AbortSignal:{timeout:()=>({})},setTimeout:()=>1,clearTimeout:()=>{},
- __wtKeyboard:{mouse:(...args)=>calls.push(args),stopRecording:reason=>calls.push(['stop',reason])}
+ __wtKeyboard:{mouse:(...args)=>calls.push(args),key:(...args)=>calls.push(['key',...args]),stopRecording:reason=>calls.push(['stop',reason])}
 };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync('patches/v103/mouse-feed.js','utf8')+';this.poll=__wtPollMouse;this.stop=__wtStopMouseFeed',ctx);
@@ -11,6 +11,9 @@ vm.runInContext(fs.readFileSync('patches/v103/mouse-feed.js','utf8')+';this.poll
  await ctx.poll();assert.equal(calls.length,0,'Do not replay input from before connecting');
  replies.push({seq:12,available:true,events:[{seq:11,button:'right',action:'press',x:1,y:2},{seq:12,button:'right',action:'release',x:1,y:2}]});
  await ctx.poll();assert.equal(calls.length,2);assert.equal(calls[0][1],'press');assert.equal(calls[1][1],'release');
+ calls.length=0;let seq=12;const keys=['1','2','3','Q','E','R','Space'];
+ replies.push({seq:26,available:true,keyboardAvailable:true,events:keys.flatMap(key=>[{seq:++seq,key,action:'press'},{seq:++seq,key,action:'release'}])});await ctx.poll();
+ assert.equal(calls.length,14);for(let i=0;i<keys.length;i++){assert.deepEqual(calls[i*2],['key',keys[i],true]);assert.deepEqual(calls[i*2+1],['key',keys[i],false])}
  calls.length=0;
  replies.push({seq:2048,available:true,gap:true,events:[{seq:2048,button:'left',action:'press'}]});
  await ctx.poll();assert.deepEqual(calls,[['stop','mouse_event_gap'],['left','release'],['right','release']],'Missing edges must stop recording and discard partial history');

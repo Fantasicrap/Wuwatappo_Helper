@@ -1,7 +1,7 @@
 // Local 1.0.3 adaptation preview; real account and hardware validation remains pending.
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),zlib=require('zlib'),assert=require('assert/strict');
 const {babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-1.0.3'),out=path.join(root,'dist/migration-1.0.3.1');fs.mkdirSync(out,{recursive:true});
+const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-1.0.3'),out=path.join(root,'dist/migration-1.0.3.2');fs.mkdirSync(out,{recursive:true});
 const original=fs.readFileSync(input),hash=b=>crypto.createHash('sha256').update(b).digest('hex'),manifest=JSON.parse(fs.readFileSync(path.join(stage,'extraction-manifest.json'),'utf8'));
 assert.equal(hash(original),'cedc37d0c11d112f4d933647fb6cf00e1dca847fc763250984c647080f849080');
 const read=name=>fs.readFileSync(path.join(root,'patches',name),'utf8');
@@ -19,14 +19,15 @@ panel=editFunction(panel,'jp',s=>translate(read('room-history-runtime.js'))+s.re
 panel=once(panel,'Lr=setInterval(()=>{R.isLoggedIn&&Vn()},1e3)','Lr=setInterval(()=>{R.isLoggedIn&&Vn();__wtAutoChestTick()},1e3)');
 panel=editFunction(panel,'ul',()=> '');panel=editFunction(panel,'xd',()=> '');
 panel=editFunction(panel,'no',()=>translate(read('room-visibility-policy.js'),{cl:'ul',Md:'xd'}));
+panel=editFunction(panel,'eh',s=>once(s,'ul(o,!1)','ul(o,!1,!0)'));
 // The original replacements above intentionally leave one definition each.
 panel=editFunction(panel,'hh',s=>translate(read('room-visibility-runtime.js'))+s);
 panel=once(panel,'function Ul(e){A.value=Bl(e),nn&&clearTimeout(nn),nn=setTimeout(()=>{A.value=1,nn=null},220)}','function Ul(e){A.value=Bl(e);if(nn)clearTimeout(nn);nn=qr.size?null:setTimeout(()=>{A.value=1;nn=null},220)}');
 panel=once(panel,'const t=qr.delete(e),o=va.delete(e);!t&&!o||Ie()','const t=qr.delete(e),o=va.delete(e);if(t&&!qr.size&&!nn)A.value=1;!t&&!o||Ie()');
 const helpers=['hotkeys-core.js','inventory-share.js','input-recorder.js','keyboard-ui.js'].map(n=>n==='hotkeys-core.js'?read(n).replace(' const defaults=',' actions.splice(0,3);\n const defaults='):read(n)).join('\n');common+='\n'+helpers;
 const init=translate(read('keyboard-position.js'))+'\n'+read('v103/helper-actions.js')+'\n'+read('v103/mouse-feed.js')+'\nconst __wtKeyboard=__wtKeyboardUi.create({listen:tt,layout:()=>Fe(()=>{__wtPositionKeyboard();Me()}),toClient:Wt,pointer:()=>({x:oe.value,y:fe.value}),visible:()=>_.value,hotkeys:__wtHotkeys,blocked:()=>Ie()||__wtHelperCapture.size>0});Ai(()=>{__wtStopMouseFeed();__wtDisposeHelperActions();__wtDisposePosition();__wtKeyboard.dispose();__wtDisposeCounter()});\n';
-panel=editFunction(panel,'Uc',s=>init+s.replace('{','{__wtKeyboard.key(e,true);__wtPerformHelperAction(__wtHotkeys.nativeDown(e));'));
-panel=editFunction(panel,'Vc',s=>s.replace('{','{__wtHotkeys.nativeUp(e);__wtKeyboard.key(e,false);'));
+panel=editFunction(panel,'Uc',s=>init+s.replace('{','{if(!__wtKeysConnected)__wtKeyboard.key(e,true);__wtPerformHelperAction(__wtHotkeys.nativeDown(e));'));
+panel=editFunction(panel,'Vc',s=>s.replace('{','{__wtHotkeys.nativeUp(e);if(!__wtKeysConnected)__wtKeyboard.key(e,false);'));
 panel=once(panel,'Sl=await tt("key-press",','await __wtInstallHelperActions(),await __wtKeyboard.mount(),__wtPollMouse(),Sl=await tt("key-press",');
 panel=once(panel,'zi=await tt("dock-open-panel",e=>{const t=e.payload;_v(t)&&Xp(t)})','zi=await tt("dock-open-panel",e=>{const t=e.payload;_v(t)&&Xp(t)}),window.__wtMainReady=1,window.dispatchEvent(new Event("wt-main-ready"))');
 panel=once(panel,'const t=e.payload.button,o=e.payload.action;','const t=e.payload.button,o=e.payload.action;if(!__wtMouseConnected)__wtKeyboard.mouse(t,o,{x:oe.value,y:fe.value});');
@@ -60,6 +61,6 @@ bridge+='\nimport{D as __wtWindow}from"./index-CuzHFfJW.js";if(__wtWindow().labe
 const resources=[{name:panelAsset,text:panel},{name:commonAsset,text:common},{name:'/assets/index-CiT_jZa7.js',text:settings},{name:'/assets/switchDisplayMonitor-B50jXMGD.js',text:bridge}];
 const output=Buffer.from(original),checks=[];for(const r of resources){const file=path.join(out,path.basename(r.name));fs.writeFileSync(file,r.text);babelParse(r.text,file,true);const meta=manifest.assets.find(a=>a.name===r.name),compressed=zlib.brotliCompressSync(Buffer.from(r.text),{params:{[zlib.constants.BROTLI_PARAM_QUALITY]:11,[zlib.constants.BROTLI_PARAM_MODE]:zlib.constants.BROTLI_MODE_TEXT,[zlib.constants.BROTLI_PARAM_LGWIN]:22}});assert(compressed.length<=meta.compressedBytes,'Resource exceeds reserved space');output.fill(0,meta.offset,meta.offset+meta.compressedBytes);compressed.copy(output,meta.offset);assert(zlib.brotliDecompressSync(output.subarray(meta.offset,meta.offset+meta.compressedBytes)).equals(Buffer.from(r.text)));checks.push({asset:r.name,syntaxPassed:true,budget:meta.compressedBytes,compressed:compressed.length,fits:true,offset:meta.offset})}
 let cursor=0;for(const c of [...checks].sort((a,b)=>a.offset-b.offset)){assert(original.subarray(cursor,c.offset).equals(output.subarray(cursor,c.offset)));cursor=c.offset+c.budget}assert(original.subarray(cursor).equals(output.subarray(cursor)));fs.writeFileSync(path.join(out,'payload.exe'),output);
-fs.writeFileSync(path.join(out,'checkpoint.json'),JSON.stringify({target:'1.0.3.1',sourceSha256:hash(original),resources:checks,nativeMachineCodeChanged:false,payloadProduced:true,allFeaturesReady:false,realAccountOrHardwareTested:false},null,2));console.log(JSON.stringify(checks,null,2));
+fs.writeFileSync(path.join(out,'checkpoint.json'),JSON.stringify({target:'1.0.3.2',sourceSha256:hash(original),resources:checks,nativeMachineCodeChanged:false,payloadProduced:true,allFeaturesReady:false,realAccountOrHardwareTested:false},null,2));console.log(JSON.stringify(checks,null,2));
 
 
