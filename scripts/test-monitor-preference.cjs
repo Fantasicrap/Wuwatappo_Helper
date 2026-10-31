@@ -39,8 +39,10 @@ async function productionBridge(){
  f.setMonitors([primary,secondary]);await f.control.refresh();assert.equal(f.here(),secondary,'Reconnect restores selected default');
  f.setSuccess(false);await assert.rejects(f.control.apply({kind:'primary'},true),/未确认/);assert.equal(JSON.parse(f.storage.get(api.storageKey)).name,'DISPLAY2');
  f.setSuccess(true);await f.control.apply({kind:'auto'},true);assert.equal(f.here(),secondary);assert.equal(JSON.parse(f.storage.get(api.storageKey)).kind,'auto');
+ assert.equal(f.timers.size,0,'Auto preference leaves no helper topology polling timer');
  f.setHere(null);f.setMonitors([primary]);await f.control.refresh();assert.equal(f.here(),primary,'Off-screen recovery works even without an explicit preference');
  f.events.get('wt-default-monitor-change')({payload:{requestId:'save-primary',preference:{kind:'primary'}}});await settle();assert.equal(f.replies.at(-1).requestId,'save-primary');assert.equal(f.replies.at(-1).ok,true);
+ assert.equal(f.timers.size,1,'Explicit display preference resumes reconnect monitoring');
  f.control.dispose();assert.equal(f.unlistens(),1);assert.equal(f.timers.size,0);
  await productionBridge();console.log('PASS: default monitor identity, startup readiness, disconnect/reconnect, temporary switching, verified native sequence, negative coordinates and mixed DPI');
 })().catch(error=>{console.error(error);process.exitCode=1});

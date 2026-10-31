@@ -22,13 +22,30 @@ panel=editFunction(panel,'no',()=>translate(read('room-visibility-policy.js'),{c
 panel=editFunction(panel,'eh',s=>once(s,'ul(o,!1)','ul(o,!1,!0)'));
 // The original replacements above intentionally leave one definition each.
 panel=editFunction(panel,'hh',s=>translate(read('room-visibility-runtime.js'))+s);
+// Keep each positioned shell and room state, but unmount hidden image layers.
+// Filtering the room member list itself would disturb layout and reconnect state.
+let roomChildren;
+traverse(babelParse(panel,'panel.mjs',true),{CallExpression(p){const a=p.node.arguments;if(a[1]?.type==='ObjectExpression'&&a[1].properties.some(x=>x.key?.value==='data-room-cat-id')&&a[2]?.type==='ArrayExpression'){assert(!roomChildren,'Ambiguous room shell');roomChildren=a[2]}}});
+assert(roomChildren,'Missing room shell children');
+panel=panel.slice(0,roomChildren.start)+'no(o.id)?[]:'+panel.slice(roomChildren.start);
+panel=once(panel,'ht.value.map(e=>[e.id,String(e.characterAssetId??0)', 'ht.value.filter(e=>!no(e.id)).map(e=>[e.id,String(e.characterAssetId??0)');
+panel=once(panel,'t=ht.value.filter(f=>f.roleId!==null)','t=ht.value.filter(f=>f.roleId!==null&&!no(f.id))');
+panel=once(panel,'l=new Set([...An.value].filter(f=>!o.has(f)))','l=new Set([...An.value].filter(f=>o.has(f)))');
+panel=editFunction(panel,'yc',s=>once(s,'if(!l)return;','if(!l||no(o))return;'));
 panel=once(panel,'function Ul(e){A.value=Bl(e),nn&&clearTimeout(nn),nn=setTimeout(()=>{A.value=1,nn=null},220)}','function Ul(e){A.value=Bl(e);if(nn)clearTimeout(nn);nn=qr.size?null:setTimeout(()=>{A.value=1;nn=null},220)}');
 panel=once(panel,'const t=qr.delete(e),o=va.delete(e);!t&&!o||Ie()','const t=qr.delete(e),o=va.delete(e);if(t&&!qr.size&&!nn)A.value=1;!t&&!o||Ie()');
 const helpers=['hotkeys-core.js','inventory-share.js','input-recorder.js','keyboard-ui.js'].map(n=>n==='hotkeys-core.js'?read(n).replace(' const defaults=',' actions.splice(0,3);\n const defaults='):read(n)).join('\n');common+='\n'+helpers;
-const init=translate(read('keyboard-position.js'))+'\n'+read('v103/helper-actions.js')+'\n'+read('v103/mouse-feed.js')+'\nconst __wtKeyboard=__wtKeyboardUi.create({listen:tt,layout:()=>Fe(()=>{__wtPositionKeyboard();Me()}),toClient:Wt,pointer:()=>({x:oe.value,y:fe.value}),visible:()=>_.value,hotkeys:__wtHotkeys,blocked:()=>Ie()||__wtHelperCapture.size>0});Ai(()=>{__wtStopMouseFeed();__wtDisposeHelperActions();__wtDisposePosition();__wtKeyboard.dispose();__wtDisposeCounter()});\n';
+// Each WebView runs bootstrap. Let its actual img elements request their assets
+// instead of eagerly decoding the entire shared UI image set in every window.
+common=editFunction(common,'schedulePreloadAppUiImages',()=> 'function schedulePreloadAppUiImages(){}');
+common=editFunction(common,'preloadAppUiImages',()=> 'async function preloadAppUiImages(){}');
+let imageTable;
+traverse(babelParse(common,'common.mjs',true),{VariableDeclarator(p){if(p.node.id.name==='uiImageUrlMap'){assert(!imageTable);assert.equal(p.scope.getBinding('uiImageUrlMap').referencePaths.length,0,'Image preload table gained another consumer');imageTable=p.node.init}}});
+assert(imageTable);common=common.slice(0,imageTable.start)+'{}'+common.slice(imageTable.end);
+const init=translate(read('keyboard-position.js'))+'\n'+read('v103/helper-actions.js')+'\n'+read('v103/mouse-feed.js')+'\nconst __wtKeyboard=__wtKeyboardUi.create({listen:tt,activity:__wtSyncMouseFeed,layout:()=>Fe(()=>{__wtPositionKeyboard();Me()}),toClient:Wt,pointer:()=>({x:oe.value,y:fe.value}),visible:()=>_.value,hotkeys:__wtHotkeys,blocked:()=>Ie()||__wtHelperCapture.size>0});Oe(_,()=>__wtKeyboard.syncActivity());Ai(()=>{__wtStopMouseFeed();__wtDisposeHelperActions();__wtDisposePosition();__wtKeyboard.dispose();__wtDisposeCounter()});\n';
 panel=editFunction(panel,'Uc',s=>init+s.replace('{','{if(!__wtKeysConnected)__wtKeyboard.key(e,true);__wtPerformHelperAction(__wtHotkeys.nativeDown(e));'));
 panel=editFunction(panel,'Vc',s=>s.replace('{','{__wtHotkeys.nativeUp(e);if(!__wtKeysConnected)__wtKeyboard.key(e,false);'));
-panel=once(panel,'Sl=await tt("key-press",','await __wtInstallHelperActions(),await __wtKeyboard.mount(),__wtPollMouse(),Sl=await tt("key-press",');
+panel=once(panel,'Sl=await tt("key-press",','await __wtInstallHelperActions(),await __wtKeyboard.mount(),Sl=await tt("key-press",');
 panel=once(panel,'zi=await tt("dock-open-panel",e=>{const t=e.payload;_v(t)&&Xp(t)})','zi=await tt("dock-open-panel",e=>{const t=e.payload;_v(t)&&Xp(t)}),window.__wtMainReady=1,window.dispatchEvent(new Event("wt-main-ready"))');
 panel=once(panel,'const t=e.payload.button,o=e.payload.action;','const t=e.payload.button,o=e.payload.action;if(!__wtMouseConnected)__wtKeyboard.mouse(t,o,{x:oe.value,y:fe.value});');
 panel=once(panel,'const ee=j.closest("button");','const ee=j.closest("button,a[download]");');

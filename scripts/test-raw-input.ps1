@@ -11,6 +11,14 @@ $state[0]=$true;if(-not $policy.Invoke($null,$state) -or $state[2] -ne -1){throw
 $state[0]=$false;$state[1]=[long]5000;$null=$policy.Invoke($null,$state);$state[1]=[long]8000
 if($policy.Invoke($null,$state)){throw 'Service must close after a genuine exit'}
 $type=$assembly.GetType('MouseCapture',$true)
+$demand=$type.GetMethod('DemandActive',[Reflection.BindingFlags]'NonPublic,Static')
+$padDemand=$assembly.GetType('HelperHost').GetMethod('ControllerDemandActive',[Reflection.BindingFlags]'NonPublic,Static')
+foreach($check in @($demand,$padDemand)){
+ if(-not $check.Invoke($null,@([long]1000,[long]1000))){throw 'Active consumer must enable sampling'}
+ if(-not $check.Invoke($null,@([long]1749,[long]1000))){throw 'Sampling lease expires too early'}
+ if($check.Invoke($null,@([long]1750,[long]1000))){throw 'Inactive consumer keeps sampling after lease'}
+ if($check.Invoke($null,@([long]0,[long]-10000))){throw 'Sampling must be idle before first consumer'}
+}
 $record=$type.GetMethod('Record',[Reflection.BindingFlags]'NonPublic,Static')
 $snapshot=$type.GetMethod('Snapshot',[Reflection.BindingFlags]'Public,Static')
 foreach($vk in @(49,50,51,81,69,82,32,1,2)){

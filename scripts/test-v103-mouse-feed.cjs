@@ -1,11 +1,11 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
-const calls=[],replies=[],ctx={
+ const calls=[],replies=[],ctx={
  fetch:async()=>{const reply=replies.shift();if(reply instanceof Error)throw reply;return{ok:true,json:async()=>reply}},
  AbortSignal:{timeout:()=>({})},setTimeout:()=>1,clearTimeout:()=>{},
- __wtKeyboard:{mouse:(...args)=>calls.push(args),key:(...args)=>calls.push(['key',...args]),stopRecording:reason=>calls.push(['stop',reason])}
+ __wtKeyboard:{inputActive:true,mouse:(...args)=>calls.push(args),key:(...args)=>calls.push(['key',...args]),stopRecording:reason=>calls.push(['stop',reason])}
 };
 vm.createContext(ctx);
-vm.runInContext(fs.readFileSync('patches/v103/mouse-feed.js','utf8')+';this.poll=__wtPollMouse;this.stop=__wtStopMouseFeed',ctx);
+vm.runInContext(fs.readFileSync('patches/v103/mouse-feed.js','utf8')+';this.poll=__wtPollMouse;this.sync=__wtSyncMouseFeed;this.stop=__wtStopMouseFeed',ctx);
 (async()=>{
  replies.push({seq:10,available:true,events:[{seq:9,button:'left',action:'press'}]});
  await ctx.poll();assert.equal(calls.length,0,'Do not replay input from before connecting');
@@ -25,5 +25,7 @@ vm.runInContext(fs.readFileSync('patches/v103/mouse-feed.js','utf8')+';this.poll
  await ctx.poll();assert.equal(calls.length,0,'Reconnecting must skip stale input');
  replies.push(new Error('connection reset'));
  await ctx.poll();assert.deepEqual(calls,[['stop','mouse_connection_lost'],['left','release'],['right','release']]);
- ctx.stop();console.log('PASS: mouse feed preserves short edges and releases both buttons on gaps, capture failure and disconnection');
+ calls.length=0;ctx.__wtKeyboard.inputActive=false;replies.push(new Error('Must not fetch while hidden'));await ctx.poll();assert.equal(replies.length,1);replies.pop();
+ ctx.__wtKeyboard.inputActive=true;let resolve;ctx.fetch=()=>new Promise(done=>resolve=done);const pending=ctx.poll();ctx.__wtKeyboard.inputActive=false;ctx.sync();resolve({ok:true,json:async()=>({seq:9999,available:true,events:[{seq:9999,key:'Q',action:'press'}]})});await pending;assert.equal(calls.length,0,'A late response cannot relight keys after suspension');
+ ctx.stop();console.log('PASS: raw feed retains edges, handles gaps and disconnects, stops when disabled and ignores late responses');
 })().catch(e=>{console.error(e);process.exitCode=1});

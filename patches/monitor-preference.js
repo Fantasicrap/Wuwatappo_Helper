@@ -33,11 +33,13 @@ export async function installDefaultMonitor({list,move,current,listen,emit,win=w
   if(stopped)return;
   if(persist)storage.setItem(core.storageKey,JSON.stringify(pref));
   signature=core.signature(monitors);
+  if(ready)planPolling();
   return{ok:true,missing:result.missing,message:result.missing?'默认显示器未连接，暂时使用主屏；连接后自动恢复':pref.kind==='auto'?'已取消指定，启动时沿用原版显示器':'已保存默认显示器，并完成切换'};
  }
  function enqueue(preference,persist=false){const task=queue.catch(()=>{}).then(()=>apply(preference,persist));queue=task;return task}
  async function refresh(force=false){if(stopped||!ready||refreshing)return;refreshing=true;try{const monitors=await list();if(stopped)return;if(force||core.signature(monitors)!==signature)await enqueue(core.read(storage))}catch(error){console.warn('[default-monitor]',error)}finally{refreshing=false}}
- function start(){if(ready||stopped)return;ready=true;refresh(true);timer=win.setInterval(()=>refresh(),5000)}
+ function planPolling(){win.clearInterval(timer);timer=null;if(!stopped&&core.read(storage).kind!=='auto')timer=win.setInterval(()=>refresh(),5000)}
+ function start(){if(ready||stopped)return;ready=true;refresh(true);planPolling()}
  const unlisten=await listen('wt-default-monitor-change',event=>{
   const data=event.payload??event;if(stopped||!data.requestId)return;
   if(!ready){emit('wt-default-monitor-result',{requestId:data.requestId,ok:false,message:'桌宠正在启动，请稍后再保存'}).catch(()=>{});return}

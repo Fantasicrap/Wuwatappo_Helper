@@ -53,6 +53,8 @@ Source: "..\docs\使用说明.md"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "..\docs\库存欧非判定.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\手柄使用说明.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\docs\按需运行优化说明.md"; DestDir: "{app}\docs"; Flags: ignoreversion
+Source: "..\docs\内存优化测试说明.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "..\licenses\SDL3-LICENSE.txt"; DestDir: "{app}\licenses"; Flags: ignoreversion
 
 [Icons]

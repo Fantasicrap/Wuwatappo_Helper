@@ -22,6 +22,8 @@ $files = @{
     '使用说明.md' = (Join-Path $repoRoot 'docs/使用说明.md')
     '库存欧非判定.md' = (Join-Path $repoRoot 'docs/库存欧非判定.md')
     '手柄使用说明.md' = (Join-Path $repoRoot 'docs/手柄使用说明.md')
+    'docs/按需运行优化说明.md' = (Join-Path $repoRoot 'docs/按需运行优化说明.md')
+    'docs/内存优化测试说明.md' = (Join-Path $repoRoot 'docs/内存优化测试说明.md')
     'licenses/SDL3-LICENSE.txt' = (Join-Path $repoRoot 'licenses/SDL3-LICENSE.txt')
 }
 foreach ($name in $files.Keys) {
@@ -36,6 +38,9 @@ Expand-Archive -LiteralPath $zipFile -DestinationPath $zipTarget
 $zipExe = Join-Path $zipTarget "Wuwatappo_Helper/Wuwatappo_Helper-$helperVersion.exe"
 if (@(Get-ChildItem -LiteralPath (Split-Path -Parent $zipExe) -Filter 'Wuwatappo_Helper*.exe' -File).Count -ne 1) { throw 'Portable package contains stale executable names' }
 if ((Get-FileHash -LiteralPath $zipExe -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $files['Wuwatappo_Helper.exe'] -Algorithm SHA256).Hash) { throw 'Portable EXE hash mismatch' }
+foreach ($name in @('docs/按需运行优化说明.md','docs/内存优化测试说明.md')) {
+ if((Get-FileHash -LiteralPath (Join-Path $zipTarget ('Wuwatappo_Helper/'+$name)) -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $files[$name] -Algorithm SHA256).Hash){throw ('Portable documentation differs: '+$name)}
+}
 $result = [ordered]@{ passed=$true; installedFilesMatch=$true; portableExeMatches=$true; appStarted=$false; testModeSkipsShortcutsAndUninstallRegistry=$true; nativeUiTested=$false }
 $result | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $distDir 'package-verification.json') -Encoding utf8NoBOM
 $result | ConvertTo-Json

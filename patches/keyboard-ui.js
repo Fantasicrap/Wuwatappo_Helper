@@ -26,7 +26,15 @@ const __wtKeyboardUi=(()=>{
  }
  function create(deps={}){
   const doc=deps.document??document,core=__wtInputRecorder.create(deps.recorderOptions);let mode=readMode(),previousMode=mode==='hidden'?lastMode():mode,root=null,status=null,recordButton=null,exportsBox=null,counter=null,expandButton=null,stopListen=null,stopMouse=null,ticker=null,disposed=false;
-  let controller=null,renderId=0;const keys=new Map(),onAt=new Map(),timers=new Map(),urls=[];
+  let controller=null,renderId=0,listening=false;const keys=new Map(),onAt=new Map(),timers=new Map(),urls=[];
+  function inputActive(){return !!root&&!disposed&&(mode==='letters'||mode==='wuwa')&&(!deps.visible||deps.visible())}
+  function syncActivity(){
+   const active=inputActive();
+   if(!active){if(core.active)finish('pet_hidden');releaseInputs()}
+   if(listening!==active){listening=active;const action=active?'addEventListener':'removeEventListener';doc[action]('keydown',domKey,true);doc[action]('keyup',domKey,true);for(const name of ['mouseup','pointerup','pointermove'])doc[action](name,domMouse,true)}
+   controller?.syncActivity?.();deps.activity?.();
+  }
+  function syncTicker(){clearInterval(ticker);ticker=core.active?setInterval(refresh,200):null}
   function allow(){return !deps.blocked?.()}
   function layout(){deps.layout?.()}
   function button(label,action,parent){const node=doc.createElement('button');node.type='button';node.textContent=label;node.onclick=action;parent.append(node);return node}
@@ -58,20 +66,20 @@ const __wtKeyboardUi=(()=>{
    }
    refresh();if(result.stop_reason==='event_limit'&&status)status.textContent='条目已达上限，录制已结束，请导出';layout();
   }
-  function finish(reason='user'){const result=core.stop(reason);exportResult(result);refresh();return result}
+  function finish(reason='user'){const result=core.stop(reason);syncTicker();exportResult(result);refresh();return result}
   function toggle(){
    if(disposed)return;
    if(mode==='controller'){controller?.toggle();return}
    if(core.active){finish();return}
    if(!allow())return;
    if(mode!=='wuwa')setMode('wuwa');
-   revoke();core.start();refresh();layout();
+   revoke();core.start();syncTicker();refresh();layout();
   }
   function render(){
    if(!root)return;
    const id=++renderId;controller?.dispose();controller=null;
    for(const timer of timers.values())clearTimeout(timer);timers.clear();keys.clear();onAt.clear();root.replaceChildren();status=null;recordButton=null;exportsBox=null;
-   root.hidden=mode==='hidden';refresh();if(root.hidden){layout();return}
+   root.hidden=mode==='hidden';refresh();syncActivity();if(root.hidden){layout();return}
    const toolbar=doc.createElement('div');toolbar.className='wt-input-toolbar';root.append(toolbar);
    for(const[value,label]of [['letters','26键'],['wuwa','鸣潮专属'],['controller','手柄']]){const item=button(label,()=>setMode(value),toolbar);item.dataset.mode=value}
    const close=button('×',()=>setMode('hidden'),toolbar);close.className='wt-close';close.title='收起键盘，可从计数器左侧展开';
@@ -94,19 +102,19 @@ const __wtKeyboardUi=(()=>{
   function setMode(value,external=false){
    if(!modes.includes(value)||disposed)return;
    if(core.active&&value!=='wuwa')finish('mode_changed');
-   mode=value;if(value!=='hidden'){previousMode=value;try{localStorage.setItem(lastModeKey,value)}catch{}}if(!external)saveMode(value);render();
+   releaseInputs();mode=value;if(value!=='hidden'){previousMode=value;try{localStorage.setItem(lastModeKey,value)}catch{}}if(!external)saveMode(value);render();
   }
   function key(raw,down,options={}){
-   if(!root)return;
+   if(!root||(!inputActive()&&!options.control))return;
    if(core.active&&deps.visible&&!deps.visible())finish('pet_hidden');
    const normalized=__wtInputRecorder.normalize(raw),before=core.active;
    const changed=core.input(raw,down,{capture:allow()&&!options.control});
-   if(changed)paint(normalized,down);if(before&&!core.active)exportResult(core.last);
+   if(changed)paint(normalized,down);if(before&&!core.active){syncTicker();exportResult(core.last)}
   }
   function inside(point){
    if(!root||!point)return false;const local=deps.toClient?.(point.x,point.y);if(!local)return false;return [root,expandButton].some(node=>{if(!node)return false;const rect=node.getBoundingClientRect();return rect.width>0&&rect.height>0&&local.x>=rect.left&&local.x<=rect.right&&local.y>=rect.top&&local.y<=rect.bottom});
   }
-  function mouse(buttonName,action,point){if(action!=='press'&&action!=='release')return;key(buttonName==='left'?'MouseLeft':buttonName==='right'?'MouseRight':'',action==='press',{control:inside(point)})}
+  function mouse(buttonName,action,point){if(!inputActive()||action!=='press'&&action!=='release')return;key(buttonName==='left'?'MouseLeft':buttonName==='right'?'MouseRight':'',action==='press',{control:inside(point)})}
   function releaseInputs(){for(const heldKey of core.held)key(heldKey,false,{control:true})}
   function domMouse(event){
    if(event.pointerType&&event.pointerType!=='mouse')return;
@@ -129,14 +137,14 @@ const __wtKeyboardUi=(()=>{
    expandButton.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 18" aria-hidden="true"><rect x="1" y="1" width="22" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 5h2m3 0h2m3 0h2M5 8.5h2m3 0h2m3 0h2M7 12h10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
    expandButton.addEventListener('mousedown',event=>{event.preventDefault();event.stopPropagation()});expandButton.addEventListener('click',event=>event.stopPropagation());counter.insertBefore(expandButton,counter.firstChild);
    dock.insertBefore(root,counter);render();
-   doc.addEventListener('keydown',domKey,true);doc.addEventListener('keyup',domKey,true);
-   for(const name of ['mouseup','pointerup','pointermove'])doc.addEventListener(name,domMouse,true);
    if(deps.listen)stopListen=await deps.listen('wt-keyboard-config',event=>{if(typeof event.payload?.controls==='boolean'||event.payload?.position){refresh();layout()}if(modes.includes(event.payload?.mode)&&event.payload.mode!==mode)setMode(event.payload.mode,true)});
+   if(disposed){stopListen?.();return}
    if(deps.listen)stopMouse=await deps.listen('wt-raw-mouse',event=>{const p=event.payload;if(p?.button==='right')mouse('right',p.action,deps.pointer?.())});
-   ticker=setInterval(refresh,200);
+   if(disposed){stopMouse?.();return}
+   if(deps.listen){const stop=await deps.listen('wt-hotkeys-updated',refresh);if(disposed){stop();return}const previous=stopListen;stopListen=()=>{previous?.();stop()}}
   }
   function dispose(){disposed=true;renderId++;controller?.dispose();controller=null;if(core.active)core.stop('app_closed');stopListen?.();stopMouse?.();clearInterval(ticker);doc.removeEventListener('keydown',domKey,true);doc.removeEventListener('keyup',domKey,true);for(const name of ['mouseup','pointerup','pointermove'])doc.removeEventListener(name,domMouse,true);for(const timer of timers.values())clearTimeout(timer);revoke();core.clear();if(root?.parentElement)root.parentElement.style.transform='';root?.remove();expandButton?.remove();counter?.classList.remove('wt-info-with-keyboard','wt-keyboard-collapsed');root=null}
-  return {mount,dispose,key,mouse,toggle,setMode,releaseInputs,stopRecording:finish,get recording(){return core.active||!!controller?.recording},get last(){return core.last}};
+  return {mount,dispose,key,mouse,toggle,setMode,syncActivity,releaseInputs,stopRecording:finish,get inputActive(){return inputActive()},get recording(){return core.active||!!controller?.recording},get last(){return core.last}};
  }
  return {create,settings,renderSettings,readMode,css};
 })();

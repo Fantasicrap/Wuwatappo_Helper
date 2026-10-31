@@ -11,6 +11,7 @@ if($LASTEXITCODE -ne 0){throw '1.0.3 resource migration failed'}
 if($LASTEXITCODE -ne 0){throw '1.0.3 migration verification failed'}
 & (Join-Path $PSScriptRoot 'build-controller-host.ps1') -OutputDirectory $out -PayloadPath $payload
 & (Join-Path $PSScriptRoot 'test-launcher.ps1') -DistributionDirectory $out -PayloadPath $payload
+& (Join-Path $PSScriptRoot 'test-stream-extract.ps1') -DistributionDirectory $out -PayloadPath $payload
 & (Join-Path $PSScriptRoot 'test-controller-events.ps1') -DistributionDirectory $out
 & (Join-Path $PSScriptRoot 'test-raw-input.ps1') -DistributionDirectory $out
 & (Join-Path $PSScriptRoot 'test-helper-http.ps1') -DistributionDirectory $out
