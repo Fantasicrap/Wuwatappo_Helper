@@ -4,7 +4,7 @@ const {babelParse,traverse}=require('playwright/lib/transform/babelBundle');
 const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-1.0.3'),out=path.join(root,'dist/migration-1.0.3.2');fs.mkdirSync(out,{recursive:true});
 const original=fs.readFileSync(input),hash=b=>crypto.createHash('sha256').update(b).digest('hex'),manifest=JSON.parse(fs.readFileSync(path.join(stage,'extraction-manifest.json'),'utf8'));
 assert.equal(hash(original),'cedc37d0c11d112f4d933647fb6cf00e1dca847fc763250984c647080f849080');
-const read=name=>fs.readFileSync(path.join(root,'patches',name),'utf8');
+const read=name=>{let code=fs.readFileSync(path.join(root,'patches',name),'utf8');const comments=babelParse(code,'helper.mjs',true).comments??[];for(const c of comments.slice().reverse())code=code.slice(0,c.start)+code.slice(c.end);return code};
 const mapping=JSON.parse(fs.readFileSync(path.join(__dirname,'panel-symbols.json'),'utf8'));
 function translate(code,renames={}){const ast=babelParse(code,'helper.mjs',true),edits=new Map();traverse(ast,{Identifier(p){const name=p.node.name,b=p.scope.getBinding(name);let to;if(b&&renames[name]&&(p.node===b.identifier||b.referencePaths.includes(p)))to=renames[name];else if(!b&&p.isReferencedIdentifier())to=mapping[name];if(to&&to!==name)edits.set(p.node.start,{end:p.node.end,to})}});for(const[start,{end,to}]of [...edits].sort((a,b)=>b[0]-a[0]))code=code.slice(0,start)+to+code.slice(end);return code}
 function once(s,a,b){assert.equal(s.split(a).length-1,1,'Changed migration anchor: '+a);return s.replace(a,b)}
@@ -24,9 +24,12 @@ panel=editFunction(panel,'eh',s=>once(s,'ul(o,!1)','ul(o,!1,!0)'));
 panel=editFunction(panel,'hh',s=>translate(read('room-visibility-runtime.js'))+s);
 // Keep each positioned shell and room state, but unmount hidden image layers.
 // Filtering the room member list itself would disturb layout and reconnect state.
-let roomChildren;
-traverse(babelParse(panel,'panel.mjs',true),{CallExpression(p){const a=p.node.arguments;if(a[1]?.type==='ObjectExpression'&&a[1].properties.some(x=>x.key?.value==='data-room-cat-id')&&a[2]?.type==='ArrayExpression'){assert(!roomChildren,'Ambiguous room shell');roomChildren=a[2]}}});
+let roomChildren,roomFlags;
+traverse(babelParse(panel,'panel.mjs',true),{CallExpression(p){const a=p.node.arguments;if(a[1]?.type==='ObjectExpression'&&a[1].properties.some(x=>x.key?.value==='data-room-cat-id')&&a[2]?.type==='ArrayExpression'){assert(!roomChildren,'Ambiguous room shell');roomChildren=a[2];roomFlags=a[3];assert.equal(roomFlags?.value,14,'Changed room block flags')}}});
 assert(roomChildren,'Missing room shell children');
+// Vue's original optimized block assumes fixed child topology. BAIL forces
+// normal reconciliation when hidden layers are removed and later recreated.
+panel=panel.slice(0,roomFlags.start)+'-2'+panel.slice(roomFlags.end);
 panel=panel.slice(0,roomChildren.start)+'no(o.id)?[]:'+panel.slice(roomChildren.start);
 panel=once(panel,'ht.value.map(e=>[e.id,String(e.characterAssetId??0)', 'ht.value.filter(e=>!no(e.id)).map(e=>[e.id,String(e.characterAssetId??0)');
 panel=once(panel,'t=ht.value.filter(f=>f.roleId!==null)','t=ht.value.filter(f=>f.roleId!==null&&!no(f.id))');
