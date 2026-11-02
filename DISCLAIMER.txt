@@ -1,9 +1,21 @@
 ﻿Wuwatappo_Helper 使用声明
 
+项目 GitHub：https://github.com/Fantasicrap/Wuwatappo_Helper
+
+本 Helper 插件完全开源、免费提供，无需购买、付费激活或付费解锁。
+如果你通过任何渠道付费获得本插件，请立即向收费方申请退款。
+
 仅供娱乐使用，创作者概不负责。
+
+感谢库洛官方制作 WuwaTappo 桌宠软件，为本项目提供基础与灵感。
+感谢 PR 贡献者 / Co-Author：DanielToyama（已合并的 PR #4），以及所有提交 PR、共同创作、反馈问题和参与测试的用户。
+贡献者主页：https://github.com/DanielToyama
+PR #4：https://github.com/Fantasicrap/Wuwatappo_Helper/pull/4
 
 本项目是非官方辅助修改版本，与 WuwaTappo 原作者及相关权利人不存在官方关联。
 原程序、名称、角色、配件、表情、背景及其他素材的权利归各自权利人所有。
 请自行决定是否使用并承担使用产生的后果；不保证适用于未来更新，也不保证服务器接受本地状态变化。
 长图功能仅导出当前账号已有库存，不会自动上传或向他人发送图片。
 请勿将本项目用于违法违规活动。
+
+确认前请阅读以上内容；同意后才能继续启动桌宠。关闭窗口或选择“退出”将取消本次启动。

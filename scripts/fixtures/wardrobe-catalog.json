@@ -1,0 +1,189 @@
+{
+  "source": "Official public atlas/catalog subset; captured 2026-11-02; no account data",
+  "catalog": {
+    "character_skin": {
+      "2": {
+        "game_role_id": 1105,
+        "url": "character/41dd9bb6-2191-405b-be64-e09cb969add6.png?v=1791270689726",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0,
+        "body1": {
+          "url": "character/68b88133-ed82-43b3-a8b5-f361076a1a21.png?v=1791270689726",
+          "offset_x": 0,
+          "offset_y": 0,
+          "my_offset_x": 0,
+          "my_offset_y": 0
+        },
+        "head1": {
+          "url": "character/4c834905-54a3-4ca7-af6e-219e841c8417.png?v=1791270689726",
+          "offset_x": 0,
+          "offset_y": 0,
+          "my_offset_x": 0,
+          "my_offset_y": 0
+        },
+        "body2": {
+          "url": "character/67b28fd1-2d2c-4415-9562-ee94949f175a.png?v=1791270689726",
+          "offset_x": 0,
+          "offset_y": 0,
+          "my_offset_x": 0,
+          "my_offset_y": 0
+        },
+        "head2": {
+          "url": "character/8e9e5353-9247-43e0-a2af-42f6948567b3.png?v=1791270689726",
+          "offset_x": 0,
+          "offset_y": 0,
+          "my_offset_x": 0,
+          "my_offset_y": 0
+        },
+        "body3": {
+          "url": "character/303d2df4-7a15-4826-b500-b09e2d6b04e1.png?v=1791270689726",
+          "offset_x": 0,
+          "offset_y": 0,
+          "my_offset_x": 0,
+          "my_offset_y": 0
+        }
+      },
+      "92": {
+        "game_role_id": 1608,
+        "url": "character/f53ca683-0b46-4ecf-9efe-ed2da50f36df.png?v=1791270704567",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0,
+        "body1": {
+          "url": "character/b26a551f-a962-43c5-bab8-7a67333e1b36.png?v=1791270704567",
+          "offset_x": 0,
+          "offset_y": 0,
+          "my_offset_x": 0,
+          "my_offset_y": 0
+        },
+        "head1": {
+          "url": "character/8306048d-0b05-445d-b5d6-31c522d99622.png?v=1791270704567",
+          "offset_x": 0,
+          "offset_y": 0,
+          "my_offset_x": 0,
+          "my_offset_y": 0
+        },
+        "body2": {
+          "url": "character/e3881b8d-509c-452d-8e97-d37460ba55d3.png?v=1791270704567",
+          "offset_x": 0,
+          "offset_y": 0,
+          "my_offset_x": 0,
+          "my_offset_y": 0
+        },
+        "head2": {
+          "url": "character/bffc10ba-de50-4e4f-92ef-388c991d0bfe.png?v=1791270704567",
+          "offset_x": 0,
+          "offset_y": 0,
+          "my_offset_x": 0,
+          "my_offset_y": 0
+        },
+        "body3": {
+          "url": "character/d506eeee-b2c2-4762-b233-8f8d21ba1057.png?v=1791270704567",
+          "offset_x": 0,
+          "offset_y": 0,
+          "my_offset_x": 0,
+          "my_offset_y": 0
+        }
+      }
+    },
+    "accessory": {
+      "1345": {
+        "game_role_id": 0,
+        "url": "accessory/c417fea3-e0ef-4404-b5ee-e39d8d72f578.png?v=1791276483830",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      },
+      "1594": {
+        "game_role_id": 0,
+        "url": "accessory/74f85e48-71f4-4fa9-8536-fb23e41264ec.png?v=1791276550162",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      }
+    },
+    "emote": {
+      "2830": {
+        "game_role_id": 1212,
+        "url": "emote/9093bf4a-d690-4338-9fb8-4707aca54295.png?v=1791278512377",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      }
+    },
+    "character_skin_atlas": {
+      "1171": {
+        "height_light_id": 92,
+        "game_role_id": 0,
+        "url": "character_atlas/3c78e8e6-f81e-4fa4-96e9-8f0f92e2a963.png?v=1791270863344",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      }
+    },
+    "accessory_atlas": {
+      "1572": {
+        "height_light_id": 1594,
+        "game_role_id": 0,
+        "url": "accessory_atlas/b71c8cf3-e6cf-492c-889f-c2d6549ad7a4.png?v=1791276823316",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      }
+    },
+    "emote_atlas": {
+      "2832": {
+        "height_light_id": 2830,
+        "game_role_id": 0,
+        "url": "emote_atlas/bc47723d-64ba-4dd5-b993-faeca311176b.png?v=1791278588225",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      }
+    }
+  },
+  "atlas": {
+    "code": 200,
+    "data": [
+      {
+        "asset_id": 1171,
+        "asset_name": "role_1608_1001.png",
+        "asset_code": "1001",
+        "asset_type": "character_skin_atlas",
+        "star_level": 0,
+        "region_code": "",
+        "series_name": "",
+        "rarity": "common"
+      },
+      {
+        "asset_id": 1572,
+        "asset_name": "accessory_1124.png",
+        "asset_code": "1124",
+        "asset_type": "accessory_atlas",
+        "star_level": 0,
+        "region_code": "",
+        "series_name": "",
+        "rarity": "Rare"
+      },
+      {
+        "asset_id": 2832,
+        "asset_name": "emote_1212_triumph.png",
+        "asset_code": "1212",
+        "asset_type": "emote_atlas",
+        "star_level": 0,
+        "region_code": "",
+        "series_name": "",
+        "rarity": "Rare"
+      }
+    ]
+  }
+}

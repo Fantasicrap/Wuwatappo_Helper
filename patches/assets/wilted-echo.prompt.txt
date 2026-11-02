@@ -1,0 +1,6 @@
+Mode: built-in image_gen; edit; transparent_background=true.
+Input: user-supplied 凋落回响 reference image.
+Project output: patches/assets/wilted-echo-source.png; packaging thumbnail: patches/assets/wilted-echo.png (80x80, alpha preserved).
+
+Final prompt:
+Edit target: the attached local image of the Wuthering Waves item 凋落回响, a red and pale pink spider-lily-like flower with long thin curling filaments, red translucent petal wisps and scattered magical sparks. Use-case: background-removal, transparent game-item sprite for a desktop pet. Remove ONLY the empty black/dark background and any rectangular canvas/matte; preserve the exact flower composition, all pale pink and crimson petals, slender light filaments and detached meaningful red magical particles close to the flower. Preserve the supplied item's painterly game icon style and colors, do not redesign it, do not invent elements, do not add text, outlines or drop shadows. Output one centered isolated flower item on genuinely transparent alpha, including semitransparent red wisps and fine antialiased edges, with modest transparent padding on all sides. The output must have no dark rectangular haze or checkerboard baked in. Keep flower center clearly readable at small 40px game UI size.

@@ -10,7 +10,7 @@ if((Get-FileHash -LiteralPath $SdlPath -Algorithm SHA256).Hash.ToLowerInvariant(
 $out=[IO.Path]::GetFullPath($OutputDirectory)
 $hostDir=Join-Path $out 'host-build'
 New-Item -ItemType Directory -Path $hostDir -Force|Out-Null
-$payload=if($PayloadPath){[IO.Path]::GetFullPath($PayloadPath)}else{Join-Path $repoRoot 'dist/migration-1.0.3.2/payload.exe'}
+$payload=if($PayloadPath){[IO.Path]::GetFullPath($PayloadPath)}else{Join-Path $repoRoot 'dist/migration-1.0.3.3/payload.exe'}
 . (Join-Path $PSScriptRoot 'icon-resources.ps1')
 $iconFile=Join-Path $hostDir 'application.ico'
 [IO.File]::WriteAllBytes($iconFile,[WuwaHelper.IconResources]::ReadFirst($payload))

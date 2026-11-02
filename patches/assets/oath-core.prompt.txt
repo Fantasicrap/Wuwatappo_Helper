@@ -1,0 +1,5 @@
+Tool: built-in image_gen
+Use case: background-extraction. Edit target: the attached game item icon, a pale teal glowing central orb surrounded by jagged silver feather/crystal blades. Remove ONLY the solid black background and make it genuinely transparent with clean alpha edges, including gaps between the blades. Preserve the exact item silhouette, central cyan glow, blade positions, shading, fine blue highlights and original game illustration style. Do not redraw or add details, text, outlines, shadows, scenery, floor, border or extra glow. Keep the full object and centered square framing. This is the cutout icon for a local desktop-pet item named 缚誓之核.
+
+Original generated cutout: oath-core-source.png (1254 x 1254, alpha verified)
+Packaged UI thumbnail: oath-core.png (80 x 80, alpha preserved)

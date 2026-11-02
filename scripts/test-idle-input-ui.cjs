@@ -1,12 +1,12 @@
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict');
 const {chromium}=require('playwright'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/idle-optimized-1.0.3.2';fs.mkdirSync(output,{recursive:true});
+const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/idle-optimized-1.0.3.3';fs.mkdirSync(output,{recursive:true});
 // Exercise the unchanged official action/count path while Helper mapping is off.
-const source=fs.readFileSync('dist/migration-1.0.3.2/index-pp8VWaUF.js','utf8'),fns={};
+const source=fs.readFileSync('dist/migration-1.0.3.3/index-pp8VWaUF.js','utf8'),fns={};
 traverse(babelParse(source,'main.mjs',true),{FunctionDeclaration(p){if(['Uc','Vc'].includes(p.node.id.name))fns[p.node.id.name]=source.slice(p.node.start,p.node.end)}});
 let claps=0,counts=0,releases=0;
-const c={__wtKeysConnected:false,__wtKeyboard:{key:()=>{}},__wtPerformHelperAction:()=>{},__wtHotkeys:{nativeDown:()=>null,nativeUp:()=>{}},qr:new Set(),va:new Set(),Fo:false,Wa:false,Bs:()=>false,Ie:()=>false,se:{value:''},Yo:()=>{claps++},Wl:()=>{releases++},R:{incrementLocalClickCount:()=>counts++},nn:null,A:{value:3}};
-vm.createContext(c);vm.runInContext(fns.Uc+';'+fns.Vc+';Uc("Q");Uc("Q");Vc("Q");',c);
+const c={__wtKeysConnected:false,__wtKeyboard:{key:()=>{}},__wtAutoEmote:{down:()=>false},__wtPerformHelperAction:()=>{},__wtHotkeys:{nativeDown:()=>null,nativeUp:()=>{}},qr:new Set(),va:new Set(),Fo:false,Wa:false,Bs:()=>false,Ie:()=>false,se:{value:''},Yo:()=>{claps++},Wl:()=>{releases++},R:{incrementLocalClickCount:()=>counts++},nn:null,A:{value:3}};
+c.__wtThrust={down(){},up(){}};c.__wtFun={input(){},rawKey:()=>false};vm.createContext(c);vm.runInContext(fns.Uc+';'+fns.Vc+';Uc("Q");Uc("Q");Vc("Q");',c);
 assert.equal(claps,1);assert.equal(counts,1);assert.equal(releases,1);assert.equal(c.A.value,1);
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});

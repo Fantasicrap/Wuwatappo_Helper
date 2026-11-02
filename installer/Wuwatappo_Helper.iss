@@ -5,7 +5,7 @@
   #define OutputDir "..\dist"
 #endif
 #ifndef AppVersion
-  #define AppVersion "1.0.3.2"
+  #define AppVersion "1.0.3.3"
 #endif
 
 [Setup]
@@ -53,8 +53,13 @@ Source: "..\docs\使用说明.md"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "..\docs\库存欧非判定.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\手柄使用说明.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\docs\i弗TV.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\docs\图鉴试装.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\docs\HE动画方案.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\docs\联机位置记忆.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\按需运行优化说明.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "..\docs\内存优化测试说明.md"; DestDir: "{app}\docs"; Flags: ignoreversion
+Source: "..\docs\*"; DestDir: "{app}\docs"; Excludes: "按需运行优化说明.md,内存优化测试说明.md"; Flags: ignoreversion
 Source: "..\licenses\SDL3-LICENSE.txt"; DestDir: "{app}\licenses"; Flags: ignoreversion
 
 [Icons]

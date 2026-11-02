@@ -1,0 +1,311 @@
+{
+  "source": "Official public CDN; pinned six-skin and three-accessory visual regression inputs, 2026-11-02",
+  "base": "https://mc-wuwatappo.kurogames-global.com",
+  "characters": [
+    {
+      "name": "role_1608_1006.png",
+      "atlasId": 2839,
+      "renderId": 2934,
+      "game_role_id": 1608,
+      "url": "character/59898ee0-7518-4ab9-9552-eb7f78a5b4f6.png",
+      "offset_x": 0,
+      "offset_y": 0,
+      "my_offset_x": 0,
+      "my_offset_y": 0,
+      "body1": {
+        "url": "character/3f787043-12e9-4cb1-9122-c50bed3b201b.png?v=1790136101157",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      },
+      "head1": {
+        "url": "character/ade0daf8-3d95-4023-bcdf-00b307a88420.png?v=1790136101157",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      },
+      "body2": {
+        "url": "character/2d424bc1-87cb-4568-ba3f-23c4b696ed7c.png?v=1790136101157",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      },
+      "head2": {
+        "url": "character/0460cffa-e8dc-4756-8aab-8c256d6ccf77.png?v=1790136101157",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      },
+      "body3": {
+        "url": "character/2de93313-5560-4847-8604-6aaeea2b86d5.png?v=1790136101157",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      }
+    },
+    {
+      "name": "role_1608_1005.png",
+      "atlasId": 1322,
+      "renderId": 818,
+      "game_role_id": 1608,
+      "url": "character/fd3e712f-2493-446a-aa13-7dbefd5fe5dc.png?v=1791275564624",
+      "offset_x": -2,
+      "offset_y": 16,
+      "my_offset_x": -4,
+      "my_offset_y": 0,
+      "body1": {
+        "url": "character/4293b74b-2a04-4258-8011-213e00358c81.png?v=1791275564624",
+        "offset_x": -2,
+        "offset_y": 16,
+        "my_offset_x": -4,
+        "my_offset_y": 0
+      },
+      "head1": {
+        "url": "character/7f470804-4af4-4599-b059-66cc4f97e7bb.png?v=1791275565622",
+        "offset_x": -2,
+        "offset_y": 16,
+        "my_offset_x": -4,
+        "my_offset_y": 0
+      },
+      "body2": {
+        "url": "character/df1f6607-9819-48bb-b661-e9408cc58627.png?v=1791275564624",
+        "offset_x": -2,
+        "offset_y": 16,
+        "my_offset_x": -4,
+        "my_offset_y": 0
+      },
+      "head2": {
+        "url": "character/5371eaa6-8f15-49bf-a05c-3e9efd6db9eb.png?v=1791275565622",
+        "offset_x": -2,
+        "offset_y": 16,
+        "my_offset_x": -4,
+        "my_offset_y": 0
+      },
+      "body3": {
+        "url": "character/890f1479-e374-41c9-a66f-c2cca9ea548c.png?v=1791275564624",
+        "offset_x": -2,
+        "offset_y": 16,
+        "my_offset_x": -4,
+        "my_offset_y": 0
+      }
+    },
+    {
+      "name": "role_1608_1004.png",
+      "atlasId": 1284,
+      "renderId": 1106,
+      "game_role_id": 1608,
+      "url": "character/7f1d904a-0d86-462e-be06-add53ca7c345.png?v=1791439702242",
+      "offset_x": 0,
+      "offset_y": 8,
+      "my_offset_x": -5,
+      "my_offset_y": 0,
+      "body1": {
+        "url": "character/510daf4e-3f0f-4229-857c-097973f5e3db.png?v=1791439702242",
+        "offset_x": 0,
+        "offset_y": 8,
+        "my_offset_x": -5,
+        "my_offset_y": 0
+      },
+      "head1": {
+        "url": "character/ec16bfc3-12d2-4e66-8ce8-c7564d696aac.png?v=1791439702242",
+        "offset_x": 0,
+        "offset_y": 8,
+        "my_offset_x": -5,
+        "my_offset_y": 0
+      },
+      "body2": {
+        "url": "character/1ca6473a-727a-410a-ac78-27ad985a7194.png?v=1791439702242",
+        "offset_x": 0,
+        "offset_y": 8,
+        "my_offset_x": -5,
+        "my_offset_y": 0
+      },
+      "head2": {
+        "url": "character/11bf2d18-3668-4d18-9170-844c80a77b20.png?v=1791439702242",
+        "offset_x": 0,
+        "offset_y": 8,
+        "my_offset_x": -5,
+        "my_offset_y": 0
+      },
+      "body3": {
+        "url": "character/70c78c88-551a-4e16-82d3-ddc41b9a95c6.png?v=1791439702242",
+        "offset_x": 0,
+        "offset_y": 8,
+        "my_offset_x": -5,
+        "my_offset_y": 0
+      }
+    },
+    {
+      "name": "role_1608_1003.png",
+      "atlasId": 1230,
+      "renderId": 566,
+      "game_role_id": 1608,
+      "url": "character/5830c4e3-4ef8-47f2-9820-1cc9d9d31547.png?v=1791274318216",
+      "offset_x": 5,
+      "offset_y": 10,
+      "my_offset_x": -5,
+      "my_offset_y": 0,
+      "body1": {
+        "url": "character/78b1679c-fa09-4ae8-a479-d1073f55b4ba.png?v=1791273784492",
+        "offset_x": 5,
+        "offset_y": 10,
+        "my_offset_x": -5,
+        "my_offset_y": 0
+      },
+      "head1": {
+        "url": "character/5dd2391f-b669-47e4-a8dc-2025a2645934.png?v=1791273784492",
+        "offset_x": 5,
+        "offset_y": 10,
+        "my_offset_x": -5,
+        "my_offset_y": 0
+      },
+      "body2": {
+        "url": "character/6b83a080-9878-4916-bacb-35a1a7289c72.png?v=1791273784492",
+        "offset_x": 5,
+        "offset_y": 10,
+        "my_offset_x": -5,
+        "my_offset_y": 0
+      },
+      "head2": {
+        "url": "character/d84acfd1-dbb6-477b-bc64-2c9b3a3e8fe5.png?v=1791273784492",
+        "offset_x": 5,
+        "offset_y": 10,
+        "my_offset_x": -5,
+        "my_offset_y": 0
+      },
+      "body3": {
+        "url": "character/cc1d64e5-45fe-4f12-8685-d3b204d02e24.png?v=1791273784492",
+        "offset_x": 5,
+        "offset_y": 10,
+        "my_offset_x": -5,
+        "my_offset_y": 0
+      }
+    },
+    {
+      "name": "role_1608_1002.png",
+      "atlasId": 1186,
+      "renderId": 182,
+      "game_role_id": 1608,
+      "url": "character/2a71d7b1-91a7-467c-9534-e9b70c64c410.png?v=1791272947930",
+      "offset_x": -5,
+      "offset_y": 22,
+      "my_offset_x": 0,
+      "my_offset_y": -6,
+      "body1": {
+        "url": "character/0e02286b-1c3f-4bea-a2df-7bcb6adfadc9.png?v=1791272947930",
+        "offset_x": -5,
+        "offset_y": 22,
+        "my_offset_x": 0,
+        "my_offset_y": -6
+      },
+      "head1": {
+        "url": "character/18721eb1-fffd-4eae-8b4a-793390026aa7.png?v=1791272947930",
+        "offset_x": -5,
+        "offset_y": 22,
+        "my_offset_x": 0,
+        "my_offset_y": -6
+      },
+      "body2": {
+        "url": "character/0394eadb-97c9-4dcf-8a07-3136883f91e8.png?v=1791272947930",
+        "offset_x": -5,
+        "offset_y": 22,
+        "my_offset_x": 0,
+        "my_offset_y": -6
+      },
+      "head2": {
+        "url": "character/74172ab0-f3e0-4c05-a877-5de54461372a.png?v=1791272947930",
+        "offset_x": -5,
+        "offset_y": 22,
+        "my_offset_x": 0,
+        "my_offset_y": -6
+      },
+      "body3": {
+        "url": "character/ab81cb3c-6f2f-46f7-8307-c4cee68627bc.png?v=1791272947930",
+        "offset_x": -5,
+        "offset_y": 22,
+        "my_offset_x": 0,
+        "my_offset_y": -6
+      }
+    },
+    {
+      "name": "role_1608_1001.png",
+      "atlasId": 1171,
+      "renderId": 92,
+      "game_role_id": 1608,
+      "url": "character/f53ca683-0b46-4ecf-9efe-ed2da50f36df.png?v=1791270704567",
+      "offset_x": 0,
+      "offset_y": 0,
+      "my_offset_x": 0,
+      "my_offset_y": 0,
+      "body1": {
+        "url": "character/b26a551f-a962-43c5-bab8-7a67333e1b36.png?v=1791270704567",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      },
+      "head1": {
+        "url": "character/8306048d-0b05-445d-b5d6-31c522d99622.png?v=1791270704567",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      },
+      "body2": {
+        "url": "character/e3881b8d-509c-452d-8e97-d37460ba55d3.png?v=1791270704567",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      },
+      "head2": {
+        "url": "character/bffc10ba-de50-4e4f-92ef-388c991d0bfe.png?v=1791270704567",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      },
+      "body3": {
+        "url": "character/d506eeee-b2c2-4762-b233-8f8d21ba1057.png?v=1791270704567",
+        "offset_x": 0,
+        "offset_y": 0,
+        "my_offset_x": 0,
+        "my_offset_y": 0
+      }
+    }
+  ],
+  "accessories": [
+    {
+      "code": "1124",
+      "name": "共鸣回响·鸣式·利维亚坦",
+      "folder": "1124-共鸣回响·鸣式·利维亚坦",
+      "atlasId": 1572,
+      "renderId": 1594,
+      "renderUrl": "https://mc-wuwatappo.kurogames-global.com/accessory/74f85e48-71f4-4fa9-8536-fb23e41264ec.png?v=1791276550162",
+      "atlasUrl": "https://mc-wuwatappo.kurogames-global.com/accessory_atlas/b71c8cf3-e6cf-492c-889f-c2d6549ad7a4.png?v=1791276823316"
+    },
+    {
+      "code": "1125",
+      "name": "共鸣回响·芙露德莉斯",
+      "folder": "1125-共鸣回响·芙露德莉斯",
+      "atlasId": 1573,
+      "renderId": 1595,
+      "renderUrl": "https://mc-wuwatappo.kurogames-global.com/accessory/4b57f6c4-59af-4960-bcf5-05e8c450f6bd.png?v=1791276550162",
+      "atlasUrl": "https://mc-wuwatappo.kurogames-global.com/accessory_atlas/24e9db32-0fc1-4909-92bc-6daae1e66b6e.png?v=1791276823316"
+    },
+    {
+      "code": "1131",
+      "name": "赫卡忒",
+      "folder": "1131-赫卡忒",
+      "atlasId": 1579,
+      "renderId": 1601,
+      "renderUrl": "https://mc-wuwatappo.kurogames-global.com/accessory/3bbc0e3c-7c7a-4ab1-8fe8-581cf65bab67.png?v=1791276551130",
+      "atlasUrl": "https://mc-wuwatappo.kurogames-global.com/accessory_atlas/d3ea9b79-719d-43ce-9eeb-3d449a4b2d32.png?v=1791276824051"
+    }
+  ]
+}
