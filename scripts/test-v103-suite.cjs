@@ -1,6 +1,6 @@
 const fs=require('fs'),cp=require('child_process'),path=require('path');
 const root=path.resolve(__dirname,'..'),tests=[
- 'scripts/test-v103-preview.cjs','scripts/test-v103-bindings.cjs',
+ 'scripts/test-v103-preview.cjs','scripts/test-v103-bindings.cjs','scripts/test-long-run.cjs','scripts/test-session-lifetime.cjs','scripts/test-network-recovery.cjs',
  'scripts/test-v103-counter.cjs','scripts/test-v103-room-history.cjs','scripts/test-auto-emotes.cjs','scripts/test-accessory-thrust.cjs','scripts/test-happy-ending.cjs','scripts/test-oath-core.cjs','scripts/test-local-wardrobe.cjs',
  'scripts/test-v103-mouse-feed.cjs','scripts/test-monitor-preference.cjs','scripts/test-controller-core.cjs',
  'patches/test-inventory-share.cjs','scripts/test-share-module-failure.cjs','scripts/test-inventory-official-names.cjs','patches/test-inventory-luck.cjs','patches/test-input-recorder.cjs',

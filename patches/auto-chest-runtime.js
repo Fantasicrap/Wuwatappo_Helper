@@ -1,42 +1,11 @@
-const __wtAutoChestKey="wuwatappo-auto-claim-chests-v1";
-let __wtAutoChestBusy=false;
-let __wtAutoChestLastSide="right";
-const __wtAutoChestRetry={left:0,right:0};
-const __wtAutoChestDueSince={left:null,right:null};
-function __wtAutoChestEnabled(){
-  try{return localStorage.getItem(__wtAutoChestKey)==="1"}catch{return false}
-}
-function __wtSetAutoChest(enabled){
-  try{
-    localStorage.setItem(__wtAutoChestKey,enabled?"1":"0");
-    __wtAutoChestRetry.left=0;
-    __wtAutoChestRetry.right=0;
-    __wtAutoChestDueSince.left=null;
-    __wtAutoChestDueSince.right=null;
-  }catch(error){console.warn("[auto-chest] setting save failed",error)}
-}
-async function __wtAutoChestTick(){
-  if(!__wtAutoChestEnabled()||!A.isLoggedIn||Ie()||nt.value.status!=="online"){
-    __wtAutoChestDueSince.left=null;__wtAutoChestDueSince.right=null;return;
-  }
-  const now=Date.now();
-  for(const side of ["left","right"]){
-    if(!(side==="left"?Wn.value:Gn.value))__wtAutoChestDueSince[side]=null;
-    else if(__wtAutoChestDueSince[side]===null)__wtAutoChestDueSince[side]=now;
-  }
-  if(__wtAutoChestBusy||Dn.value||A.totalClickCount<Ns)return;
-  const sides=__wtAutoChestLastSide==="left"?["right","left"]:["left","right"];
-  const side=sides.find(value=>(value==="left"?Wn.value:Gn.value)&&__wtAutoChestDueSince[value]!==null&&now-__wtAutoChestDueSince[value]>=5000&&now>=__wtAutoChestRetry[value]);
-  if(!side)return;
-  __wtAutoChestBusy=true;
-  __wtAutoChestLastSide=side;
-  __wtAutoChestRetry[side]=now+30000;
-  try{
-    await uc(side);
-    const stillDue=side==="left"?Wn.value:Gn.value;
-    __wtAutoChestRetry[side]=Date.now()+(stillDue?30000:1000);
-  }catch(error){
-    __wtAutoChestRetry[side]=Date.now()+30000;
-    console.warn("[auto-chest] claim failed",error);
-  }finally{__wtAutoChestBusy=false}
-}
+const __wtAutoChestKey='wuwatappo-auto-claim-chests-v1';
+function __wtAutoChestEnabled(){try{return localStorage.getItem(__wtAutoChestKey)==='1'}catch{return false}}
+function __wtSetAutoChest(enabled){try{localStorage.setItem(__wtAutoChestKey,enabled?'1':'0');__wtChestTask.reset()}catch{}}
+const __wtChestTask=__wtLongRun.create({
+ enabled:__wtAutoChestEnabled,
+ state:()=>({account:R.isLoggedIn?R.userInfo?.id:null,online:nt.value.status==='online',blocked:Ie()||Mi.value||br.value,ready:Qn.value,busy:Fn.value,clicks:R.totalClickCount,minimum:Ns,due:{left:Wn.value,right:Gn.value}}),
+ claim:side=>pc(side),sync:async()=>{await sc();return Qn.value},
+ diagnostic:event=>le('HELPER','auto_chest',{event},'warn')
+});
+const __wtSessionTask=__wtLongRun.session({online:()=>R.isLoggedIn&&nt.value.status==='online',blocked:Ie,renew:__wtRenewSession});
+function __wtAutoChestTick(){__wtSessionTask.tick();return __wtChestTask.tick()}
