@@ -1,6 +1,6 @@
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict');
 const {chromium}=require('playwright'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const dir='dist/migration-1.0.3.3',common=fs.readFileSync(path.join(dir,'index-CuzHFfJW.js'),'utf8'),main=fs.readFileSync(path.join(dir,'index-pp8VWaUF.js'),'utf8'),settings=fs.readFileSync(path.join(dir,'index-CiT_jZa7.js'),'utf8');
+const dir='dist/migration-1.0.3.4',common=fs.readFileSync(path.join(dir,'index-CuzHFfJW.js'),'utf8'),main=fs.readFileSync(path.join(dir,'index-pp8VWaUF.js'),'utf8'),settings=fs.readFileSync(path.join(dir,'index-CiT_jZa7.js'),'utf8');
 let about=fs.readFileSync(path.join(dir,'index-BEWn23m-.js'),'utf8'),boot,footer,click;
 traverse(babelParse(main,'main.mjs',true),{CallExpression(p){const n=p.node;if(n.callee.name==='js'&&n.arguments[0]?.type==='ArrowFunctionExpression'&&main.slice(n.start,n.end).includes('main_mount_failed'))boot=main.slice(n.arguments[0].start,n.arguments[0].end)}});
 assert(boot?.includes('if(!await __wtNotice.confirm())'));
@@ -11,7 +11,7 @@ const cuts=[];traverse(babelParse(about,'about.mjs',true),{ImportDeclaration(p){
 const runtime=require('./vue-runtime-fixture.cjs')(common,['defineComponent','computed','watch','onMounted','onUnmounted','createVNode','createStaticVNode','withDirectives','vModelCheckbox','withModifiers','unref']);
 let notice;traverse(babelParse(common,'common.mjs',true),{VariableDeclaration(p){if(p.node.declarations.some(d=>d.id.name==='__wtNotice'))notice=common.slice(p.node.start,p.node.end)}});assert(notice,'Missing bundled disclaimer module');
 assert(notice.includes(JSON.stringify(fs.readFileSync('DISCLAIMER.txt','utf8').replace(/^\uFEFF/,''))),'Bundled and distributed disclaimer must match');
-const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/startup-notice-1.0.3.3';fs.mkdirSync(output,{recursive:true});
+const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/startup-notice-1.0.3.4';fs.mkdirSync(output,{recursive:true});
 (async()=>{
  const timedCalls=[],timedListeners=new Set(),timedStorage=new Map(),timed={localStorage:{getItem:k=>timedStorage.get(k)??null,setItem:(k,v)=>timedStorage.set(k,v),removeItem:k=>timedStorage.delete(k)},listen:async(name,fn)=>{timedListeners.add(fn);return()=>timedListeners.delete(fn)},emit:async()=>{},invoke:async name=>timedCalls.push(name),setTimeout:fn=>fn(),console:{warn(){}}};
  vm.createContext(timed);vm.runInContext(notice+';this.api=__wtNotice;',timed);

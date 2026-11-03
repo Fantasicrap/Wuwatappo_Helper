@@ -1,7 +1,7 @@
-param([Parameter(Mandatory=$true)][string]$DistributionDirectory,[string]$PayloadPath='dist/migration-1.0.3.3/payload.exe')
+param([Parameter(Mandatory=$true)][string]$DistributionDirectory,[string]$PayloadPath='dist/migration-1.0.3.4/payload.exe')
 $ErrorActionPreference='Stop'
 $out=[IO.Path]::GetFullPath($DistributionDirectory)
-$exe=Join-Path $out 'Wuwatappo_Helper-1.0.3.3.exe'
+$exe=Join-Path $out 'Wuwatappo_Helper-1.0.3.4.exe'
 $assembly=[Reflection.Assembly]::LoadFile($exe)
 $method=$assembly.GetType('HelperHost',$true).GetMethod('Extract',[Reflection.BindingFlags]'Static,NonPublic')
 $testDir=Join-Path $out 'extract-test'

@@ -1,8 +1,8 @@
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict');
 const {chromium}=require('playwright'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/idle-optimized-1.0.3.3';fs.mkdirSync(output,{recursive:true});
+const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/idle-optimized-1.0.3.4';fs.mkdirSync(output,{recursive:true});
 // Exercise the unchanged official action/count path while Helper mapping is off.
-const source=fs.readFileSync('dist/migration-1.0.3.3/index-pp8VWaUF.js','utf8'),fns={};
+const source=fs.readFileSync('dist/migration-1.0.3.4/index-pp8VWaUF.js','utf8'),fns={};
 traverse(babelParse(source,'main.mjs',true),{FunctionDeclaration(p){if(['Uc','Vc'].includes(p.node.id.name))fns[p.node.id.name]=source.slice(p.node.start,p.node.end)}});
 let claps=0,counts=0,releases=0;
 const c={__wtKeysConnected:false,__wtKeyboard:{key:()=>{}},__wtAutoEmote:{down:()=>false},__wtPerformHelperAction:()=>{},__wtHotkeys:{nativeDown:()=>null,nativeUp:()=>{}},qr:new Set(),va:new Set(),Fo:false,Wa:false,Bs:()=>false,Ie:()=>false,se:{value:''},Yo:()=>{claps++},Wl:()=>{releases++},R:{incrementLocalClickCount:()=>counts++},nn:null,A:{value:3}};

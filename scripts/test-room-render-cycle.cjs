@@ -1,12 +1,12 @@
 const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 const {chromium}=require('playwright'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const dir='dist/migration-1.0.3.3',common=fs.readFileSync(path.join(dir,'index-CuzHFfJW.js'),'utf8'),main=fs.readFileSync(path.join(dir,'index-pp8VWaUF.js'),'utf8');
+const dir='dist/migration-1.0.3.4',common=fs.readFileSync(path.join(dir,'index-CuzHFfJW.js'),'utf8'),main=fs.readFileSync(path.join(dir,'index-pp8VWaUF.js'),'utf8');
 // Keep the exact bundled Vue runtime and production block flags. A mock VNode
 // factory cannot expose errors in Vue's optimized block reconciliation.
 const runtime=require('./vue-runtime-fixture.cjs')(common);
 let render;const constants=[];
 traverse(babelParse(main,'main.mjs',true),{ArrowFunctionExpression(p){const t=main.slice(p.node.start,p.node.end);if(t.startsWith('(o,l)=>')&&t.includes('"data-room-cat-id":o.id')&&t.length<6000)render=t},VariableDeclarator(p){if(['by','_y','ky','Cy','Sy','Ay','Ry'].includes(p.node.id.name))constants.push('const '+main.slice(p.node.start,p.node.end)+';')}});
-assert(render);const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/room-visibility-fix-1.0.3.3';fs.mkdirSync(output,{recursive:true});
+assert(render);const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/room-visibility-fix-1.0.3.4';fs.mkdirSync(output,{recursive:true});
 (async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});try{
  const page=await browser.newPage({viewport:{width:500,height:400}}),errors=[];page.on('pageerror',e=>errors.push(e.message));let downloads=0;
  await page.route('http://room.test/**',r=>{if(r.request().url().includes('/sprite')){downloads++;return r.fulfill({contentType:'image/png',headers:{'Cache-Control':'no-store'},body:fs.readFileSync('patches/share-fixtures/character_skin.png')})}return r.fulfill({contentType:'text/html',body:'<style>.room-cat-shell{width:200px;height:211px}.room-cat-shell--ui-hidden{opacity:0}</style><div id="app"></div>'})});

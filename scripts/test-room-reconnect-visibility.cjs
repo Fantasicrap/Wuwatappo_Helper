@@ -1,5 +1,5 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const source=fs.readFileSync('dist/migration-1.0.3.3/index-pp8VWaUF.js','utf8'),functions={};
+const source=fs.readFileSync('dist/migration-1.0.3.4/index-pp8VWaUF.js','utf8'),functions={};
 traverse(babelParse(source,'panel.mjs',true),{FunctionDeclaration(p){const code=source.slice(p.node.start,p.node.end);if(p.node.id.name==='$t'&&!code.includes('ur(T,{online:!0'))return;if(['no','ul','xd','eh','$t','__wtSetAllRoomMembersVisible','__wtHideNewRoomMembers'].includes(p.node.id.name)){assert(!functions[p.node.id.name]);functions[p.node.id.name]=code}}});
 for(const name of ['no','ul','xd','eh','$t','__wtSetAllRoomMembersVisible','__wtHideNewRoomMembers'])assert(functions[name],'Missing production function '+name);
 const start=source.indexOf('const __wtHideRoomPeers='),end=source.indexOf(functions.no,start);assert(start>=0&&end>start);

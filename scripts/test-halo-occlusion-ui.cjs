@@ -1,6 +1,6 @@
 const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 const {pathToFileURL}=require('url'),{chromium}=require('playwright'),{createCanvas,loadImage}=require('@napi-rs/canvas');
-const out=path.resolve(process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/halo-depth-1.0.3.3');
+const out=path.resolve(process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/halo-depth-1.0.3.4');
 async function pixels(buffer){const img=await loadImage(buffer),canvas=createCanvas(img.width,img.height),ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);return ctx.getImageData(0,0,img.width,img.height).data}
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});

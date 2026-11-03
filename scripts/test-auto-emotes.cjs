@@ -1,5 +1,5 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const common=fs.readFileSync('dist/migration-1.0.3.3/index-CuzHFfJW.js','utf8'),panel=fs.readFileSync('dist/migration-1.0.3.3/index-pp8VWaUF.js','utf8');let code;const input={};
+const common=fs.readFileSync('dist/migration-1.0.3.4/index-CuzHFfJW.js','utf8'),panel=fs.readFileSync('dist/migration-1.0.3.4/index-pp8VWaUF.js','utf8');let code;const input={};
 traverse(babelParse(common,'c.js',true),{VariableDeclaration(p){if(p.node.declarations.some(d=>d.id.name==='__wtAutoEmotes'))code=common.slice(p.node.start,p.node.end)}});assert(code);
 traverse(babelParse(panel,'p.js',true),{FunctionDeclaration(p){if(['Uc','Vc','Ap'].includes(p.node.id.name))input[p.node.id.name]=panel.slice(p.node.start,p.node.end)}});
 const emote=(id,quantity=1,role=1)=>({asset_id:id,asset_type:'emote',asset_name:'emote_'+id,quantity,role_id:role}),settle=async()=>{for(let i=0;i<8;i++)await Promise.resolve()};

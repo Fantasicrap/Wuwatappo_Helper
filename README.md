@@ -4,7 +4,9 @@
 
 WuwaTappo 1.0.3 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前版本为 **Helper 1.0.3.3**，适配官方 1.0.3。同版本更新加入按需运行与房间内存优化，并保留游戏模式键鼠补充、本地服务进程跟踪、库存模块加载容错及重连隐藏修复；实际环境的验证范围见下文。
+当前版本为 **Helper 1.0.3.4**，适配官方 1.0.3。同版本更新加入按需运行与房间内存优化，并保留游戏模式键鼠补充、本地服务进程跟踪、库存模块加载容错及重连隐藏修复；实际环境的验证范围见下文。
+
+新增合成提醒：设置中独立开启平阶（5 个重复素材）与升阶（10 个重复素材）提醒；按同类别、同稀有度汇总，每种保留 1 个，最高稀有度不提醒升阶。人物右上方显示“可合成”，点击直接打开原版合成页；不自动填充或提交合成。已修复优化渲染导致的开关标签丢失。
 
 同版本更新包含房间内存优化：隐藏成员时卸载角色、配件、表情图片节点，并跳过隐藏成员的素材预加载和新表情显示；保留房间连接、成员状态与位置，恢复显示时重建图片内容。界面图片改为按需加载，启动器包体校验、解包改为流式操作。16人房间，约节省500M RAM占用。见[内存优化说明](docs/内存优化测试说明.md)。
 
@@ -12,7 +14,7 @@ WuwaTappo 1.0.3 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 同版本补修隐藏后恢复联机桌宠的图片更新：隐藏时正确卸载图片节点，重新显示时能重新建立和加载图片，不删除磁盘素材。新增内置 Vue 实际渲染测试覆盖反复显隐、加载占位切换和成员重新加入。
 
-提供[联机桌宠位置记忆](docs/联机位置记忆.md)，按账号、房间和成员 ID 保存本机位置；已包含在 v1.0.3.3 下载附件中。
+提供[联机桌宠位置记忆](docs/联机位置记忆.md)，按账号、房间和成员 ID 保存本机位置；已包含在 v1.0.3.4 下载附件中。
 
 新增 [i弗TV 专属互动](docs/i弗TV.md)，总开关下分 BE／HE：弗洛洛搭配指定共鸣回响剑触发 BE，保留刺出、气泡、眼泪和 2% 缚誓之核掉落，落点上移，新增默认关闭的自动拾取；消耗 5 个触发 10 秒自动动画，自动动画不判掉落。搭配赫卡忒触发 HE，每次按下从人物中心偏下（素材高度 60%）的随机位置飘出凋落回响，向上飞后淡出，HE 分别控制配件守护动画、漫画气泡、喜悦泪滴和凋落回响上飘动画。两条分支互斥，HE 不参与 BE 数量。本机道具与效果不修改官方库存。
 
@@ -20,7 +22,7 @@ WuwaTappo 1.0.3 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 新增“按键自动表情”三档设置：关闭、装备栏表情、随机已拥有表情。装备栏按槽位轮流发送；随机模式读取当前账号持有的表情，不修改装备。键盘按下触发，长按去重，任意连续 1 秒内最多发送 3 次，不排队补发；关闭时不额外读取库存或轮询输入。联机复用原版发送流程，跨角色表情的服务器接收效果尚待真实账号验证，详见[使用说明](docs/使用说明.md#按键自动表情)。
 
-加入首次启动免责确认：复用原版“关于 WuwaTappo”弹窗，勾选“我已阅读上述内容，后续不再提示”并确认启动后保存阅读状态，后续启动不再弹出；设置最底部、官方关于入口旁可点击“免责说明”再次查看。内容统一来自 [DISCLAIMER.txt](DISCLAIMER.txt)，包括项目地址、PR 贡献者 DanielToyama／共同作者及库洛致谢、开源免费、付费退款、仅供娱乐等声明。原版官方关于内容保留；该功能已随 v1.0.3.3 提供。
+加入首次启动免责确认：复用原版“关于 WuwaTappo”弹窗，勾选“我已阅读上述内容，后续不再提示”并确认启动后保存阅读状态，后续启动不再弹出；设置最底部、官方关于入口旁可点击“免责说明”再次查看。内容统一来自 [DISCLAIMER.txt](DISCLAIMER.txt)，包括项目地址、PR 贡献者 DanielToyama／共同作者及库洛致谢、开源免费、付费退款、仅供娱乐等声明。原版官方关于内容保留；该功能已随 v1.0.3.4 提供。
 
 本地适配版接回库存分享、欧非统计、自动宝箱、历史房间、持续隐藏、映射位置和录制。显隐、游戏模式和切屏快捷键使用官方 1.0.3 的设置；Helper 单独提供刷新、录制和六槽表情快捷键。键盘长按手部动作只在本机保持，未实现联机具体按键共享。
 
@@ -30,9 +32,9 @@ WuwaTappo 1.0.3 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 修复 1.0.2.5 启动器报“请求的操作需要提升”的问题：保留官方内层程序的管理员权限声明，改由 Windows 正常请求 UAC 确认；取消时清理并退出。安装包本身仍无需管理员权限。
 
-下载当前版本 v1.0.3.3：
+下载当前版本 v1.0.3.4：
 
-[下载安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.3/Wuwatappo_Helper-1.0.3.3-Setup.exe) · [下载免安装版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.3/Wuwatappo_Helper-1.0.3.3-Portable.zip) · [下载单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.3/Wuwatappo_Helper-1.0.3.3.exe)
+[下载安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.4/Wuwatappo_Helper-1.0.3.4-Setup.exe) · [下载免安装版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.4/Wuwatappo_Helper-1.0.3.4-Portable.zip) · [下载单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.3.4/Wuwatappo_Helper-1.0.3.4.exe)
 
 [此前已发布的版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
 
@@ -102,7 +104,7 @@ Ctrl+Alt+1～6 发送表情菜单中对应槽位当前装备的表情，无需�
 ## 安装与使用
 
 1. 退出正在运行的 WuwaTappo 或旧版修改程序。
-2. 下载并运行 `Wuwatappo_Helper-1.0.3.3-Setup.exe`，选择安装目录；桌面快捷方式可选。也可解压免安装版后运行 `Wuwatappo_Helper-1.0.3.3.exe`。
+2. 下载并运行 `Wuwatappo_Helper-1.0.3.4-Setup.exe`，选择安装目录；桌面快捷方式可选。也可解压免安装版后运行 `Wuwatappo_Helper-1.0.3.4.exe`。
 3. 登录并打开库存，等库存加载结束后点击“分享库存长图”。
 4. 生成完成后点击“保存 PNG”或“复制图片”。
 
@@ -143,8 +145,8 @@ pnpm install --frozen-lockfile
 pwsh -File scripts/build.ps1 -SourceExe 'F:\WuwaTappo\WuwaTappo.exe' -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
 ```
 
-脚本会核验原件摘要，提取构建所需资源，运行检查，默认输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/local-1.0.3.3/`。不会改动输入原件，也不会请求账号业务接口。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
+脚本会核验原件摘要，提取构建所需资源，运行检查，默认输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/local-1.0.3.4/`。不会改动输入原件，也不会请求账号业务接口。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
 
-安装 Edge 后，首次视觉回归先运行 `node scripts/prepare-ui-fixtures.cjs` 获取固定的公开测试素材，再运行 `pnpm test:migration`。逻辑测试使用仓库内的最小公开目录样本；视觉测试使用六个系列人物和三件配件，不依赖开发者本机缓存。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.3.3`。
+安装 Edge 后，首次视觉回归先运行 `node scripts/prepare-ui-fixtures.cjs` 获取固定的公开测试素材，再运行 `pnpm test:migration`。逻辑测试使用仓库内的最小公开目录样本；视觉测试使用六个系列人物和三件配件，不依赖开发者本机缓存。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.3.4`。
 
 详见 [免责声明](DISCLAIMER.txt) 与 [第三方说明](THIRD_PARTY_NOTICES.md)。

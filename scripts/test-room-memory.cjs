@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const {babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const source=fs.readFileSync('dist/migration-1.0.3.3/index-pp8VWaUF.js','utf8');
-const common=fs.readFileSync('dist/migration-1.0.3.3/index-CuzHFfJW.js','utf8');
+const source=fs.readFileSync('dist/migration-1.0.3.4/index-pp8VWaUF.js','utf8');
+const common=fs.readFileSync('dist/migration-1.0.3.4/index-CuzHFfJW.js','utf8');
 let schedule,bootstrap;
 traverse(babelParse(common,'common.mjs',true),{FunctionDeclaration(p){const name=p.node.id.name;if(name==='schedulePreloadAppUiImages')schedule=common.slice(p.node.start,p.node.end);if(name==='bootstrap')bootstrap=common.slice(p.node.start,p.node.end)}});
 assert(schedule&&bootstrap);let mounted=false;
