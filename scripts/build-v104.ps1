@@ -1,8 +1,10 @@
 param([Parameter(Mandatory=$true)][string]$SourceExe,[Parameter(Mandatory=$true)][string]$IsccPath,[string]$OutputDirectory)
 $ErrorActionPreference='Stop'
 $repoRoot=Split-Path -Parent $PSScriptRoot
-$out=if($OutputDirectory){[IO.Path]::GetFullPath($OutputDirectory)}else{Join-Path $repoRoot 'dist/local-1.0.4.1'}
-$payload=Join-Path $repoRoot 'dist/migration-1.0.4.1/payload.exe'
+$version=(Get-Content -LiteralPath (Join-Path $repoRoot 'package.json') -Raw|ConvertFrom-Json).releaseVersion
+$out=if($OutputDirectory){[IO.Path]::GetFullPath($OutputDirectory)}else{Join-Path $repoRoot "dist/local-$version"}
+$migration=Join-Path $repoRoot "dist/migration-$version"
+$payload=Join-Path $migration 'payload.exe'
 & node (Join-Path $PSScriptRoot 'inspect-upstream.cjs') $SourceExe (Join-Path $repoRoot 'dist/upstream-1.0.4')
 if($LASTEXITCODE -ne 0){throw 'Extraction failed'}
 & node (Join-Path $repoRoot 'patches/v103/build-preview.cjs') --v104
@@ -16,4 +18,4 @@ if($LASTEXITCODE -ne 0){throw '1.0.4 migration verification failed'}
 & (Join-Path $PSScriptRoot 'test-raw-input.ps1') -DistributionDirectory $out
 & (Join-Path $PSScriptRoot 'test-helper-http.ps1') -DistributionDirectory $out
 & (Join-Path $PSScriptRoot 'package.ps1') -IsccPath $IsccPath -OutputDirectory $out
-Copy-Item -LiteralPath (Join-Path $repoRoot 'dist/migration-1.0.4.1/checkpoint.json') -Destination (Join-Path $out 'migration-checkpoint.json') -Force
+Copy-Item -LiteralPath (Join-Path $migration 'checkpoint.json') -Destination (Join-Path $out 'migration-checkpoint.json') -Force

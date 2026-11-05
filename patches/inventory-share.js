@@ -3,6 +3,12 @@ const __wtInventoryShare=(()=>{
   const kinds=[['character_skin','角色'],['accessory','配件'],['emote','表情']];
   const rarityOrder=['epic','rare','uncommon','common'];
   const rarityFiles={common:'atlas-thumb-1-BLGUkvwT.png',uncommon:'atlas-thumb-2-CSkXBHLD.png',rare:'atlas-thumb-3-Cf7ixdnU.png',epic:'atlas-thumb-4-CDuzFic3.png'};
+  const rarityLegend=[
+    ['common','Common','#8bc5ab','90%'],
+    ['uncommon','Uncommon','#83add3','9.5%'],
+    ['rare','Rare','#b092ce','0.49%'],
+    ['epic','Epic','#e8bb67','0.01%']
+  ];
   const collator=new Intl.Collator('zh-Hans-CN-u-co-pinyin',{numeric:true,sensitivity:'base'});
   const width=1000,pad=30,gap=14,columns=5,cell=(width-pad*2-gap*4)/5,rowHeight=206,maxHeight=32000;
   function translated(prefix,value,fallback){
@@ -28,14 +34,14 @@ const __wtInventoryShare=(()=>{
     for(const source of Array.isArray(items)?items:[]){
       if(!source||!kinds.some(([type])=>type===source.asset_type))continue;
       const id=Number(source.asset_id),quantity=Number(source.quantity);
-      if(!Number.isSafeInteger(id)||id<=0||id>=1e9||!Number.isFinite(quantity)||quantity<1)continue;
+      if(!Number.isSafeInteger(id)||id<=0||id>=1e9||!Number.isSafeInteger(Math.floor(quantity))||quantity<1)continue;
       const item={...source,asset_id:id,quantity:Math.floor(quantity)},key=item.asset_type+':'+id;
       // Duplicate snapshots represent the same stack, not additional ownership.
       if(!found.has(key)||found.get(key).quantity<item.quantity)found.set(key,item);
     }
     return kinds.map(([type,title])=>({type,title,items:[...found.values()].filter(item=>item.asset_type===type).sort(compare)}));
   }
-  function layout(groups,limit=maxHeight,top=144){
+  function layout(groups,limit=maxHeight,top=234){
     if(limit<440)throw Error('图片高度限制过小');
     const pages=[];let page={blocks:[],y:top};
     const finish=()=>{page.height=page.y+40;pages.push(page);page={blocks:[],y:top}};
@@ -89,6 +95,41 @@ const __wtInventoryShare=(()=>{
       return {color:style.backgroundColor,pattern:await image(match[1],signal),frames:Object.fromEntries(loaded),opacity:Number.isFinite(Number(pattern.opacity))?Number(pattern.opacity):1};
     }catch(error){loaded.forEach(([,bitmap])=>bitmap.close?.());throw error}
   }
+  function composition(groups){
+    const counts={common:0,uncommon:0,rare:0,epic:0};
+    let total=0,unknown=0;
+    for(const group of groups)for(const item of group.items){
+      const rarity=String(item.rarity).toLowerCase();
+      if(Object.hasOwn(counts,rarity)){counts[rarity]+=item.quantity;total+=item.quantity}
+      else unknown+=item.quantity;
+    }
+    return {counts,total,unknown};
+  }
+  function drawRarity(ctx,{counts,total,unknown}){
+    ctx.fillStyle='#fff9ed';ctx.strokeStyle='#dfc5a2';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(580,18,390,196,16);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#8e5e43';ctx.font='bold 19px "Microsoft YaHei",sans-serif';
+    ctx.fillText('稀有度占比',600,49);
+    ctx.font='12px "Microsoft YaHei",sans-serif';
+    ctx.fillText('当前库存',832,73);ctx.fillText('官方参考',907,73);
+    const cx=667,cy=126,r=56;let angle=-Math.PI/2;
+    if(!total){ctx.fillStyle='#ddd3c5';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill()}
+    rarityLegend.forEach(([key,name,color,reference],index)=>{
+      const ratio=total?counts[key]/total:0;
+      if(ratio){
+        const end=angle+Math.PI*2*ratio;ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,r,angle,end);ctx.closePath();ctx.fill();angle=end;
+      }
+      const y=99+index*27;
+      ctx.fillStyle=color;ctx.fillRect(733,y-11,11,11);
+      ctx.fillStyle='#79583f';ctx.font='13px "Microsoft YaHei",sans-serif';
+      ctx.fillText(name,750,y);ctx.fillText(total?(ratio>0&&ratio<.0001?'<0.01%':(ratio*100).toFixed(2)+'%'):'—',832,y);
+      ctx.fillText(reference,907,y);
+    });
+    ctx.fillStyle='#8e7b6a';ctx.font='14px "Microsoft YaHei",sans-serif';
+    ctx.fillText('按当前库存件数统计，包含重复物品',pad,112);
+    if(unknown)ctx.fillText('未识别稀有度 '+unknown+' 件，未计入饼图',pad,137);
+  }
   async function draw(page,groups,options){
     const canvas=options.document.createElement('canvas');canvas.width=width;canvas.height=page.height;
     const ctx=canvas.getContext('2d');if(!ctx)throw Error('无法创建图片画布');
@@ -99,9 +140,7 @@ const __wtInventoryShare=(()=>{
       ctx.fillStyle='#8e5e43';ctx.font='bold 32px "Microsoft YaHei", sans-serif';ctx.fillText('WuwaTappo · 我的库存',pad,48);
       ctx.font='17px "Microsoft YaHei", sans-serif';
       ctx.fillText(groups.map(group=>group.title+' '+group.items.length+' 种').join('　'),pad,80);
-      const labels={epic:'Epic',rare:'Rare',uncommon:'Uncommon',common:'Common'};
-      if(!options.luck)rarityOrder.forEach((rarity,index)=>{const x=pad+index*170;ctx.drawImage(options.background.frames[rarity],x,96,26,23);ctx.fillText(labels[rarity],x+34,114)});
-      if(options.luck)options.luck.module.draw(ctx,options.luck.data);
+      drawRarity(ctx,options.composition??composition(groups));
       for(const block of page.blocks){
         ctx.font='bold 25px "Microsoft YaHei", sans-serif';ctx.fillStyle='#8e5e43';ctx.fillText(block.title+'  /  '+block.total+' 种',pad,block.y+31);
         if(!block.items.length){ctx.font='18px "Microsoft YaHei", sans-serif';ctx.fillText('暂无已拥有的'+block.title,pad,block.y+95)}
@@ -167,20 +206,27 @@ const __wtInventoryShare=(()=>{
       const snapshot=get();
       if(!snapshot.loggedIn){notify('请登录后分享已拥有的库存');return}
       if(snapshot.loading){notify('库存仍在加载，请稍后重试');return}
+      const account=String(snapshot.user?.id??'');
+      if(!/^\d+$/.test(account)||Number(account)<=0){notify('账号状态无效，请重新读取库存');return}
+      const checkAccount=()=>{
+        const current=get();
+        if(!current.loggedIn||String(current.user?.id??'')!==account)throw Error('账号已切换，请重新读取库存');
+      };
       const groups=owned(snapshot.items),total=groups.reduce((sum,group)=>sum+group.items.length,0);
       if(!total){notify('当前没有可分享的库存');return}
       busy.value=true;const controller=new AbortController(),ui=preview(document,()=>controller.abort());let bg;
       try{
-        label.value='正在生成…';let module;try{module=await import('http://127.0.0.1:48642/ui.js')}catch{try{module=await import('http://127.0.0.1:48642/ui.js?retry='+Date.now())}catch{}}
-        const luck=module?{module:module.InventoryLuck,data:await module.InventoryLuck.prepare(groups,snapshot.user,()=>userInfo().then(unwrapApiData),()=>get().user)}:null;ui.status('正在读取 WuwaTappo 背景…');bg=await background(document,controller.signal);
-        const pages=layout(groups,maxHeight,module?.InventoryLuck.headerHeight??144),date=new Date(),timestamp=date.toLocaleString(),stamp=date.toISOString().replace(/[:.]/g,'-');let done=0,failed=0;
+        label.value='正在生成…';ui.status('正在读取 WuwaTappo 背景…');bg=await background(document,controller.signal);
+        checkAccount();
+        const stats=composition(groups),pages=layout(groups,maxHeight),date=new Date(),timestamp=date.toLocaleString(),stamp=date.toISOString().replace(/[:.]/g,'-');let done=0,failed=0;
         for(let index=0;index<pages.length;index++){
           if(controller.signal.aborted)throw Error('已取消生成');
-          const result=await draw(pages[index],groups,{document,luck,background:bg,signal:controller.signal,loadImage:url=>image(url,controller.signal),resolveUrl:item=>resolveBagAppearanceImageUrl(snapshot.host,item),timestamp,pageLabel:(index+1)+' / '+pages.length,progress(){done++;ui.status('正在生成 '+done+' / '+total)}});
+          const result=await draw(pages[index],groups,{document,composition:stats,background:bg,signal:controller.signal,loadImage:url=>image(url,controller.signal),resolveUrl:item=>resolveBagAppearanceImageUrl(snapshot.host,item),timestamp,pageLabel:(index+1)+' / '+pages.length,progress(){done++;ui.status('正在生成 '+done+' / '+total)}});
           if(controller.signal.aborted)throw Error('已取消生成');
+          checkAccount();
           failed+=result.failed;ui.add(result,'WuwaTappo-库存-'+stamp+(pages.length>1?'-'+(index+1):'')+'.png');
         }
-        ui.status(!luck?'库存图已生成；本地模块未连接，未附欧非统计。请退出全部桌宠后重新运行带版本号的 Helper，并检查本机 48642 端口访问。':failed?'已生成，有 '+failed+' 个素材加载失败；关闭后重试可补全':pages.length>1?'已生成 '+pages.length+' 张长图（库存较多，已分段）':'长图已生成，可保存或复制分享');
+        ui.status(failed?'已生成，有 '+failed+' 个素材加载失败；关闭后重试可补全':pages.length>1?'已生成 '+pages.length+' 张长图（库存较多，已分段）':'长图已生成，可保存或复制分享');
       }catch(error){ui.status('生成失败：'+String(error?.message||error))}
       finally{bg?.pattern?.close?.();Object.values(bg?.frames??{}).forEach(bitmap=>bitmap.close?.());busy.value=false;label.value='分享库存长图';ui.finish()}
     }
@@ -189,7 +235,7 @@ const __wtInventoryShare=(()=>{
   function render(h,model){
     return h('div',{style:{display:'flex',justifyContent:'flex-end',margin:'0 0 12px'}},[h('button',{type:'button',disabled:model.busy.value,title:'导出全部已拥有的角色、配件、表情，每行5个',style:{position:'static',padding:'8px 16px',border:'1px solid #E7B77C',borderRadius:'18px',background:'#fed291',color:'#8e5e43',font:'inherit',cursor:'pointer'},onMousedown:event=>event.stopPropagation(),onClick:event=>{event.stopPropagation();model.run()}},model.label.value,9,['disabled'])]);
   }
-  return {owned,layout,positions,draw,create,render,compare,roleName,seriesName,caption,rarityFiles,width,columns,maxHeight};
+  return {owned,layout,positions,composition,draw,create,render,compare,roleName,seriesName,caption,rarityFiles,width,columns,maxHeight};
 })();
 async function __wtNormalPanel(panel){
   await panel.setAlwaysOnTop(false);

@@ -2,7 +2,7 @@ const {fixturePath}=require('./upstream-fixtures.cjs');
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
 const root=path.resolve(__dirname,'..'),dir=path.join(root,'dist/migration-1.0.3.4');
 function globals(s){const names=new Set();traverse(babelParse(s,'resource.mjs',true),{ReferencedIdentifier(p){if(!p.scope.getBinding(p.node.name))names.add(p.node.name)}});return names}
-const browser=new Set(['Object','Event','HTMLInputElement','HTMLTextAreaElement','HTMLSelectElement','getComputedStyle','ClipboardItem','performance','setInterval','clearInterval','fetch','AbortSignal','localStorage']);
+const browser=new Set(['undefined','Object','Event','HTMLInputElement','HTMLTextAreaElement','HTMLSelectElement','getComputedStyle','ClipboardItem','performance','setInterval','clearInterval','fetch','AbortSignal','localStorage']);
 const resources=['index-pp8VWaUF.js','index-CuzHFfJW.js','index-CiT_jZa7.js','switchDisplayMonitor-B50jXMGD.js','index-BEWn23m-.js'];
 const modules=new Map();
 for(const name of resources){

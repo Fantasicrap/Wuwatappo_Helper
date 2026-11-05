@@ -8,3 +8,7 @@ function __wtSetAllRoomMembersVisible(visible){
   if(visible)xd();
   jp({type:"set-only-show-self",value:!visible});
 }
+
+function __wtToggleOnlyShowSelf(){
+  jp({type:"set-only-show-self",value:!officialOnlyShowSelf.value});
+}

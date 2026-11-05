@@ -13,7 +13,7 @@ $previousSource = $env:WUWA_SOURCE_EXE
 $previousTarget = $env:WUWA_TEST_TARGET
 try {
     $env:WUWA_SOURCE_EXE = $sourceFile
-    $env:WUWA_TEST_TARGET = '1.0.4.1'
+    $env:WUWA_TEST_TARGET = (Get-Content -LiteralPath (Join-Path $repoRoot 'package.json') -Raw|ConvertFrom-Json).releaseVersion
     & (Join-Path $PSScriptRoot 'build-v104.ps1') -SourceExe $sourceFile -IsccPath $IsccPath -OutputDirectory $OutputDirectory
 } finally {
     $env:WUWA_SOURCE_EXE = $previousSource

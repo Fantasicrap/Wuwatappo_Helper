@@ -2,6 +2,7 @@ const __wtHotkeys=(()=>{
  const key="wuwatappo-hotkeys-v1";
  const actions=[{id:"game",label:"游戏模式",defaultKey:"F7"},{id:"monitor",label:"切换屏幕",defaultKey:"F8"},{id:"visibility",label:"显示／隐藏桌宠",defaultKey:"F9"},{id:"reload",label:"刷新界面",defaultKey:"F5"},{id:"record",label:"录制开始／结束",defaultKey:"Ctrl+Alt+F10"}];
  for(let slot=1;slot<=6;slot++)actions.push({id:"emote"+slot,label:"发送表情 · 槽位 "+slot,defaultKey:"Ctrl+Alt+"+slot});
+ actions.splice(3,0,{id:"roomOnlySelf",label:"联机仅显示自己",defaultKey:""});
  const defaults=()=>Object.fromEntries(actions.map(a=>[a.id,a.defaultKey]));
  const pressed=new Map();let localCapture=false;const owner="hk-"+Math.random().toString(36).slice(2);
  function normalizeKey(raw){
@@ -71,7 +72,7 @@ const __wtHotkeys=(()=>{
    h("div",{style:{fontSize:"12px",lineHeight:"1.5",color:"#8e7b6a"}},"点击输入框录制，支持 Ctrl / Alt / Shift 组合；Esc 取消。清除后可禁用对应快捷键。"),
    ...actions.map(action=>h("div",{style:{display:"flex",alignItems:"center",gap:"8px",margin:"9px 0"}},[
     h("span",{style:{width:"120px",flexShrink:"0",fontSize:"14px",color:"#8e5e43"}},action.label),
-    h("input",{readonly:true,value:model.recording.value===action.id?"请按新快捷键":model.draft.value[action.id]||"未设置",style:{width:"140px",minWidth:"0",height:"30px",boxSizing:"border-box",border:"1px solid #E7B77C",borderRadius:"6px",background:"#fef6dd",padding:"0 7px",fontSize:"14px",color:"#8e5e43"},onFocus:()=>model.start(action.id),onClick:()=>model.start(action.id),onBlur:model.finish,onKeydown:event=>model.record(action.id,event)},null,8,["value"]),
+    h("input",{"aria-label":action.label,readonly:true,value:model.recording.value===action.id?"请按新快捷键":model.draft.value[action.id]||"未设置",style:{width:"140px",minWidth:"0",height:"30px",boxSizing:"border-box",border:"1px solid #E7B77C",borderRadius:"6px",background:"#fef6dd",padding:"0 7px",fontSize:"14px",color:"#8e5e43"},onFocus:()=>model.start(action.id),onClick:()=>model.start(action.id),onBlur:model.finish,onKeydown:event=>model.record(action.id,event)},null,8,["value"]),
     h("button",{type:"button",style:button,onClick:()=>model.clear(action.id)},"清除")
    ])),
    h("div",{style:{display:"flex",gap:"8px",marginTop:"10px"}},[h("button",{type:"button",style:button,onClick:model.save},"保存快捷键"),h("button",{type:"button",style:button,onClick:model.reset},"恢复默认")]),

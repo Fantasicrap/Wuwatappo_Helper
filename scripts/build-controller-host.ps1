@@ -20,9 +20,8 @@ $ui=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/controller-ui.js'))
 $roomCore=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/room-history-core.js'))
 $roomUi=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/room-history-ui.js'))
 $uiFile=Join-Path $hostDir 'controller-ui.js'
-$luck=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/inventory-luck.js'))
 $monitor=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/monitor-preference.js'))
-[IO.File]::WriteAllText($uiFile,$core+"`n"+$ui+"`n"+$roomCore+"`n"+$roomUi+"`n"+$luck+"`n"+$monitor,[Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($uiFile,$core+"`n"+$ui+"`n"+$roomCore+"`n"+$roomUi+"`n"+$monitor,[Text.UTF8Encoding]::new($false))
 $hash=(Get-FileHash -LiteralPath $payload -Algorithm SHA256).Hash.ToLowerInvariant()
 $runtimeId=Join-Path $hostDir 'runtime-id'
 [IO.File]::WriteAllText($runtimeId,($pkg.releaseVersion+'-'+$hash.Substring(0,12)))

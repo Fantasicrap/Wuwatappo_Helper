@@ -1,5 +1,24 @@
 const __wtPhrolovaReaction=(()=>{
  const specialDuration=3000,normalDuration=1000,phrases=['好疼…','好冷啊…','终究如此…','为何…是你…','别再靠近了…','原来，是这样…','请…停下…','连梦也结束了吗…'];
+ const speechFont='clamp(8px, calc(var(--pet-base-size, 200px) * .055), 16px)';
+ function fitSpeech(bubble,label,available,custom){
+  bubble.style.fontSize=speechFont;
+  bubble.style.borderRadius=custom?'0.9em':'50% / 48%';
+  label.style.maxHeight='';label.style.overflow='';
+  if(!custom)return;
+  const base=parseFloat(getComputedStyle(bubble).fontSize);
+  let size=Math.max(6,base-Math.max(0,Array.from(label.textContent).length-10)*.16);
+  bubble.style.fontSize=size+'px';
+  while(bubble.offsetHeight>available&&size>5){
+   size=Math.max(5,size-.75);
+   bubble.style.fontSize=size+'px';
+  }
+  if(bubble.offsetHeight>available){
+   const decoration=bubble.offsetHeight-label.offsetHeight;
+   label.style.maxHeight=Math.max(0,available-decoration)+'px';
+   label.style.overflow='hidden';
+  }
+ }
  // Eye anchors were checked against both head frames of all six public skins.
  // Only the uncovered eye gets a tear. The pixel series uses a stepped glyph.
  const profiles=[
@@ -18,10 +37,10 @@ const __wtPhrolovaReaction=(()=>{
   let layer=null,bubble=null,bubbleTimer=null,lastPhrase=-1,disposed=false,specialTimer=null,pendingLine="",specialUntil=0;const tears=new Set(),recent=[];
   function tidy(){if(layer&&!bubble&&!tears.size){layer.remove();layer=null}}
   function reset(){specialUntil=0;clearTimeout(specialTimer);specialTimer=null;pendingLine="";clearTimeout(bubbleTimer);bubbleTimer=null;for(const item of tears){item.animation?.cancel();item.node.remove()}tears.clear();bubble?.remove();bubble=null;layer?.remove();layer=null}
-  function trigger(line="",allowTears=false,priority=false){const current=role(),cfg=settings();if(disposed||!isPhrolova(current)||!cfg.bubble&&!cfg.tears)return false;const host=root();if(!host||!host.isConnected)return false;const time=now();if(!priority&&time<specialUntil)return false;while(recent.length&&recent[0]<=time-1000)recent.shift();if(recent.length>=3||pendingLine&&!line)return false;recent.push(time);
+  function trigger(line="",allowTears=false,priority=false,showBubble=true,custom=false){const current=role(),cfg=settings(),canSpeak=cfg.bubble&&showBubble;if(disposed||!isPhrolova(current)||!canSpeak&&!cfg.tears)return false;const host=root();if(!host||!host.isConnected)return false;const time=now();if(!priority&&time<specialUntil)return false;while(recent.length&&recent[0]<=time-1000)recent.shift();if(recent.length>=3||pendingLine&&!line)return false;recent.push(time);
    if(layer?.parentNode!==host)reset();if(!layer){layer=document.createElement('div');layer.className='wt-phrolova-reaction';Object.assign(layer.style,{position:'absolute',inset:'0',overflow:'hidden',pointerEvents:'none',zIndex:'14'});host.appendChild(layer)}
-   if(cfg.bubble){if(!bubble){bubble=document.createElement('div');bubble.className='wt-phrolova-speech';bubble.setAttribute('aria-live','off');Object.assign(bubble.style,{position:'absolute',left:'2%',top:'3%',maxWidth:'84%',boxSizing:'border-box',padding:'clamp(3px, calc(var(--pet-base-size, 200px) * .027), 7px) clamp(5px, calc(var(--pet-base-size, 200px) * .046), 12px)',border:'1.6px solid #4d4149',borderRadius:'50% / 48%',background:'#fffdf6',color:'#51424c',fontFamily:'"Microsoft YaHei",sans-serif',fontSize:'clamp(8px, calc(var(--pet-base-size, 200px) * .055), 16px)',lineHeight:'1.45',whiteSpace:'normal',overflowWrap:'anywhere',textAlign:'center',boxShadow:'1px 2px 0 #4b30431a',zIndex:'2'});const text=document.createElement('span');text.className='wt-phrolova-speech-text';bubble.appendChild(text);const tail=document.createElement('i');Object.assign(tail.style,{position:'absolute',left:'69%',bottom:'-5px',width:'8px',height:'8px',background:'#fffdf6',borderRight:'1.6px solid #4d4149',borderBottom:'1.6px solid #4d4149',transform:'rotate(45deg)'});bubble.appendChild(tail);layer.appendChild(bubble)}
-   let index=Math.min(phrases.length-1,Math.max(0,Math.floor(random()*phrases.length)));if(index===lastPhrase)index=(index+1)%phrases.length;lastPhrase=index;bubble.querySelector('.wt-phrolova-speech-text').textContent=line||phrases[index];const head=profile(current)?.[7]??30,counter=host.querySelector('.wt-oath-core-count'),clearance=counter?counter.offsetTop+counter.offsetHeight+2:2;bubble.style.top=Math.max(clearance,host.clientHeight*(head/100+.02)-bubble.offsetHeight)+'px';
+   if(canSpeak){if(!bubble){bubble=document.createElement('div');bubble.className='wt-phrolova-speech';bubble.setAttribute('aria-live','off');Object.assign(bubble.style,{position:'absolute',left:'2%',top:'3%',maxWidth:'84%',boxSizing:'border-box',padding:'clamp(3px, calc(var(--pet-base-size, 200px) * .027), 7px) clamp(5px, calc(var(--pet-base-size, 200px) * .046), 12px)',border:'1.6px solid #4d4149',borderRadius:'50% / 48%',background:'#fffdf6',color:'#51424c',fontFamily:'"Microsoft YaHei",sans-serif',fontSize:speechFont,lineHeight:'1.45',whiteSpace:'normal',overflowWrap:'anywhere',textAlign:'center',boxShadow:'1px 2px 0 #4b30431a',zIndex:'2'});const text=document.createElement('span');text.className='wt-phrolova-speech-text';text.style.display='block';bubble.appendChild(text);const tail=document.createElement('i');Object.assign(tail.style,{position:'absolute',left:'69%',bottom:'-5px',width:'8px',height:'8px',background:'#fffdf6',borderRight:'1.6px solid #4d4149',borderBottom:'1.6px solid #4d4149',transform:'rotate(45deg)'});bubble.appendChild(tail);layer.appendChild(bubble)}
+   let index=Math.min(phrases.length-1,Math.max(0,Math.floor(random()*phrases.length)));if(index===lastPhrase)index=(index+1)%phrases.length;lastPhrase=index;const label=bubble.querySelector('.wt-phrolova-speech-text');label.textContent=line||phrases[index];const head=profile(current)?.[7]??30,counter=host.querySelector('.wt-oath-core-count'),clearance=counter?counter.offsetTop+counter.offsetHeight+2:2;fitSpeech(bubble,label,Math.max(0,host.clientHeight-clearance-7),custom);bubble.style.top=Math.max(clearance,host.clientHeight*(head/100+.02)-bubble.offsetHeight)+'px';
    if(priority)specialUntil=time+specialDuration;clearTimeout(bubbleTimer);bubbleTimer=setTimeout(()=>{bubble?.remove();bubble=null;bubbleTimer=null;tidy()},priority?specialDuration:normalDuration);
    }const p=cfg.tears&&(!line||allowTears)?profile(current):null;if(p){const node=document.createElement('div');node.className='wt-phrolova-tear';node.dataset.series=String(p[0]);Object.assign(node.style,{position:'absolute',left:(p[2]-1.6)+'%',top:p[3]+'%',width:'3.2%',height:'4.8%',imageRendering:p[0]===1005?'pixelated':'auto',pointerEvents:'none'});node.innerHTML=tearSvg(p);layer.appendChild(node);
     const item={node,animation:null};tears.add(item);const distance=Math.max(0,host.clientHeight*(1-p[3]/100-.048));
@@ -31,7 +50,7 @@ const __wtPhrolovaReaction=(()=>{
    return true;
   }
   function special(line,onShown){clearTimeout(specialTimer);pendingLine="";if(!settings().bubble){onShown?.(0);return 0}const delay=recent.length>=3?Math.max(0,recent[0]+1000-now()):0;if(delay){pendingLine=line;specialTimer=setTimeout(()=>{const text=pendingLine;pendingLine="";specialTimer=null;special(text,onShown)},Math.ceil(delay)+2)}else if(trigger(line,false,true))onShown?.(specialDuration);return delay}
-  return{trigger,special,reset,dispose(){disposed=true;reset()}};
+  return{trigger,mapped:line=>trigger(line??'',true,false,line!==null,true),special,reset,dispose(){disposed=true;reset()}};
  }
  return{specialDuration,normalDuration,phrases,profiles,profile,isPhrolova,tearSvg,create};
 })();

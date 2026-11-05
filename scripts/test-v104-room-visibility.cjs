@@ -2,8 +2,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const { babelParse, traverse } = require('playwright/lib/transform/babelBundle');
-const source = fs.readFileSync('dist/migration-1.0.4.1/index-BFg5ADH5.js', 'utf8');
-const expected = ['no', 'ul', 'xd', 'hh', 'eh', 'jp', '__wtSetAllRoomMembersVisible', '__wtSyncRoomVisibility'];
+const { fixturePath } = require('./upstream-fixtures.cjs');
+const source = fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-pp8VWaUF.js'), 'utf8');
+const expected = ['no', 'ul', 'xd', 'hh', 'eh', 'jp', '__wtSetAllRoomMembersVisible', '__wtSyncRoomVisibility', '__wtToggleOnlyShowSelf', '__wtPerformHelperAction'];
 const functions = new Map();
 traverse(babelParse(source, 'panel.mjs', true), {
   FunctionDeclaration(p) {
@@ -51,6 +52,16 @@ ctx.__wtSetAllRoomMembersVisible(true);
 assert(!ctx.no(peer.id) && !ctx.no(3) && !settings.onlyShowSelf, 'Show All clears local member hides too');
 callbacks.forEach(fn => fn());
 assert.equal(refreshes, 7);
+ctx.hh(peer.id);
+ctx.__wtHelperCapture=new Map();
+ctx.__wtHelperLast=new Map();
+ctx.__wtPerformHelperAction('roomOnlySelf');
+assert(settings.onlyShowSelf && ctx.no(3), 'Shortcut switches on the official preference');
+ctx.__wtPerformHelperAction('roomOnlySelf');
+assert(settings.onlyShowSelf,'Duplicate event delivery cannot undo the switch');
+ctx.__wtHelperLast.clear();
+ctx.__wtPerformHelperAction('roomOnlySelf');
+assert(!settings.onlyShowSelf && ctx.no(peer.id), 'Shortcut mirrors the checkbox and preserves the prior per-member hide');
 assert(source.includes('"data-room-cat-ui-hidden":no(o.id)?"true":"false"'));
 assert(source.includes('no(o.id)?[]:'));
 console.log('PASS: official persisted only-self, bulk actions, late joins, offline/online, individual visibility and render wiring');

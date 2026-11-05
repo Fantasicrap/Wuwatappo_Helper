@@ -1,4 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const {fixturePath}=require('../scripts/upstream-fixtures.cjs');
 const source=fs.readFileSync(path.join(__dirname,'inventory-share.js'),'utf8').replace('export {__wtInventoryShare,__wtNormalPanel};','this.share=__wtInventoryShare;this.normal=__wtNormalPanel;');
 const context={console};vm.createContext(context);vm.runInContext(source,context);const api=context.share;
 const item=(type,id,quantity=1)=>({asset_type:type,asset_id:id,quantity,rarity:'rare',role_id:'0'});
@@ -7,6 +8,8 @@ async function main(){
  const groups=api.owned([item('emote',42),item('character_skin',2,3),item('accessory',12,2),item('accessory',12,2),item('accessory',12,5),item('emote',43,0),item('emote',44,-1),item('emote',45,NaN),item('emote',1e9),item('emote',null),item('unknown',10),null]);
  assert.deepEqual(plain(groups.map(g=>g.title)),['角色','配件','表情']);
  assert.deepEqual(plain(groups.map(g=>g.items.length)),[1,1,1]);assert.equal(groups[1].items[0].quantity,5);
+ const counts=api.composition(api.owned([{...item('emote',6,5),rarity:'common'},{...item('emote',6,2),rarity:'common'},item('accessory',7,2),{...item('emote',8),rarity:'unknown'}]));
+ assert.deepEqual(plain(counts),{counts:{common:5,uncommon:0,rare:2,epic:0},total:7,unknown:1});
  const sorted=api.owned([
   {...item('character_skin',5),rarity:'common',series_name:'A',role_name:'安可'},
   {...item('character_skin',3),rarity:'epic',series_name:'B',role_name:'安可'},
@@ -26,15 +29,18 @@ async function main(){
  const loading=api.create(ref,()=>({loggedIn:true,loading:true}),value=>toast=value);await loading.run();assert.match(toast,/加载/);
  // Real offline Canvas rendering of a fixture, never the user's account inventory.
  const native=require('@napi-rs/canvas');
- const css=fs.readFileSync(path.join(__dirname,'../dist/upstream-1.0.3/index-C3fG-hsi.css'),'utf8');
+ const css=fs.readFileSync(fixturePath(path.join(__dirname,'../dist/upstream-1.0.3/index-C3fG-hsi.css')),'utf8');
  const before=css.slice(css.indexOf('.module-content__bg:before'));const png=before.match(/url\(data:image\/png;base64,([A-Za-z0-9+/=]+)\)/)[1];
  const pattern=await native.loadImage(Buffer.from(png,'base64'));
  const frames=Object.fromEntries(await Promise.all(Object.entries(api.rarityFiles).map(async([rarity,file])=>[rarity,await native.loadImage(path.join(__dirname,'share-fixtures',file))])));
  const originalBackground={color:'#fff3dd',pattern,frames,opacity:1};
- const document={createElement(tag){assert.equal(tag,'canvas');const canvas=native.createCanvas(1,1);canvas.toBlob=callback=>canvas.encode('png').then(buffer=>callback(new Blob([buffer],{type:'image/png'})));return canvas}};
+ const rendered=[];
+ const document={createElement(tag){assert.equal(tag,'canvas');const canvas=native.createCanvas(1,1);const ctx=canvas.getContext('2d'),fillText=ctx.fillText.bind(ctx);ctx.fillText=(text,...args)=>{rendered.push(text);return fillText(text,...args)};canvas.toBlob=callback=>canvas.encode('png').then(buffer=>callback(new Blob([buffer],{type:'image/png'})));return canvas}};
  let done=0,inflight=0,peak=0;
  const result=await api.draw(one[0],many,{document,background:originalBackground,timestamp:'离线排版测试，示例素材',pageLabel:'1 / 1',resolveUrl:it=>it.asset_type,loadImage:async type=>{inflight++;peak=Math.max(peak,inflight);try{return await native.loadImage(path.join(__dirname,'share-fixtures',type+'.png'))}finally{inflight--}},progress(){done++}});
  assert.equal(result.failed,0);assert.equal(done,18);assert(peak<=6);assert.equal(result.width,1000);
+ for(const label of ['当前库存','官方参考','90%','9.5%','0.49%','0.01%'])assert(rendered.includes(label));
+ assert(!rendered.some(text=>/运气|评语|称号|合成次数/.test(text)));
  const preview=path.join(__dirname,'share-fixtures/layout-preview.png');fs.writeFileSync(preview,Buffer.from(await result.blob.arrayBuffer()));
  const bad=await api.draw(one[0],many,{document,background:originalBackground,timestamp:'失败占位测试',pageLabel:'1 / 1',resolveUrl:it=>it.asset_type,loadImage:async()=>{throw Error('Simulated CORS failure')},progress(){}});assert.equal(bad.failed,18);assert(bad.blob.size>0);
  const abort=new AbortController();abort.abort();await assert.rejects(api.draw(one[0],many,{document,background:originalBackground,signal:abort.signal,loadImage:async()=>{throw Error('Must not load after cancel')},progress(){}}),/已取消生成/);

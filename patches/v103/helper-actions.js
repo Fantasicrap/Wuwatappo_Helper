@@ -5,6 +5,7 @@ function __wtPerformHelperAction(action){
  __wtHelperLast.set(action,now);
  if(action==='record')__wtKeyboard.toggle();
  else if(action==='reload')Xn().finally(hy);
+ else if(action==='roomOnlySelf')__wtToggleOnlyShowSelf();
  else if(/^emote[1-6]$/.test(action)){
   const item=La.value[Number(action.slice(5))-1];
   if(item?.id>0&&item.name)Ap({id:item.id,src:te('emote/'+item.name)});

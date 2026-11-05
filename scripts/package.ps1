@@ -14,7 +14,7 @@ Get-ChildItem -LiteralPath $portableDir -File -Filter 'Wuwatappo_Helper*.exe' | 
 $exeName="Wuwatappo_Helper-$helperVersion.exe"
 Copy-Item -LiteralPath (Join-Path $distDir $exeName) -Destination $portableDir -Force
 foreach ($name in @('README.md','DISCLAIMER.txt','THIRD_PARTY_NOTICES.md')) { Copy-Item -LiteralPath (Join-Path $repoRoot $name) -Destination $portableDir -Force }
-foreach ($doc in @('使用说明.md','手柄使用说明.md','库存欧非判定.md','i弗TV.md','图鉴试装.md','HE动画方案.md','联机位置记忆.md')) { Copy-Item -LiteralPath (Join-Path $repoRoot ('docs/'+$doc)) -Destination $portableDir -Force }
+foreach ($doc in @('使用说明.md','手柄使用说明.md','库存稀有度.md','i弗TV.md','图鉴试装.md','HE动画方案.md','联机位置记忆.md')) { Copy-Item -LiteralPath (Join-Path $repoRoot ('docs/'+$doc)) -Destination $portableDir -Force }
 New-Item -ItemType Directory -Path (Join-Path $portableDir 'docs') -Force | Out-Null
 Get-ChildItem -LiteralPath (Join-Path $repoRoot 'docs') -File | Copy-Item -Destination (Join-Path $portableDir 'docs') -Force
 New-Item -ItemType Directory -Path (Join-Path $portableDir 'licenses') -Force | Out-Null

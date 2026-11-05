@@ -2,7 +2,7 @@
 const fs=require('fs'),path=require('path'),manifest=require('./fixtures/pet-visual-manifest.json');
 const root=path.resolve(__dirname,'..'),characters=path.join(root,'dist/accessory-motion-fixtures'),accessories=path.join(root,'dist/配件全素材'),jobs=[];
 fs.mkdirSync(characters,{recursive:true});fs.mkdirSync(accessories,{recursive:true});
-for(const row of manifest.characters){const dir=path.join(characters,row.name.replace(/\.png$/,''));fs.mkdirSync(dir,{recursive:true});for(const part of ['head1','head2','body1'])jobs.push({file:path.join(dir,part+'.png'),url:manifest.base+'/'+row[part].url})}
+for(const row of manifest.characters){const dir=path.join(characters,row.name.replace(/\.png$/,''));fs.mkdirSync(dir,{recursive:true});for(const part of ['head1','head2','body1','body2','body3'])jobs.push({file:path.join(dir,part+'.png'),url:manifest.base+'/'+row[part].url})}
 for(const row of manifest.accessories){const dir=path.join(accessories,row.folder);fs.mkdirSync(dir,{recursive:true});jobs.push({file:path.join(dir,'桌宠.png'),url:row.renderUrl})}
 (async()=>{
  let cursor=0,downloaded=0;
