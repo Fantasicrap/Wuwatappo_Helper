@@ -1,6 +1,7 @@
 param([Parameter(Mandatory=$true)][string]$DistributionDirectory)
 $ErrorActionPreference='Stop'
-$exe=Join-Path ([IO.Path]::GetFullPath($DistributionDirectory)) 'Wuwatappo_Helper-1.0.3.4.exe'
+$version=(Get-Content -LiteralPath (Join-Path $PSScriptRoot '../package.json') -Raw|ConvertFrom-Json).releaseVersion
+$exe=Join-Path ([IO.Path]::GetFullPath($DistributionDirectory)) "Wuwatappo_Helper-$version.exe"
 $assembly=[Reflection.Assembly]::LoadFile($exe)
 $capture=$assembly.GetType('MouseCapture')
 $flags=[Reflection.BindingFlags]'NonPublic,Static'

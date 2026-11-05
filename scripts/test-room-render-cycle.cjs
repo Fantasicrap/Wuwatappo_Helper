@@ -1,6 +1,7 @@
+const {fixturePath}=require('./upstream-fixtures.cjs');
 const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 const {chromium}=require('playwright'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const dir='dist/migration-1.0.3.4',common=fs.readFileSync(path.join(dir,'index-CuzHFfJW.js'),'utf8'),main=fs.readFileSync(path.join(dir,'index-pp8VWaUF.js'),'utf8');
+const dir='dist/migration-1.0.3.4',common=fs.readFileSync(fixturePath(path.join(dir,'index-CuzHFfJW.js')),'utf8'),main=fs.readFileSync(fixturePath(path.join(dir,'index-pp8VWaUF.js')),'utf8');
 // Keep the exact bundled Vue runtime and production block flags. A mock VNode
 // factory cannot expose errors in Vue's optimized block reconciliation.
 const runtime=require('./vue-runtime-fixture.cjs')(common);

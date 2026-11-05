@@ -1,7 +1,8 @@
+const {fixturePath}=require('./upstream-fixtures.cjs');
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict');
 const {chromium}=require('playwright'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const dir='dist/migration-1.0.3.4',common=fs.readFileSync(path.join(dir,'index-CuzHFfJW.js'),'utf8'),main=fs.readFileSync(path.join(dir,'index-pp8VWaUF.js'),'utf8'),settings=fs.readFileSync(path.join(dir,'index-CiT_jZa7.js'),'utf8');
-let about=fs.readFileSync(path.join(dir,'index-BEWn23m-.js'),'utf8'),boot,footer,click;
+const dir='dist/migration-1.0.3.4',common=fs.readFileSync(fixturePath(path.join(dir,'index-CuzHFfJW.js')),'utf8'),main=fs.readFileSync(fixturePath(path.join(dir,'index-pp8VWaUF.js')),'utf8'),settings=fs.readFileSync(fixturePath(path.join(dir,'index-CiT_jZa7.js')),'utf8');
+let about=fs.readFileSync(fixturePath(path.join(dir,'index-BEWn23m-.js')),'utf8'),boot,footer,click;
 traverse(babelParse(main,'main.mjs',true),{CallExpression(p){const n=p.node;if(n.callee.name==='js'&&n.arguments[0]?.type==='ArrowFunctionExpression'&&main.slice(n.start,n.end).includes('main_mount_failed'))boot=main.slice(n.arguments[0].start,n.arguments[0].end)}});
 assert(boot?.includes('if(!await __wtNotice.confirm())'));
 traverse(babelParse(settings,'settings.mjs',true),{VariableDeclarator(p){const n=p.node;if(n.id.name==='Ue'&&settings.slice(n.start,n.end).includes('helper_disclaimer'))footer=settings.slice(n.init.arguments[0].start,n.init.arguments[0].end)},FunctionDeclaration(p){if(p.node.id.name==='ct'&&settings.slice(p.node.start,p.node.end).includes('helper-disclaimer'))click=settings.slice(p.node.start,p.node.end)}});
@@ -21,7 +22,7 @@ const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/startup-notice-1.0.3.
  const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
  try{
   const context=await browser.newContext({viewport:{width:700,height:820}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
-  const css=fs.readFileSync('dist/upstream-1.0.3/index-CaMAtNXT.css','utf8');
+  const css=fs.readFileSync(fixturePath('dist/upstream-1.0.3/index-CaMAtNXT.css'),'utf8');
   await context.route('http://notice.test/**',r=>r.fulfill({contentType:'text/html',body:'<meta charset="utf-8"><style>body{margin:0;--font-bold:"Microsoft YaHei";font-family:"Microsoft YaHei"}'+css+'</style><div id="app"></div>'}));await page.goto('http://notice.test/');
   await page.addScriptTag({content:'(()=>{'+runtime+'})()'});
   await page.addScriptTag({content:`const {ref,onMounted,onUnmounted,createVNode}=__vue;window.listeners=new Map();window.noticeClosed=0;window.noticeOpens=0;window.closeHandlers=[];window.opened=[];

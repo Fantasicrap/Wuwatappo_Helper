@@ -10,7 +10,8 @@ if((Get-FileHash -LiteralPath $SdlPath -Algorithm SHA256).Hash.ToLowerInvariant(
 $out=[IO.Path]::GetFullPath($OutputDirectory)
 $hostDir=Join-Path $out 'host-build'
 New-Item -ItemType Directory -Path $hostDir -Force|Out-Null
-$payload=if($PayloadPath){[IO.Path]::GetFullPath($PayloadPath)}else{Join-Path $repoRoot 'dist/migration-1.0.3.4/payload.exe'}
+$pkg=Get-Content -LiteralPath (Join-Path $repoRoot 'package.json') -Raw|ConvertFrom-Json
+$payload=if($PayloadPath){[IO.Path]::GetFullPath($PayloadPath)}else{Join-Path $repoRoot ("dist/migration-"+$pkg.releaseVersion+"/payload.exe")}
 . (Join-Path $PSScriptRoot 'icon-resources.ps1')
 $iconFile=Join-Path $hostDir 'application.ico'
 [IO.File]::WriteAllBytes($iconFile,[WuwaHelper.IconResources]::ReadFirst($payload))
@@ -22,7 +23,6 @@ $uiFile=Join-Path $hostDir 'controller-ui.js'
 $luck=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/inventory-luck.js'))
 $monitor=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/monitor-preference.js'))
 [IO.File]::WriteAllText($uiFile,$core+"`n"+$ui+"`n"+$roomCore+"`n"+$roomUi+"`n"+$luck+"`n"+$monitor,[Text.UTF8Encoding]::new($false))
-$pkg=Get-Content -LiteralPath (Join-Path $repoRoot 'package.json') -Raw|ConvertFrom-Json
 $hash=(Get-FileHash -LiteralPath $payload -Algorithm SHA256).Hash.ToLowerInvariant()
 $runtimeId=Join-Path $hostDir 'runtime-id'
 [IO.File]::WriteAllText($runtimeId,($pkg.releaseVersion+'-'+$hash.Substring(0,12)))

@@ -1,3 +1,4 @@
+const {fixturePath}=require('./upstream-fixtures.cjs');
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const {babelParse,traverse}=require('playwright/lib/transform/babelBundle');
 const memory=new Map();let writes=0;
@@ -12,7 +13,7 @@ assert.equal(a.get(1,'room',2,500,400).top,111);
 assert.equal(api.create(storage).get(1,'room',2,1000,800).left,345,'New session reads saved placement');
 const broken=api.create({getItem:()=>'{',setItem:()=>{throw Error('quota')}});assert.equal(broken.get(1,'room',2,1000,800),null);assert.equal(broken.put(1,'room',2,1,2,1000,800),false);
 const bounded=new Map(),b=api.create({getItem:k=>bounded.get(k),setItem:(k,v)=>bounded.set(k,v)});for(let id=2;id<1004;id++)b.put(1,'room',id,id,2,2000,1000);assert.equal(JSON.parse(bounded.get(api.key)).length,1000);
-const source=fs.readFileSync('dist/migration-1.0.3.4/index-pp8VWaUF.js','utf8'),fn={};
+const source=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-pp8VWaUF.js'),'utf8'),fn={};
 traverse(babelParse(source,'main.mjs',true),{FunctionDeclaration(p){const name=p.node.id.name;if(['Li','en','vt','Bi','Fd','_a','gl','tc','__wtSaveRoomPosition','__wtRestoreRoomPosition'].includes(name))fn[name]=source.slice(p.node.start,p.node.end)}});
 assert.equal(Object.keys(fn).length,10);
 function fixture(account=1,room='room'){

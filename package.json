@@ -1,8 +1,8 @@
 {
   "name": "wuwatappo-helper",
-  "version": "1.0.3-4",
+  "version": "1.0.4-1",
   "private": true,
-  "description": "Non-official WuwaTappo 1.0.3 helper patches and Windows packaging",
+  "description": "Non-official WuwaTappo 1.0.4 helper patches and Windows packaging",
   "scripts": {
     "test": "node scripts/test-v103-suite.cjs",
     "test:settings-ui": "node scripts/test-v103-settings-ui.cjs",
@@ -14,5 +14,5 @@
     "@napi-rs/canvas": "0.1.100",
     "playwright": "1.62.1"
   },
-  "releaseVersion": "1.0.3.4"
+  "releaseVersion": "1.0.4.1"
 }
