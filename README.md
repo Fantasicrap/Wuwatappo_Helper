@@ -4,7 +4,7 @@
 
 WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前源码版本为 **Helper v1.0.4.3**，适配官方 WuwaTappo v1.0.4。
+当前源码版本为 **Helper v1.0.4.4**，适配官方 WuwaTappo v1.0.4。
 
 ## 已实现功能
 
@@ -14,12 +14,14 @@ WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、�
 - ✅ **图鉴试装与表情** — 可在本机试装角色、配件及六槽表情，支持快捷键和按键自动表情。见[图鉴试装](docs/图鉴试装.md)。
 - ✅ **i弗TV 专属互动** — BE / HE 两种分支，支持配件动画、道具掉落和可自定义的按键台词。见[i弗TV 说明](docs/i弗TV.md)。
 - ✅ **桌面辅助** — 默认显示器、可自定义快捷键与冲突提醒、本地点击数、防连点、延迟 5 秒自动领取宝箱。
-- ✅ **应用内更新** — 官方升版时由 Helper 接管更新提示。从 GitHub 下载匹配的正式版，校验后安装。
+- ✅ **应用内更新** — 官方升版时由 Helper 接管更新提示。从 GitHub 查找匹配的正式版，可选 GH-Proxy 加速下载，校验后安装。
 - ✅ **按需运行** — 收起映射时停止补充采集，隐藏的联机桌宠按需卸载图片。见[运行优化说明](docs/按需运行优化说明.md)和[内存测试](docs/内存优化测试说明.md)。
 
 ## 下载
 
 在 GitHub 的正式发布页选择带版本号的安装包、免安装 ZIP 或单文件 EXE。页面显示的版本以实际发布为准。 [下载最新正式版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/latest) · [查看所有版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
+
+**中国大陆备用下载（第三方 GH-Proxy）** · v1.0.4.4 [安装包](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4-Setup.exe) · [免安装 ZIP](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4-Portable.zip) · [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4.exe) · [GitHub 校验清单](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/SHA256SUMS.txt)。下载其他版本可在 GitHub 附件直链前加 `https://gh-proxy.com/`。
 
 ## 应用内更新
 
@@ -28,6 +30,7 @@ Helper 版本号的前三段对应官方桌宠版本，第四段是 Helper 的�
 - **只更新第四段**。例如 `1.0.4.3` → `1.0.4.4`，用户可以在设置里点「检查更新」。下载并校验后，点「重启并更新」。
 - **官方先升版**。例如官方发布 `1.0.5`，Helper 会接管官方更新提示，等待 GitHub 上前三段匹配的 `1.0.5.X` 正式版。适配版未发布时，当前 Helper 可以继续运行，在线功能以服务器的实际兼容性为准。
 - **上次退出前未检查这次升版**。下次启动时自动查 GitHub。如果已经有适配版，后台下载、校验，然后退出桌宠并启动新版。上次已经检查过这次升版，可以在设置里再次手动检查。
+- **下载较慢时**。v1.0.4.4 起可在设置的「更新下载源」选「GH-Proxy（尝试）」。选择保存在本机，手动检查和启动时自动更新都会使用。镜像下载或校验失败时会改用 GitHub；检查新版本和读取可信 SHA-256 仍需要访问 GitHub API。
 - **下载或安装失败**。设置会提供「去 GitHub 下载」，也可以重试。安装版保留旧文件备份，免安装版把新版保存为同目录下带版本号的 EXE。
 
 ## 历史房间与原版图标
@@ -131,7 +134,7 @@ pnpm install --frozen-lockfile
 pwsh -File scripts/build.ps1 -SourceExe 'F:\WuwaTappo\WuwaTappo.exe' -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
 ```
 
-脚本会核验原件摘要，提取构建所需资源，运行检查，默认输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/local-1.0.4.3/`。不会改动输入原件，也不会请求账号业务接口。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
+脚本会核验原件摘要，提取构建所需资源，运行检查，默认输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/local-1.0.4.4/`。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
 
 安装 Edge 后，首次视觉回归先运行 `node scripts/prepare-ui-fixtures.cjs` 获取固定的公开测试素材，再运行 `pnpm test:migration`。逻辑测试使用仓库内的最小公开目录样本；视觉测试使用六个系列人物和三件配件，不依赖开发者本机缓存。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.4.2`。
 

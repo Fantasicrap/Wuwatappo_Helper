@@ -200,6 +200,7 @@ if(v104){
  settings=once(settings,'S(X.value),1),e("div",El,S(le.value),1)','S(__wtUpdateState.value.current||'+JSON.stringify(target)+'),1),e("div",El,S(__wtUpdateState.value.message||le.value),1)');
  settings=once(settings,'disabled:!p(ne)||re.value,onMousedown:o[25]', 'disabled:re.value||["checking","downloading","applying"].includes(__wtUpdateState.value.state),onMousedown:o[25]');
  settings=once(settings,'S(p(t)("setting_version_check_btn")),41,xl)])','S(__wtUpdateState.value.state==="ready"?"重启并更新":p(t)("setting_version_check_btn")),41,xl),e("button",{type:"button",class:"setting-btn",hidden:__wtUpdateState.value.state!=="error",onClick:__wtOpenUpdate},"去 GitHub 下载",8,["hidden"])])');
+ settings=once(settings,']),e("div",Tl,[e("div",Rl,',']),e("div",{id:"wt-us"}),e("div",Tl,[e("div",Rl,');
 }
 let about=upstream(assets.about);
 about=once(about,'y=q();let g;','y=q();const __wtLegal=__wtNotice.about(y,R);let g;');

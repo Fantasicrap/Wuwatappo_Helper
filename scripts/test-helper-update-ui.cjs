@@ -4,7 +4,7 @@ const code=fs.readFileSync('patches/update-ui.js','utf8').replaceAll('export fun
 const read=file=>fs.readFileSync(fixturePath('dist/migration-1.0.3.4/'+file),'utf8');
 assert(read('index-CuzHFfJW.js').includes('function isAppUpdaterEnabled(){return false}'));
 const settings=read('index-CiT_jZa7.js');
-assert(settings.includes('mountHelperUpdate')&&settings.includes('去 GitHub 下载')&&settings.includes(JSON.stringify(target)));
+assert(settings.includes('mountHelperUpdate')&&settings.includes('去 GitHub 下载')&&settings.includes(JSON.stringify(target))&&settings.includes('id:"wt-us"'));
 assert(read('switchDisplayMonitor-B50jXMGD.js').includes('watchAutomaticHelperUpdate'));
 
 function fixture(status){

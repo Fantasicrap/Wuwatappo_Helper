@@ -1,4 +1,4 @@
-const {fixturePath}=require('./upstream-fixtures.cjs');
+const {fixturePath,target,v104}=require('./upstream-fixtures.cjs');
 const fs=require('fs'),assert=require('assert/strict'),{chromium}=require('playwright'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
 const source=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-CiT_jZa7.js'),'utf8'),prefix=[],render=[];
 traverse(babelParse(source,'settings.mjs',true),{VariableDeclaration(p){if(p.node.declarations.some(d=>['__wtKeys','__wtBoostUntil'].includes(d.id.name)))prefix.push(source.slice(p.node.start,p.node.end))},FunctionDeclaration(p){if(['__wtBoost','__wtToggle'].includes(p.node.id.name))prefix.push(source.slice(p.node.start,p.node.end))},CallExpression(p){const n=p.node;if(n.callee.type==='MemberExpression'&&['__wtKeyboardUi','__wtHotkeys'].includes(n.callee.object.name)&&['renderSettings','render'].includes(n.callee.property.name))render.push(source.slice(n.start,n.end));if(n.callee.name==='e'&&n.arguments[2]?.type==='ArrayExpression'&&n.arguments[2].elements.some(x=>x?.type==='CallExpression'&&x.arguments[2]?.value==='本地点击数 +10000'))render.push(source.slice(n.start,n.end));if(n.callee.name==='e'&&n.arguments[1]?.properties?.some(p=>p.key?.name==='id'&&p.value?.value==='wt-monitor-settings'))render.push(source.slice(n.start,n.end))}});assert.equal(render.length,4);
@@ -21,5 +21,27 @@ assert.equal(await page.evaluate(()=>__wtHotkeys.read().roomOnlySelf),'Ctrl+Shif
 await page.getByRole('button',{name:'映射位置：下方',exact:true}).click();await page.evaluate(()=>draw());assert(await page.getByRole('button',{name:'映射位置：左侧',exact:true}).isVisible());await page.getByRole('button',{name:'本地点击数 +10000',exact:true}).click();await page.getByRole('button',{name:'本地点击数 +10000',exact:true}).click();assert.equal(await page.evaluate(()=>calls.filter(x=>x.type==='boost-local-clicks').length),1);
 await page.addScriptTag({content:fs.readFileSync('patches/monitor-preference.js','utf8').replace(/export /g,'')});
 await page.evaluate(async()=>{window.stopMonitorUi=await mountDefaultMonitorSettings({root:document.getElementById('wt-monitor-settings'),list:async()=>[{name:'DISPLAY1',position:{x:0,y:0},size:{width:1920,height:1080},scaleFactor:1},{name:'DISPLAY2',position:{x:-2560,y:0},size:{width:2560,height:1440},scaleFactor:1.25}],listen:async()=>()=>{},emit:async()=>{}})});
+if(v104){
+ await page.addStyleTag({content:fs.readFileSync('dist/upstream-1.0.4/index-BbF1ZWW_.css','utf8')});
+ await page.addScriptTag({content:fs.readFileSync('patches/update-ui.js','utf8').replaceAll('export function ','function ')});
+ await page.evaluate(()=>{
+  const root=document.createElement('div');root.id='wt-us';document.querySelector('#root').append(root);
+  let downloadSource='github';window.lastSourceRequest=null;
+  window.fetch=async(url,opts)=>({ok:true,json:async()=>{
+   const path=url.split('/update/')[1];
+   if(path==='status')return {state:'idle',downloadSource};
+   if(path.startsWith('source/')){window.lastSourceRequest=[opts.method,opts.headers['X-Wuwa-Update']];downloadSource=path.split('/')[1];return {accepted:true}}
+   throw Error('Unexpected update request: '+url);
+  }});
+  window.updateSettings=mountHelperUpdate(()=>{},()=>{});
+ });
+ const sourceSelect=page.getByRole('combobox',{name:'更新下载源'});
+ await sourceSelect.selectOption('gh-proxy');
+ await page.getByText('加速失败时改用 GitHub').waitFor({state:'visible'});
+ assert.deepEqual(await page.evaluate(()=>window.lastSourceRequest),['POST','1']);
+ await page.evaluate(()=>{window.updateSettings.stop();window.updateSettings=mountHelperUpdate(()=>{},()=>{})});
+ await page.waitForFunction(()=>document.querySelector('#wt-us select').value==='gh-proxy');
+ await page.locator('#wt-us').screenshot({path:require('path').join(process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/migration-'+target,'update-source-settings.png')});
+}
 const overflow=await page.locator('button,input,select').evaluateAll(nodes=>nodes.filter(n=>{const r=n.getBoundingClientRect();return r.left<0||r.right>innerWidth}).map(n=>n.textContent));assert.deepEqual(overflow,[]);await page.locator('#root').screenshot({path:require('path').join(process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/local-1.0.3.4','settings-preview.png')});assert.deepEqual(errors,[]);console.log('PASS: nine shortcuts fit, only-self shortcut records and warns on conflict, position persists and boost is throttled');}finally{await browser.close()}})().catch(e=>{console.error(e.stack);process.exitCode=1});
 

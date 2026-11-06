@@ -14,6 +14,8 @@ static class HelperUpdate
 {
     const string Repo = "Fantasicrap/Wuwatappo_Helper";
     const string Releases = "https://github.com/" + Repo + "/releases";
+    const string MirrorHost = "gh-proxy.com";
+    const string GitHubSource = "github", MirrorSource = "gh-proxy";
     const string OfficialHost = "mc-wuwatappo.kurogames-global.com";
     const string OfficialIndex = "https://" + OfficialHost + "/app/json-host/latest_host.json";
     const string InstalledName = "Wuwatappo_Helper.exe";
@@ -24,6 +26,8 @@ static class HelperUpdate
     static readonly string Exe = Assembly.GetExecutingAssembly().Location;
     static readonly string CheckedPath = Path.Combine(Folder, "checked-" + Current + ".txt");
     static readonly string OfficialPath = Path.Combine(Folder, "official.txt");
+    static readonly string SourcePath = Path.Combine(Folder, "download-source.txt");
+    static string downloadSource = ReadText(SourcePath) == MirrorSource ? MirrorSource : GitHubSource;
     static string state = "idle", message = "", releaseUrl = Releases;
     static Version official;
     static Release candidate;
@@ -99,12 +103,17 @@ static class HelperUpdate
             uri.UserInfo.Length == 0 && String.Equals(uri.Host, host, StringComparison.OrdinalIgnoreCase);
     }
 
-    static HttpWebResponse Open(Uri uri, bool asset)
+    static bool AllowedAssetHost(Uri uri, bool mirror)
+    {
+        return mirror ? SecureHost(uri, MirrorHost) : SecureHost(uri, "github.com") ||
+            SecureHost(uri, "release-assets.githubusercontent.com") || SecureHost(uri, "objects.githubusercontent.com");
+    }
+
+    static HttpWebResponse Open(Uri uri, bool asset, bool mirror = false)
     {
         for (int hop = 0; hop < 5; hop++)
         {
-            bool valid = asset ? SecureHost(uri, "github.com") || SecureHost(uri, "release-assets.githubusercontent.com") ||
-                SecureHost(uri, "objects.githubusercontent.com") : SecureHost(uri, "api.github.com") || SecureHost(uri, OfficialHost);
+            bool valid = asset ? AllowedAssetHost(uri, mirror) : SecureHost(uri, "api.github.com") || SecureHost(uri, OfficialHost);
             if (!valid) throw new InvalidDataException("更新地址不在允许的服务器范围内。");
             var req = (HttpWebRequest)WebRequest.Create(uri);
             req.UserAgent = "Wuwatappo_Helper/" + Current;
@@ -124,13 +133,14 @@ static class HelperUpdate
         throw new IOException("更新下载重定向次数过多。");
     }
 
-    static void CopyLimited(Stream input, Stream output, long limit)
+    static void CopyLimited(Stream input, Stream output, long limit, Stopwatch deadline = null)
     {
         var buffer = new byte[81920];
         long count = 0;
         int read;
         while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
         {
+            if (deadline != null && deadline.ElapsedMilliseconds >= 180000) throw new IOException("加速下载超时。");
             count += read;
             if (count > limit) throw new InvalidDataException("更新文件超过预期大小。");
             output.Write(buffer, 0, read);
@@ -179,21 +189,37 @@ static class HelperUpdate
         lock (Gate) { state = next; message = text; }
     }
 
+    internal static bool SetDownloadSource(string source)
+    {
+        if (source != GitHubSource && source != MirrorSource) return false;
+        lock (Gate)
+        {
+            if (busy || requested) return false;
+            try { if (downloadSource != source) Remember(SourcePath, source); }
+            catch (IOException) { return false; }
+            catch (UnauthorizedAccessException) { return false; }
+            downloadSource = source;
+            return true;
+        }
+    }
+
     internal static bool Start(bool startup)
     {
+        bool preferMirror;
         lock (Gate)
         {
             if (busy || requested || state == "ready") return false;
             busy = true;
             automatic = startup;
+            preferMirror = downloadSource == MirrorSource;
             state = "checking";
             message = "正在检查更新…";
         }
-        ThreadPool.QueueUserWorkItem(_ => Check(startup));
+        ThreadPool.QueueUserWorkItem(_ => Check(startup, preferMirror));
         return true;
     }
 
-    static void Check(bool startup)
+    static void Check(bool startup, bool preferMirror)
     {
         bool autoCheck = false;
         try
@@ -221,8 +247,7 @@ static class HelperUpdate
                 return;
             }
             lock (Gate) releaseUrl = Releases + "/tag/v" + release.Version;
-            SetState("downloading", "正在下载 Helper v" + release.Version + "…");
-            var file = Download(release);
+            var file = StageRelease(release, Path.Combine(Folder, "v" + release.Version), preferMirror, FetchAsset);
             if (ahead) Remember(CheckedPath, upstream.ToString());
             lock (Gate)
             {
@@ -259,18 +284,45 @@ static class HelperUpdate
         return File.Exists(file) && new FileInfo(file).Length == size && Hash(file) == digest && FileVersion(file) == version;
     }
 
-    static string Download(Release release)
+    static void FetchAsset(Uri uri, string temp, long size)
     {
-        string stage = Path.Combine(Folder, "v" + release.Version);
-        Directory.CreateDirectory(stage);
-        string final = Path.Combine(stage, release.Name), temp = final + ".part";
-        if (Verified(final, release.Digest, release.Version, release.Size)) return final;
-        try
+        bool mirror = SecureHost(uri, MirrorHost);
+        var deadline = mirror ? Stopwatch.StartNew() : null;
+        using (var response = Open(uri, true, mirror))
         {
-            using (var response = Open(new Uri(release.Url), true))
+            if (response.ContentLength >= 0 && response.ContentLength != size)
+                throw new InvalidDataException("更新文件大小不符。");
             using (var input = response.GetResponseStream())
             using (var output = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
-                CopyLimited(input, output, release.Size);
+                CopyLimited(input, output, size, deadline);
+        }
+    }
+
+    static string StageRelease(Release release, string stage, bool preferMirror, Action<Uri, string, long> fetch)
+    {
+        Directory.CreateDirectory(stage);
+        string final = Path.Combine(stage, release.Name);
+        if (Verified(final, release.Digest, release.Version, release.Size)) return final;
+        if (preferMirror)
+        {
+            SetState("downloading", "正在尝试通过 GH-Proxy 下载 Helper v" + release.Version + "…");
+            try { return FetchAndVerify(release, new Uri("https://" + MirrorHost + "/" + release.Url), final, fetch); }
+            catch (Exception ex)
+            {
+                if (!(ex is WebException || ex is IOException || ex is InvalidDataException)) throw;
+                Trace.WriteLine("[Helper update mirror] " + ex.GetType().Name + ": " + ex.Message);
+            }
+        }
+        SetState("downloading", preferMirror ? "加速下载未完成，正在从 GitHub 重试…" : "正在从 GitHub 下载 Helper v" + release.Version + "…");
+        return FetchAndVerify(release, new Uri(release.Url), final, fetch);
+    }
+
+    static string FetchAndVerify(Release release, Uri uri, string final, Action<Uri, string, long> fetch)
+    {
+        string temp = final + ".part";
+        try
+        {
+            fetch(uri, temp, release.Size);
             if (!Verified(temp, release.Digest, release.Version, release.Size)) throw new InvalidDataException("Helper 更新文件校验失败。");
             if (File.Exists(final)) File.Replace(temp, final, null);
             else File.Move(temp, final);
@@ -281,7 +333,7 @@ static class HelperUpdate
 
     internal static object Status()
     {
-        lock (Gate) return new { state, message, automatic, current = Current.ToString(), official = official == null ? "" : official.ToString(), releaseUrl };
+        lock (Gate) return new { state, message, automatic, current = Current.ToString(), official = official == null ? "" : official.ToString(), releaseUrl, downloadSource };
     }
 
     internal static bool RequestInstall()

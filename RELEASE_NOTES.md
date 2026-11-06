@@ -1,14 +1,9 @@
-Wuwatappo_Helper v1.0.3.4，适配审核过的官方 WuwaTappo 1.0.3。
+Wuwatappo Helper v1.0.4.4，适配官方 WuwaTappo v1.0.4。
+
+- 在设置中可选择「GH-Proxy（尝试）」作为更新下载源。选择保存在本机，手动检查和启动时自动更新都会使用。
+- 默认从 GitHub 下载。镜像超时或文件校验失败时，自动回退到 GitHub。版本和 SHA-256 仍从 GitHub 获取。
+- 提供中国大陆备用下载入口：[安装包](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4-Setup.exe) · [免安装 ZIP](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4-Portable.zip) · [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4.exe)。
+
+从 v1.0.4.3 升级可在设置里点「检查更新」。手动更新前请从托盘完全退出旧版。
 
 **仅供娱乐使用，创作者概不负责。**
-
-- 新增平阶／升阶合成提醒：两个开关独立保存，默认关闭。按同类别、同稀有度汇总重复素材，每种保留 1 个；平阶需 5 个，升阶需 10 个，最高稀有度不提示升阶。
-- 人物右上方显示“可合成”，点击直接打开原版合成页；合并连续点击，不自动填充或提交合成。修复编译优化渲染下两项开关标签丢失，覆盖缩放、库存消耗和退出登录后的提示状态。
-- 保留此前挂机恢复与登录续期修复、本地六槽表情栏、i弗TV BE／HE 动画、库存分享、手柄／键鼠映射、房间持续隐藏与位置记忆、按需运行和内存优化等功能。
-- 文件名、程序集、本地服务及构建配置统一为 1.0.3.4；已有本机偏好及免责声明阅读状态继续使用。
-
-已通过 37 项逻辑与隔离界面回归，另校验启动器、图标及安装包内容。四天宝箱循环和八天续期属于虚拟时钟测试，真实账号长期挂机、原生桌面点击及实体手柄仍需实机验证。
-
-请先从托盘完全退出旧版，再运行 Wuwatappo_Helper-1.0.3.4.exe；不要直接运行缓存中的 WuwaTappo.exe。
-
-本次提供单文件 EXE、安装包、免安装 ZIP、源码快照与 SHA256SUMS.txt。详细规则见使用说明和长时间挂机排查文档。
