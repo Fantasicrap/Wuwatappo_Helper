@@ -30,8 +30,14 @@ const __wtLongRun=(()=>{
    const side=(lastSide==='left'?['right','left']:['left','right']).find(k=>s.due[k]&&due[k]!==null&&t-due[k]>=5000&&t>=retry[k]);
    if(!side)return;
    running=true;lastSide=side;const id=account;retry[side]=t+30000;
-   try{await claim(side);if(same(id))retry[side]=now()+(state().due[side]?30000:1000)}
-   catch{if(same(id)){retry[side]=now()+30000;diagnostic('claim-retry')}}
+   const uncertain=()=>{needsSync=true;syncAfter=0;retry[side]=now()+30000;diagnostic('claim-reconcile')};
+   try{
+    const result=await claim(side);
+    if(!same(id))return;
+    if(result==='uncertain')uncertain();
+    else retry[side]=now()+(result==='skipped'||!state().due[side]?1000:30000);
+   }
+   catch{if(same(id))uncertain()}
    finally{running=false}
   }
   return{tick,reset,dispose(){stopped=true;reset()}};

@@ -35,7 +35,7 @@ assert(render);const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/room-v
   await page.evaluate(()=>{roomApp.unmount();document.body.insertAdjacentHTML('beforeend','<style>.room-cat-shell{position:absolute}.room-cat-pet{position:relative;height:180px}.room-cat-pet>img{position:absolute;inset:0;width:160px;height:160px}</style><div id="position-app"></div>');localStorage.removeItem('wuwatappo-room-positions-v1')});
   await page.addScriptTag({content:`window.makePositionScene=()=>{const {shallowRef:nv}=__vue;
    ${fs.readFileSync('patches/room-positions-core.js','utf8').replace('export {__wtRoomPositions};','')}
-   const __wtSavedRoomPositions=__wtRoomPositions.create(),R={isLoggedIn:true,userInfo:{id:1}},Vo=ref('room'),ut=new Set(),Mt=new Set([4]),Di=new Map(),Lt=ref(true),Pt=ref(null),Ir=ref(null),Er=ref(null),Oo=ref(null),ft=200,Pn=211,c=100;
+   const __wtRoomMode='custom',__wtSavedRoomPositions=__wtRoomPositions.create(),R={isLoggedIn:true,userInfo:{id:1}},Vo=ref('room'),ut=new Set(),Mt=new Set([4]),Di=new Map(),Lt=ref(true),Pt=ref(null),Ir=ref(null),Er=ref(null),Oo=ref(null),ft=200,Pn=211,c=100;
    const yn=()=>({left:0,top:0,right:0,bottom:0}),ba=()=>null,ce={value:{querySelector:()=>({getBoundingClientRect:()=>({left:20,top:20,width:200})})}},no=()=>false,vl=()=>true,au={},pl=()=>'/sprite-head.png',hl=()=>'/sprite-body.png',ml=()=>'/sprite-part.png',Ld=()=>[],Bd=()=>({});
    ${Object.values(positions).join('\n')}
    const pet={id:4,nickname:'位置记忆测试',partOffsetX:0,partOffsetY:0,left:0,top:0};if(!__wtSavedRoomPositions.get(1,'room',4,innerWidth,innerHeight))__wtSavedRoomPositions.put(1,'room',4,140,70,innerWidth,innerHeight);Fd(pet);

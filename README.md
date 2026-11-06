@@ -4,25 +4,31 @@
 
 WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前版本为 **Helper v1.0.4.2**，适配官方 WuwaTappo v1.0.4。
+当前源码版本为 **Helper v1.0.4.3**，适配官方 WuwaTappo v1.0.4。
 
 ## 已实现功能
 
 - ✅ **键鼠与手柄映射** — 支持 26 键、鸣潮专属、手柄三种界面，也可切换到输入气泡。支持指定输入范围录制及 TXT 导出。
-- ✅ **联机管理** — 可用快捷键切换「仅显示自己」，支持逐人显隐、历史房间和成员位置记忆。见[联机位置记忆](docs/联机位置记忆.md)。
+- ✅ **联机管理** — 可用快捷键切换「仅显示自己」，支持逐人显隐、历史房间，以及横排、纵排和记忆自定义位置。见[联机位置记忆](docs/联机位置记忆.md)。
 - ✅ **库存长图与合成提醒** — 按角色、配件和表情分区导出 PNG，附稀有度占比和官方参考概率。可独立开启平阶、升阶提醒。
 - ✅ **图鉴试装与表情** — 可在本机试装角色、配件及六槽表情，支持快捷键和按键自动表情。见[图鉴试装](docs/图鉴试装.md)。
 - ✅ **i弗TV 专属互动** — BE / HE 两种分支，支持配件动画、道具掉落和可自定义的按键台词。见[i弗TV 说明](docs/i弗TV.md)。
 - ✅ **桌面辅助** — 默认显示器、可自定义快捷键与冲突提醒、本地点击数、防连点、延迟 5 秒自动领取宝箱。
+- ✅ **应用内更新** — 官方升版时由 Helper 接管更新提示。从 GitHub 下载匹配的正式版，校验后安装。
 - ✅ **按需运行** — 收起映射时停止补充采集，隐藏的联机桌宠按需卸载图片。见[运行优化说明](docs/按需运行优化说明.md)和[内存测试](docs/内存优化测试说明.md)。
 
 ## 下载
 
-下载 v1.0.4.2（适配官方 1.0.4）：
+在 GitHub 的正式发布页选择带版本号的安装包、免安装 ZIP 或单文件 EXE。页面显示的版本以实际发布为准。 [下载最新正式版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/latest) · [查看所有版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
 
-[下载安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.2/Wuwatappo_Helper-1.0.4.2-Setup.exe) · [下载免安装版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.2/Wuwatappo_Helper-1.0.4.2-Portable.zip) · [下载单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.2/Wuwatappo_Helper-1.0.4.2.exe)
+## 应用内更新
 
-[此前已发布的版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
+Helper 版本号的前三段对应官方桌宠版本，第四段是 Helper 的修订号。v1.0.4.3 是首个带应用内更新的版本，v1.0.4.2 及更早版本需要手动替换一次。
+
+- **只更新第四段**。例如 `1.0.4.3` → `1.0.4.4`，用户可以在设置里点「检查更新」。下载并校验后，点「重启并更新」。
+- **官方先升版**。例如官方发布 `1.0.5`，Helper 会接管官方更新提示，等待 GitHub 上前三段匹配的 `1.0.5.X` 正式版。适配版未发布时，当前 Helper 可以继续运行，在线功能以服务器的实际兼容性为准。
+- **上次退出前未检查这次升版**。下次启动时自动查 GitHub。如果已经有适配版，后台下载、校验，然后退出桌宠并启动新版。上次已经检查过这次升版，可以在设置里再次手动检查。
+- **下载或安装失败**。设置会提供「去 GitHub 下载」，也可以重试。安装版保留旧文件备份，免安装版把新版保存为同目录下带版本号的 EXE。
 
 ## 历史房间与原版图标
 
@@ -84,7 +90,7 @@ Ctrl+Alt+1～6 发送表情菜单中对应槽位当前装备的表情，无需�
 ## 安装与使用
 
 1. 退出正在运行的 WuwaTappo 或旧版修改程序。
-2. 下载并运行 `Wuwatappo_Helper-1.0.4.2-Setup.exe`，选择安装目录；桌面快捷方式可选。也可解压免安装版后运行 `Wuwatappo_Helper-1.0.4.2.exe`。
+2. 下载并运行 `Wuwatappo_Helper-<版本号>-Setup.exe`，选择安装目录。也可解压免安装包后运行带版本号的 EXE。
 3. 登录并打开库存，等库存加载结束后点击“分享库存长图”。
 4. 生成完成后点击“保存 PNG”或“复制图片”。
 
@@ -125,7 +131,7 @@ pnpm install --frozen-lockfile
 pwsh -File scripts/build.ps1 -SourceExe 'F:\WuwaTappo\WuwaTappo.exe' -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
 ```
 
-脚本会核验原件摘要，提取构建所需资源，运行检查，默认输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/local-1.0.4.2/`。不会改动输入原件，也不会请求账号业务接口。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
+脚本会核验原件摘要，提取构建所需资源，运行检查，默认输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/local-1.0.4.3/`。不会改动输入原件，也不会请求账号业务接口。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
 
 安装 Edge 后，首次视觉回归先运行 `node scripts/prepare-ui-fixtures.cjs` 获取固定的公开测试素材，再运行 `pnpm test:migration`。逻辑测试使用仓库内的最小公开目录样本；视觉测试使用六个系列人物和三件配件，不依赖开发者本机缓存。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.4.2`。
 

@@ -5,7 +5,33 @@ $pkg=Get-Content -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'pac
 $testDir=Join-Path $out 'http-smoke';New-Item -ItemType Directory -Path $testDir -Force|Out-Null
 $code=@'
 using System;using System.IO;using System.Net;using System.Net.Sockets;using System.Reflection;using System.Threading;
-class Smoke {static int Main(string[] args){try{var asm=Assembly.LoadFile(args[0]);var reply=asm.GetType("HelperHost").GetMethod("Reply",BindingFlags.Static|BindingFlags.NonPublic);var listener=new TcpListener(IPAddress.Loopback,0);listener.Start();int port=((IPEndPoint)listener.LocalEndpoint).Port;var thread=new Thread(()=>{for(int i=0;i<2;i++)reply.Invoke(null,new object[]{listener.AcceptTcpClient()});});thread.IsBackground=true;thread.Start();foreach(string method in new[]{"GET","OPTIONS"}){var req=(HttpWebRequest)WebRequest.Create("http://127.0.0.1:"+port+"/ui.js?retry=1");req.Method=method;req.Timeout=5000;req.Headers["Origin"]="http://tauri.localhost";using(var res=(HttpWebResponse)req.GetResponse()){if(res.StatusCode!=HttpStatusCode.OK||res.Headers["Access-Control-Allow-Origin"]!="http://tauri.localhost")throw new Exception("CORS or query route failed");if(method=="GET"){using(var reader=new StreamReader(res.GetResponseStream())){string body=reader.ReadToEnd();if(!body.Contains("openRoomHistory")||!body.Contains("installDefaultMonitor"))throw new Exception("Incomplete helper module");}}else if(res.Headers["Access-Control-Allow-Private-Network"]!="true")throw new Exception("Missing private network preflight response");}}listener.Stop();thread.Join(1000);Console.WriteLine("PASS: actual helper HTTP handler serves query URLs and private-network CORS preflight on isolated port");return 0;}catch(Exception e){Console.Error.WriteLine(e);return 1;}}}
+class Smoke {
+ static HttpWebResponse Request(int port,string path,string method,string origin,bool token=false){
+  var req=(HttpWebRequest)WebRequest.Create("http://127.0.0.1:"+port+path);req.Method=method;req.Timeout=5000;
+  if(origin!=null)req.Headers["Origin"]=origin;
+  if(method=="POST")req.ContentLength=0;
+  if(token)req.Headers["X-Wuwa-Update"]="1";
+  try{return (HttpWebResponse)req.GetResponse();}catch(WebException e){if(e.Response!=null)return (HttpWebResponse)e.Response;throw;}
+ }
+ static string Body(HttpWebResponse response){using(var reader=new StreamReader(response.GetResponseStream()))return reader.ReadToEnd();}
+ static void Check(bool result,string message){if(!result)throw new Exception(message);}
+ static int Main(string[] args){try{
+  const string origin="http://tauri.localhost";
+  var asm=Assembly.LoadFile(args[0]);var reply=asm.GetType("HelperHost").GetMethod("Reply",BindingFlags.Static|BindingFlags.NonPublic);
+  var listener=new TcpListener(IPAddress.Loopback,0);listener.Start();int port=((IPEndPoint)listener.LocalEndpoint).Port;
+  var thread=new Thread(()=>{for(int i=0;i<7;i++)reply.Invoke(null,new object[]{listener.AcceptTcpClient()});});thread.IsBackground=true;thread.Start();
+  using(var res=Request(port,"/ui.js?retry=1","GET",origin)){
+   string body=Body(res);Check(res.StatusCode==HttpStatusCode.OK&&res.Headers["Access-Control-Allow-Origin"]==origin&&body.Contains("openRoomHistory")&&body.Contains("installDefaultMonitor")&&body.Contains("mountHelperUpdate"),"Incomplete helper module or invalid CORS");
+  }
+  using(var res=Request(port,"/update/install","OPTIONS",origin))Check(res.StatusCode==HttpStatusCode.OK&&res.Headers["Access-Control-Allow-Private-Network"]=="true"&&res.Headers["Access-Control-Allow-Headers"]=="X-Wuwa-Update","Update preflight failed");
+  using(var res=Request(port,"/update/status","GET",origin))Check(res.StatusCode==HttpStatusCode.OK&&Body(res).Contains(asm.GetName().Version.ToString()),"Update status or version failed");
+  using(var res=Request(port,"/update/install","GET",origin))Check((int)res.StatusCode==405,"GET performed an update action");
+  using(var res=Request(port,"/update/install","POST",null,true))Check(res.StatusCode==HttpStatusCode.Forbidden,"Origin-less update command accepted");
+  using(var res=Request(port,"/update/install","POST",origin))Check((int)res.StatusCode==405,"Update POST did not require custom header");
+  using(var res=Request(port,"/update/install","POST",origin,true))Check(res.StatusCode==HttpStatusCode.OK&&Body(res).Contains("false"),"Unprepared installation accepted");
+  listener.Stop();thread.Join(1000);Console.WriteLine("PASS: loopback query route, update CORS and gated POST actions");return 0;
+ }catch(Exception e){Console.Error.WriteLine(e);return 1;}}
+}
 '@
 $source=Join-Path $testDir 'Smoke.cs';[IO.File]::WriteAllText($source,$code)
 $exe=Join-Path $testDir 'Smoke.exe'

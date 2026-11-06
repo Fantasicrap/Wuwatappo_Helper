@@ -21,13 +21,16 @@ $roomCore=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/room-history-core
 $roomUi=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/room-history-ui.js'))
 $uiFile=Join-Path $hostDir 'controller-ui.js'
 $monitor=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/monitor-preference.js'))
-[IO.File]::WriteAllText($uiFile,$core+"`n"+$ui+"`n"+$roomCore+"`n"+$roomUi+"`n"+$monitor,[Text.UTF8Encoding]::new($false))
+$updateUi=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/update-ui.js'))
+[IO.File]::WriteAllText($uiFile,$core+"`n"+$ui+"`n"+$roomCore+"`n"+$roomUi+"`n"+$monitor+"`n"+$updateUi,[Text.UTF8Encoding]::new($false))
+$versionSource=Join-Path $hostDir 'Version.cs'
+[IO.File]::WriteAllText($versionSource,('[assembly: System.Reflection.AssemblyVersion("{0}")] [assembly: System.Reflection.AssemblyFileVersion("{0}")]' -f $pkg.releaseVersion))
 $hash=(Get-FileHash -LiteralPath $payload -Algorithm SHA256).Hash.ToLowerInvariant()
 $runtimeId=Join-Path $hostDir 'runtime-id'
 [IO.File]::WriteAllText($runtimeId,($pkg.releaseVersion+'-'+$hash.Substring(0,12)))
 $exe=Join-Path $out ("Wuwatappo_Helper-"+$pkg.releaseVersion+".exe")
 $license=Join-Path $repoRoot 'licenses/SDL3-LICENSE.txt'
-& $compiler /nologo /target:winexe /platform:x64 /optimize+ ('/win32icon:'+$iconFile) /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Core.dll ('/out:'+$exe) ('/resource:'+$payload+',WuwaTappo.exe') ('/resource:'+$SdlPath+',SDL3.dll') ('/resource:'+$license+',SDL3-LICENSE.txt') ('/resource:'+$uiFile+',controller-ui.js') ('/resource:'+$runtimeId+',runtime-id') (Join-Path $repoRoot 'native/ControllerHost.cs') (Join-Path $repoRoot 'native/MouseCapture.cs')
+& $compiler /nologo /target:winexe /platform:x64 /optimize+ ('/win32icon:'+$iconFile) /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Core.dll ('/out:'+$exe) ('/resource:'+$payload+',WuwaTappo.exe') ('/resource:'+$SdlPath+',SDL3.dll') ('/resource:'+$license+',SDL3-LICENSE.txt') ('/resource:'+$uiFile+',controller-ui.js') ('/resource:'+$runtimeId+',runtime-id') $versionSource (Join-Path $repoRoot 'native/ControllerHost.cs') (Join-Path $repoRoot 'native/MouseCapture.cs') (Join-Path $repoRoot 'native/HelperUpdate.cs')
 if($LASTEXITCODE -ne 0){throw 'Controller launcher compilation failed'}
 $asm=[Reflection.Assembly]::LoadFile($exe)
 $checks=@{}
