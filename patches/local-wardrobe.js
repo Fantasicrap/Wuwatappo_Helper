@@ -20,7 +20,18 @@ const __wtLocalWardrobe=(()=>{
  function settings(ref,toast){const model={mode:ref(enabled())};model.toggle=async value=>{try{localStorage.setItem(key,value?'1':'0');model.mode.value=!!value;await emit('wt-wardrobe-mode-updated',{});toast(value?'图鉴试装已开启':'图鉴试装已关闭，恢复云端外观')}catch{toast('图鉴试装设置保存失败')}};model.reset=()=>emit('wt-wardrobe-reset',{}).catch(()=>toast('恢复外观失败'));return model}
  function canEmote(item,ids){const id=resolvePetAssetIdFromAppearanceId(Number(item.asset_id));return ids.includes(id)||ids.length<6}
  function selected(item,name){if(!name)return false;const id=resolvePetAssetIdFromAppearanceId(Number(item.asset_id));return resolveAppearanceAssetFileName(id).replace(/\.png$/i,'')===String(name).replace(/\.png$/i,'')}
- function renderSettings(h,model){const node=h('section',{class:'wt-atlas-preview-settings',style:{padding:'10px 12px',margin:'10px 0',border:'1px solid #e7c8a4',borderRadius:'12px',background:'#fff8e9',color:'#8e5e43'}},[h('label',{style:{display:'flex',gap:'8px',alignItems:'center',fontSize:'15px',fontWeight:'600'}},[h('input',{type:'checkbox',checked:model.mode.value,onChange:event=>model.toggle(event.target.checked)}),h('span',null,'启用图鉴试装')]),h('p',{style:{fontSize:'12px',lineHeight:'1.6',margin:'7px 0'}},'角色、配件和表情栏均在本机试装，不提交云端装备变更。表情最多6槽，再点已选表情可卸下；点击发送、快捷键和装备栏自动表情使用本地栏，发送仍沿用原流程。官方库存不变。'),h('button',{type:'button',style:{position:'static',font:'inherit',padding:'5px 10px',border:'1px solid #e7b77c',borderRadius:'8px',background:'#ffe2b0',color:'#8e5e43'},onClick:model.reset},'恢复云端外观')],512);node.patchFlag=-2;return node}
+ function renderSettings(h,model){
+  const node=h('section',{class:'wt-atlas-preview-settings',style:{padding:'10px 12px',margin:'0 0 10px',border:'1px solid #e3c9aa',borderRadius:'14px',background:'#fff9ed',color:'#694832'}},[
+   h('div',{style:{display:'flex',gap:'8px',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap'}},[
+    h('label',{style:{display:'flex',gap:'8px',alignItems:'center',fontSize:'15px',fontWeight:'600'}},[
+     h('input',{type:'checkbox',checked:model.mode.value,onChange:event=>model.toggle(event.target.checked)}),h('span',null,'启用图鉴试装')]),
+    h('button',{type:'button',style:{position:'static',font:'inherit',padding:'5px 10px',border:'1px solid #d6ae83',borderRadius:'9px',background:'#fffaf1',color:'#68452f'},onClick:model.reset},'恢复云端外观')
+   ]),
+   h('p',{style:{fontSize:'12px',lineHeight:'1.5',margin:'6px 0 0',color:'#775e4b'}},'试装在本机生效。表情最多六槽，再点已选表情可卸下。')
+  ],512);
+  node.patchFlag=-2;
+  return node;
+ }
  return{key,kind,resolve,create,settings,canEmote,selected,renderSettings};
 })();
 export {__wtLocalWardrobe};

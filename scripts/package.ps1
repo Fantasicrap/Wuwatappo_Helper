@@ -20,7 +20,7 @@ Get-ChildItem -LiteralPath (Join-Path $repoRoot 'docs') -File | Copy-Item -Desti
 New-Item -ItemType Directory -Path (Join-Path $portableDir 'licenses') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repoRoot 'licenses/SDL3-LICENSE.txt') -Destination (Join-Path $portableDir 'licenses') -Force
 Compress-Archive -LiteralPath $portableDir -DestinationPath (Join-Path $distDir "Wuwatappo_Helper-$helperVersion-Portable.zip") -Force
-$releaseNames = @($exeName,"Wuwatappo_Helper-$helperVersion-Setup.exe","Wuwatappo_Helper-$helperVersion-Portable.zip")
+$releaseNames = @($exeName,"Wuwatappo_Helper-$helperVersion-Lite.exe","Wuwatappo_Helper-$helperVersion-Setup.exe","Wuwatappo_Helper-$helperVersion-Portable.zip")
 $checksums = foreach ($name in $releaseNames) { $digest = (Get-FileHash -LiteralPath (Join-Path $distDir $name) -Algorithm SHA256).Hash.ToLower(); "$digest  $name" }
 Set-Content -LiteralPath (Join-Path $distDir 'SHA256SUMS.txt') -Value $checksums -Encoding utf8NoBOM
 Write-Output "Release artifacts: $distDir"

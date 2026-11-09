@@ -233,7 +233,16 @@ const __wtInventoryShare=(()=>{
     return {busy,label,run};
   }
   function render(h,model){
-    return h('div',{style:{display:'flex',justifyContent:'flex-end',margin:'0 0 12px'}},[h('button',{type:'button',disabled:model.busy.value,title:'导出全部已拥有的角色、配件、表情，每行5个',style:{position:'static',padding:'8px 16px',border:'1px solid #E7B77C',borderRadius:'18px',background:'#fed291',color:'#8e5e43',font:'inherit',cursor:'pointer'},onMousedown:event=>event.stopPropagation(),onClick:event=>{event.stopPropagation();model.run()}},model.label.value,9,['disabled'])]);
+    __wtPanelLayout.styles();
+    const node=h('section',{class:'wt-ui-feature','aria-label':'库存分享'},[
+      h('header',null,[
+        h('div',null,[h('h3',{class:'wt-ui-card-title'},'库存分享'),h('p',null,'按角色、配件和表情分组生成长图。')]),
+        __wtPanelLayout.button(h,model.label.value,event=>{event.stopPropagation();model.run()},
+          {class:'wt-ui-button wt-ui-button--primary',disabled:model.busy.value,onMousedown:event=>event.stopPropagation()})
+      ])
+    ],512);
+    node.patchFlag=-2;
+    return node;
   }
   return {owned,layout,positions,composition,draw,create,render,compare,roleName,seriesName,caption,rarityFiles,width,columns,maxHeight};
 })();

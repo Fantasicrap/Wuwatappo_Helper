@@ -25,7 +25,7 @@ if ($release.tag_name -ne $tag -or $release.target_commitish -ne $Commit) {
 }
 
 $prefix = "Wuwatappo_Helper-$version"
-$packages = @("$prefix.exe", "$prefix-Setup.exe", "$prefix-Portable.zip")
+$packages = @("$prefix.exe", "$prefix-Lite.exe", "$prefix-Setup.exe", "$prefix-Portable.zip")
 $manifestName = 'SHA256SUMS.txt'
 $names = $packages + $manifestName
 $assets = @{}

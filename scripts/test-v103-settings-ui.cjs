@@ -1,12 +1,72 @@
 const {fixturePath,target,v104}=require('./upstream-fixtures.cjs');
 const fs=require('fs'),assert=require('assert/strict'),{chromium}=require('playwright'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const source=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-CiT_jZa7.js'),'utf8'),prefix=[],render=[];
-traverse(babelParse(source,'settings.mjs',true),{VariableDeclaration(p){if(p.node.declarations.some(d=>['__wtKeys','__wtBoostUntil'].includes(d.id.name)))prefix.push(source.slice(p.node.start,p.node.end))},FunctionDeclaration(p){if(['__wtBoost','__wtToggle'].includes(p.node.id.name))prefix.push(source.slice(p.node.start,p.node.end))},CallExpression(p){const n=p.node;if(n.callee.type==='MemberExpression'&&['__wtKeyboardUi','__wtHotkeys'].includes(n.callee.object.name)&&['renderSettings','render'].includes(n.callee.property.name))render.push(source.slice(n.start,n.end));if(n.callee.name==='e'&&n.arguments[2]?.type==='ArrayExpression'&&n.arguments[2].elements.some(x=>x?.type==='CallExpression'&&x.arguments[2]?.value==='本地点击数 +10000'))render.push(source.slice(n.start,n.end));if(n.callee.name==='e'&&n.arguments[1]?.properties?.some(p=>p.key?.name==='id'&&p.value?.value==='wt-monitor-settings'))render.push(source.slice(n.start,n.end))}});assert.equal(render.length,4);
-(async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});try{const page=await browser.newPage({viewport:{width:440,height:1000},deviceScaleFactor:2}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('http://tauri.localhost/',r=>r.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><style>body{background:#f7f3ed;font:14px "Microsoft YaHei",sans-serif;margin:0}#root{width:400px;margin:12px auto;padding:12px;box-sizing:border-box;background:#fff8e9;border-radius:16px}</style><div id="root"></div>'}));await page.goto('http://tauri.localhost/');
-await page.addScriptTag({content:'window.calls=[];window.emit=async()=>{};function y(value){return{value}};function Oe(){};async function ue(e){calls.push(e)};'+fs.readFileSync('patches/hotkeys-core.js','utf8').replace(' const defaults=',' actions.splice(0,3);\n const defaults=').replace('export{__wtHotkeys};','')+fs.readFileSync('patches/keyboard-ui.js','utf8').replace('export {__wtKeyboardUi};','')+';'+prefix.join('\n')+';function e(tag,props={},children=[]){const n=document.createElement(tag);for(const[k,v]of Object.entries(props||{})){if(k==="style")Object.assign(n.style,v);else if(k.startsWith("on"))n.addEventListener(k.slice(2).toLowerCase(),v);else if(k==="value")n.value=v;else if(v!==false&&v!=null)n.setAttribute(k,v===true?"":v)}for(const c of [children].flat(Infinity))if(c!=null)n.append(c instanceof Node?c:document.createTextNode(String(c)));return n};window.draw=()=>document.querySelector("#root").replaceChildren('+render.join(',')+');draw();'});
-assert.equal(await page.locator('input[readonly]').count(),9);
+const path=require('path'),out=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/migration-'+target;
+const source=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-CiT_jZa7.js'),'utf8');
+const common=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-CuzHFfJW.js'),'utf8');
+const runtime=require('./vue-runtime-fixture.cjs')(common,['createBaseVNode','ref','createTextVNode']);
+const modules=new Map(),prefix=[],sections=new Map(),controls=[];
+let room,monitor,roomRestore,historyButtons=0;
+const slice=(text,node)=>text.slice(node.start,node.end);
+const names=['__wtPanelLayout','__wtKeyboardUi','__wtHotkeys','__wtLongRun','__wtSynthesis','__wtRoomPositions'];
+traverse(babelParse(common,'common.mjs',true),{VariableDeclaration(p){
+ for(const {id} of p.node.declarations)if(names.includes(id.name))modules.set(id.name,slice(common,p.node));
+}});
+traverse(babelParse(source,'settings.mjs',true),{
+ VariableDeclaration(p){
+  const ids=p.node.declarations.map(d=>d.id.name);
+  if(ids.some(id=>['__wtKeys','__wtBoostUntil','__wtSynthSettings'].includes(id)))prefix.push(slice(source,p.node));
+  if(ids.includes('__wtRestoreRoom'))roomRestore=slice(source,p.node);
+ },
+ FunctionDeclaration(p){if(['__wtBoost','__wtToggle'].includes(p.node.id.name))prefix.push(slice(source,p.node));},
+ CallExpression(p){
+  const n=p.node,helper=n.callee.object?.name,method=n.callee.property?.name;
+  if(helper==='__wtPanelLayout'&&method==='group')sections.set(n.arguments[1].value,slice(source,n));
+  if(helper==='__wtPanelLayout'&&method==='room')room=slice(source,n);
+  if(helper==='__wtPanelLayout'&&method==='button'&&n.arguments[1].value==='历史房间')historyButtons++;
+  if(n.callee.name==='e'&&n.arguments[1]?.properties?.some(p=>p.key?.name==='id'&&p.value?.value==='wt-monitor-settings'))monitor=slice(source,n);
+  if(!v104&&(['__wtKeyboardUi','__wtHotkeys','__wtSynthesis'].includes(helper)&&['renderSettings','render','renderBasicSettings'].includes(method)||n.arguments[1]?.properties?.some(p=>p.key?.name==='class'&&p.value?.value?.includes('wt-ui-basic-actions'))))controls.push(slice(source,n));
+ }
+});
+assert.equal(modules.size,names.length);
+assert.equal(historyButtons,2);
+if(v104)assert.deepEqual([...sections.keys()],['basic','account','input','desktop','interaction','maintenance']);
+const sectionIds=v104?[...sections.keys()]:['basic','input','desktop','maintenance'];
+const render=sectionIds.map(id=>{
+ if(v104&&['basic','input'].includes(id))return sections.get(id);
+ let children='';
+ if(!v104&&id==='basic')children=controls.filter(text=>text.includes('wt-ui-basic-actions')||text.includes('renderBasicSettings')).join(',');
+ if(!v104&&id==='input')children=controls.filter(text=>text.includes('__wtKeyboardUi')||text.includes('__wtHotkeys')).join(',');
+ if(id==='desktop')children=monitor;
+ if(id==='maintenance')children='e("div",{id:"wt-us"})';
+ return '__wtPanelLayout.group(e,'+JSON.stringify(id)+',['+children+'])';
+});
+const roomProps=room.match(/null,40,([\w$]+)\)/)[1];
+(async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});try{const page=await browser.newPage({viewport:{width:440,height:1000},deviceScaleFactor:2}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('http://tauri.localhost/',r=>r.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><style>body{background:#f7f3ed;font:14px "Microsoft YaHei",sans-serif;margin:0;color:#694832}#root,#room{width:min(400px,calc(100vw - 24px));margin:12px auto;padding:12px;box-sizing:border-box;background:#fff8e9;border-radius:16px}</style><div id="root"></div><div id="room"></div>'}));await page.goto('http://tauri.localhost/');
+await page.addScriptTag({content:'(()=>{'+runtime+'})()'});
+await page.addScriptTag({content:`window.calls=[];window.emit=async()=>{};
+const {createApp,createBaseVNode:e,createTextVNode:Tt,ref:y}=__vue;
+const Oe=()=>{},ps=async()=>({}),__wtCheckShortcutConflict=()=>{};
+async function ue(event){calls.push(event)}
+${[...modules.values()].join('\n')}
+${prefix.join('\n')}
+createApp({render:()=>e('div',{class:'panel-content'},[${render.join(',')}])}).mount('#root');
+const Er={class:'only-show-self'},${roomProps}=['checked','onChange'],s={onlyShowSelf:true};
+const t={},p=()=>()=>"仅显示自己",S=String,b=[],v=(type,checked)=>ue({type,checked});
+${roomRestore}
+const __wtPlacement=__wtRoomPositions.settings(y,ue);
+createApp({render:()=>${room}}).mount('#room');`});
+if(v104)await page.addStyleTag({content:fs.readFileSync('dist/upstream-1.0.4/index-BbF1ZWW_.css','utf8')});
+await page.locator('#root').screenshot({path:path.join(out,'settings-overview.png')});
+const input=page.locator('[data-wt-section="input"]');
+assert.equal(await input.locator('input:visible').count(),0);
+await input.locator('summary').first().click();
+assert.equal(await input.locator('input[readonly]:visible').count(),3);
+await input.getByText('表情快捷键（6 个槽位）',{exact:true}).click();
+assert.equal(await input.locator('input[readonly]:visible').count(),9);
+await input.getByText('表情快捷键（6 个槽位）',{exact:true}).click();
 await page.getByLabel('用气泡显示输入').check();
 assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-input-bubbles-v1')),'1');
+assert.equal(await page.getByLabel('映射位置').count(),0);
 await page.getByLabel('用气泡显示输入').uncheck();
 const roomKey=page.getByRole('textbox',{name:'联机仅显示自己',exact:true});
 assert.equal(await roomKey.inputValue(),'未设置');
@@ -18,14 +78,26 @@ await page.keyboard.press('Control+Shift+F6');
 assert.equal(await page.evaluate(()=>__wtKeys.draft.value.roomOnlySelf),'Ctrl+Shift+F6');
 await page.getByRole('button',{name:'保存快捷键',exact:true}).click();
 assert.equal(await page.evaluate(()=>__wtHotkeys.read().roomOnlySelf),'Ctrl+Shift+F6');
-await page.getByRole('button',{name:'映射位置：下方',exact:true}).click();await page.evaluate(()=>draw());assert(await page.getByRole('button',{name:'映射位置：左侧',exact:true}).isVisible());await page.getByRole('button',{name:'本地点击数 +10000',exact:true}).click();await page.getByRole('button',{name:'本地点击数 +10000',exact:true}).click();assert.equal(await page.evaluate(()=>calls.filter(x=>x.type==='boost-local-clicks').length),1);
+await page.getByLabel('映射位置').selectOption('left');
+assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-mapping-position-v1')),'left');
+assert.equal(await input.evaluate(n=>n.open),true);
+await page.getByRole('button',{name:'自动开箱：已关闭'}).click();
+assert.equal(await page.getByRole('button',{name:'自动开箱：已开启'}).getAttribute('aria-pressed'),'true');
+await page.getByRole('button',{name:'本地点击数 +10000',exact:true}).dblclick();
+assert.equal(await page.evaluate(()=>calls.filter(x=>x.type==='boost-local-clicks').length),1);
+await page.getByLabel('仅显示自己',{exact:true}).uncheck();
+await page.getByRole('button',{name:'恢复显示全部'}).click();
+await page.getByLabel('联机桌宠排列').selectOption('vertical');
+assert.deepEqual(await page.evaluate(()=>calls.slice(-3)),[
+ {type:'set-only-show-self',checked:false},{type:'set-room-members-visibility',visible:true},{type:'set-room-placement',mode:'vertical'}
+]);
+await page.locator('[data-wt-section="desktop"] summary').first().click();
 await page.addScriptTag({content:fs.readFileSync('patches/monitor-preference.js','utf8').replace(/export /g,'')});
 await page.evaluate(async()=>{window.stopMonitorUi=await mountDefaultMonitorSettings({root:document.getElementById('wt-monitor-settings'),list:async()=>[{name:'DISPLAY1',position:{x:0,y:0},size:{width:1920,height:1080},scaleFactor:1},{name:'DISPLAY2',position:{x:-2560,y:0},size:{width:2560,height:1440},scaleFactor:1.25}],listen:async()=>()=>{},emit:async()=>{}})});
 if(v104){
- await page.addStyleTag({content:fs.readFileSync('dist/upstream-1.0.4/index-BbF1ZWW_.css','utf8')});
+ await page.locator('[data-wt-section="maintenance"] summary').first().click();
  await page.addScriptTag({content:fs.readFileSync('patches/update-ui.js','utf8').replaceAll('export function ','function ')});
  await page.evaluate(()=>{
-  const root=document.createElement('div');root.id='wt-us';document.querySelector('#root').append(root);
   let downloadSource='github';window.lastSourceRequest=null;
   window.fetch=async(url,opts)=>({ok:true,json:async()=>{
    const path=url.split('/update/')[1];
@@ -41,7 +113,15 @@ if(v104){
  assert.deepEqual(await page.evaluate(()=>window.lastSourceRequest),['POST','1']);
  await page.evaluate(()=>{window.updateSettings.stop();window.updateSettings=mountHelperUpdate(()=>{},()=>{})});
  await page.waitForFunction(()=>document.querySelector('#wt-us select').value==='gh-proxy');
- await page.locator('#wt-us').screenshot({path:require('path').join(process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/migration-'+target,'update-source-settings.png')});
+ await page.locator('#wt-us').screenshot({path:path.join(out,'update-source-settings.png')});
 }
-const overflow=await page.locator('button,input,select').evaluateAll(nodes=>nodes.filter(n=>{const r=n.getBoundingClientRect();return r.left<0||r.right>innerWidth}).map(n=>n.textContent));assert.deepEqual(overflow,[]);await page.locator('#root').screenshot({path:require('path').join(process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/local-1.0.3.4','settings-preview.png')});assert.deepEqual(errors,[]);console.log('PASS: nine shortcuts fit, only-self shortcut records and warns on conflict, position persists and boost is throttled');}finally{await browser.close()}})().catch(e=>{console.error(e.stack);process.exitCode=1});
+for(const width of [440,320]){
+ await page.setViewportSize({width,height:1000});
+ const overflow=await page.locator('button:visible,input:visible,select:visible').evaluateAll(nodes=>nodes.filter(n=>{const r=n.getBoundingClientRect();return r.left<0||r.right>innerWidth}).map(n=>n.textContent));
+ assert.deepEqual(overflow,[],`Controls fit at ${width}px`);
+}
+await page.locator('#root').screenshot({path:path.join(out,'settings-preview.png')});
+assert.deepEqual(errors,[]);
+console.log('PASS: bundled Vue disclosures, mapping and shortcut persistence, room actions, and 320/440px bounds');
+}finally{await browser.close()}})().catch(e=>{console.error(e.stack);process.exitCode=1});
 

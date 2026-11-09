@@ -1,7 +1,8 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const {fixturePath}=require('../scripts/upstream-fixtures.cjs');
 const source=fs.readFileSync(path.join(__dirname,'inventory-share.js'),'utf8').replace('export {__wtInventoryShare,__wtNormalPanel};','this.share=__wtInventoryShare;this.normal=__wtNormalPanel;');
-const context={console};vm.createContext(context);vm.runInContext(source,context);const api=context.share;
+const layout=fs.readFileSync(path.join(__dirname,'panel-layout.js'),'utf8').replace('export {__wtPanelLayout};','');
+const context={console};vm.createContext(context);vm.runInContext(layout+'\n'+source,context);const api=context.share;
 const item=(type,id,quantity=1)=>({asset_type:type,asset_id:id,quantity,rarity:'rare',role_id:'0'});
 const plain=value=>JSON.parse(JSON.stringify(value));
 async function main(){
@@ -44,7 +45,13 @@ async function main(){
  const preview=path.join(__dirname,'share-fixtures/layout-preview.png');fs.writeFileSync(preview,Buffer.from(await result.blob.arrayBuffer()));
  const bad=await api.draw(one[0],many,{document,background:originalBackground,timestamp:'失败占位测试',pageLabel:'1 / 1',resolveUrl:it=>it.asset_type,loadImage:async()=>{throw Error('Simulated CORS failure')},progress(){}});assert.equal(bad.failed,18);assert(bad.blob.size>0);
  const abort=new AbortController();abort.abort();await assert.rejects(api.draw(one[0],many,{document,background:originalBackground,signal:abort.signal,loadImage:async()=>{throw Error('Must not load after cancel')},progress(){}}),/已取消生成/);
- const vnode=api.render((tag,props,children,flag,dynamic)=>({tag,props,children,flag,dynamic}),{busy:{value:true},label:{value:'正在生成…'},run(){}});assert.equal(vnode.children[0].props.disabled,true);assert.equal(vnode.children[0].flag,9);
+ const h=(tag,props,children)=>({tag,props,children});
+ const model={busy:{value:true},label:{value:'正在生成…'},run(){}};
+ const card=api.render(h,model),button=card.children[0].children[1];
+ assert.equal(button.props.disabled,true);assert.equal(button.children,'正在生成…');assert.equal(card.patchFlag,-2);
+ model.busy.value=false;model.label.value='分享库存长图';
+ const ready=api.render(h,model).children[0].children[1];
+ assert.equal(ready.props.disabled,false);assert.equal(ready.children,'分享库存长图');
  const report={passed:true,checks:['Owned positive-quantity items only; duplicate stacks not added','Characters / accessories / emotes in fixed order','Rarity descending then series then Chinese role name in pinyin order','Original four rarity background PNGs reused','Exactly five columns and every item included','Large inventories partitioned within canvas limits','Non-topmost and normal taskbar requests','Login and loading guards','Actual offline PNG rendered with original background and three public asset samples','Concurrent image loading limited to six','Missing images remain visible placeholders with failure count','Cancellation stops pending generation','Vue button marks busy label and disabled state as dynamic'],preview,previewContainsUserInventory:false,nativeWindowBehaviorTested:false,webViewDownloadAndClipboardTested:false};
  fs.writeFileSync(path.join(__dirname,'inventory-share-tests.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
 }

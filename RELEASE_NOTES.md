@@ -1,9 +1,18 @@
-Wuwatappo Helper v1.0.4.4，适配官方 WuwaTappo v1.0.4。
+Wuwatappo Helper v1.0.4.5 正式版，适配官方 WuwaTappo v1.0.4。
 
-- 在设置中可选择「GH-Proxy（尝试）」作为更新下载源。选择保存在本机，手动检查和启动时自动更新都会使用。
-- 默认从 GitHub 下载。镜像超时或文件校验失败时，自动回退到 GitHub。版本和 SHA-256 仍从 GitHub 获取。
-- 提供中国大陆备用下载入口：[安装包](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4-Setup.exe) · [免安装 ZIP](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4-Portable.zip) · [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4.exe)。
+## 本次更新
 
-从 v1.0.4.3 升级可在设置里点「检查更新」。手动更新前请从托盘完全退出旧版。
+- **设置重新分组**。`+10000`、低保、自动开箱和平阶／升阶合成提醒放在首屏。其余设置按用途折叠，六槽表情快捷键可单独展开，映射位置可直接选择。
+- **联机页简化**。「仅显示自己」「恢复显示全部」和桌宠排列放在同一区域。历史房间入口位于房间号旁和加入区。
+- **库存和图鉴调整**。库存长图和图鉴试装都有独立卡片，试装开关与恢复云端外观放在一起。i弗TV 的分支设置在开启总开关后显示。
+- **低保可选**。默认关闭。登录且在线时，剩余点击数低于 10000 会触发一次本地 `+10000`。余额恢复到 10000 或以上后重新等待下一次触发。
+
+## 下载与更新
+
+- **完整版**提供安装包、免安装 ZIP 和单文件 EXE，包含联机管理、输入映射与录制、库存分享、图鉴试装和 i弗TV。
+- **轻量版**下载 `Wuwatappo_Helper-1.0.4.5-Lite.exe`。保留官方桌宠功能和基础辅助，不启动 Helper 的键鼠补充采集、手柄服务或本地 HTTP 服务。
+- 完整版可手动检查更新。从 v1.0.4.4 升级无需强制更新。轻量版请手动下载。替换前请从托盘完全退出当前版本。
+
+[使用说明](https://github.com/Fantasicrap/Wuwatappo_Helper/blob/v1.0.4.5/docs/使用说明.md) · [备用下载入口](https://github.com/Fantasicrap/Wuwatappo_Helper/blob/v1.0.4.5/README.md#下载)
 
 **仅供娱乐使用，创作者概不负责。**

@@ -107,7 +107,7 @@ panel=editFunction(panel,'Hl',s=>once(s,'if(ht.value.length>=24)','if(__wtRoomMo
 panel=once(panel,'function Ul(e){A.value=Bl(e),nn&&clearTimeout(nn),nn=setTimeout(()=>{A.value=1,nn=null},220)}','function Ul(e){A.value=Bl(e);if(nn)clearTimeout(nn);nn=qr.size?null:setTimeout(()=>{A.value=1;nn=null},220)}');
 panel=once(panel,'const t=qr.delete(e),o=va.delete(e);!t&&!o||Ie()','const t=qr.delete(e),o=va.delete(e);if(t&&!qr.size&&!nn)A.value=1;!t&&!o||Ie()');
 }
-const helperFiles=lite?['startup-notice.js','synthesis-reminder.js']:['hotkeys-core.js','inventory-share.js','input-recorder.js','keyboard-ui.js','room-positions-core.js','startup-notice.js','auto-emotes.js','accessory-thrust.js','phrolova-reaction.js','happy-ending.js','oath-core.js','pet-fun-dialogue.js','pet-fun.js','local-wardrobe.js','synthesis-reminder.js'];
+const helperFiles=lite?['startup-notice.js','synthesis-reminder.js','panel-layout.js']:['hotkeys-core.js','inventory-share.js','input-recorder.js','keyboard-ui.js','room-positions-core.js','startup-notice.js','auto-emotes.js','accessory-thrust.js','phrolova-reaction.js','happy-ending.js','oath-core.js','pet-fun-dialogue.js','pet-fun.js','local-wardrobe.js','synthesis-reminder.js','panel-layout.js'];
 const helpers=helperFiles.map(n=>n==='hotkeys-core.js'?read(n).replace(' const defaults=',' actions.splice(0,3);\n const defaults='):n==='startup-notice.js'?read(n).replace('__WT_DISCLAIMER_TEXT__',JSON.stringify(fs.readFileSync(path.join(root,'DISCLAIMER.txt'),'utf8').replace(/^\uFEFF/,''))):n==='pet-fun.js'?read(n).replace('__WT_OATH_CORE_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/oath-core.png')).toString('base64'))):n==='happy-ending.js'?read(n).replace('__WT_WILTED_ECHO_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/wilted-echo.png')).toString('base64'))):read(n)).join('\n');common+='\n'+helpers;
 common+='\n'+read('long-run.js')+'\nexport {__wtLongRun,renewTokenIfNeeded as __wtRenewSession};\n';
 common=editFunction(common,'renewTokenIfNeeded',()=>read('session-renewal-runtime.js'));
@@ -176,11 +176,11 @@ panel+='\nimport{__wtHotkeys,__wtKeyboardUi,__wtRoomPositions,__wtNotice,__wtRoo
  panel+='\nimport{__wtNotice,__wtSynthesis,__wtLongRun,__wtRenewSession,__wtClickIO,__wtClickSession,__wtReportClicks,__wtSubmittedClicks,__wtMakeChestLedger}from"./index-CuzHFfJW.js";\n';
 }
 let settings=upstream(assets.settings);
-function injectComponent(source,name,prefix,render){let setup;traverse(babelParse(source,'settings.mjs',true),{ObjectExpression(p){if(p.node.properties.some(x=>x.key?.name==='__name'&&x.value?.value===name))setup=p.get('properties').find(x=>x.node.key?.name==='setup')}});assert(setup,'Missing component '+name);const returns=setup.node.body.body.filter(n=>n.type==='ReturnStatement');assert.equal(returns.length,1);const returned=returns[0].argument,arrow=returned.type==='SequenceExpression'?returned.expressions.at(-1):returned;assert.equal(arrow.type,'ArrowFunctionExpression');const exp=arrow.body.type==='SequenceExpression'?arrow.body.expressions.at(-1):arrow.body;assert.equal(exp.type,'CallExpression');let array=exp.arguments[2];if(name==='SettingsModule')setup.traverse({CallExpression(p){const a=p.node.arguments;if(a[1]?.type==='ObjectExpression'&&a[1].properties.some(x=>x.key?.name==='class'&&x.value?.value==='panel-content')&&a[2]?.type==='ArrayExpression')array=a[2]}});assert.equal(array.type,'ArrayExpression');const at=array.start+1;source=source.slice(0,at)+render+','+source.slice(at);const start=setup.node.body.start+1;return source.slice(0,start)+prefix+source.slice(start)}
+function injectComponent(source,name,prefix,render){let setup;traverse(babelParse(source,'settings.mjs',true),{ObjectExpression(p){if(p.node.properties.some(x=>x.key?.name==='__name'&&x.value?.value===name))setup=p.get('properties').find(x=>x.node.key?.name==='setup')}});assert(setup,'Missing component '+name);const returns=setup.node.body.body.filter(n=>n.type==='ReturnStatement');assert.equal(returns.length,1);const returned=returns[0].argument,arrow=returned.type==='SequenceExpression'?returned.expressions.at(-1):returned;assert.equal(arrow.type,'ArrowFunctionExpression');const exp=arrow.body.type==='SequenceExpression'?arrow.body.expressions.at(-1):arrow.body;assert.equal(exp.type,'CallExpression');let array=exp.arguments[2];if(name==='SettingsModule')setup.traverse({CallExpression(p){const a=p.node.arguments;if(a[1]?.type==='ObjectExpression'&&a[1].properties.some(x=>x.key?.name==='class'&&x.value?.value==='panel-content')&&a[2]?.type==='ArrayExpression')array=a[2]}});assert.equal(array.type,'ArrayExpression');const at=array.start+1;if(render)source=source.slice(0,at)+render+','+source.slice(at);const start=setup.node.body.start+1;return source.slice(0,start)+prefix+source.slice(start)}
 settings=injectComponent(settings,'SettingsModule','const __wtSynthSettings=__wtSynthesis.settings(y,Oe,true);','__wtSynthesis.renderBasicSettings(e,__wtSynthSettings)');
-settings+='\nimport{__wtSynthesis}from"./index-CuzHFfJW.js";\n';
+settings+='\nimport{__wtSynthesis,__wtPanelLayout}from"./index-CuzHFfJW.js";\n';
 settings=injectComponent(settings,'SettingsModule',(lite?'const ':'const __wtKeys=__wtHotkeys.createSettings(y,Oe),__wtMapping=__wtKeyboardUi.settings(y,Oe),')+'__wtAuto=y(localStorage.getItem("wuwatappo-auto-claim-chests-v1")==="1");let __wtBoostUntil=0;async function __wtBoost(){if(performance.now()<__wtBoostUntil)return;__wtBoostUntil=performance.now()+500;await ue({type:"boost-local-clicks",delta:10000})}async function __wtToggle(){const enabled=!__wtAuto.value;await ue({type:"set-auto-claim-chests",enabled});__wtAuto.value=enabled}',
- (lite?'': '__wtKeyboardUi.renderSettings(e,__wtMapping),__wtHotkeys.render(e,__wtKeys),')+'e("div",{style:{display:"flex",gap:"8px",padding:"12px",flexWrap:"wrap"}},[e("button",{type:"button",class:"setting-btn",style:{position:"static",padding:"6px 12px",border:"1px solid #E7B77C",borderRadius:"14px",background:"#fff3dd",color:"#8e5e43",font:"inherit"},onClick:__wtBoost},"本地点击数 +10000"),e("button",{type:"button",class:"setting-btn",style:{position:"static",padding:"6px 12px",border:"1px solid #E7B77C",borderRadius:"14px",background:"#fff3dd",color:"#8e5e43",font:"inherit"},onClick:__wtToggle},__wtAuto.value?"自动宝箱：开（延迟5秒）":"自动宝箱：关",1)])');
+ (lite?'':'__wtKeyboardUi.renderSettings(e,__wtMapping),__wtHotkeys.render(e,__wtKeys),')+'e("div",{class:"wt-ui-actions wt-ui-basic-actions"},[__wtPanelLayout.button(e,"本地点击数 +10000",__wtBoost,{class:"wt-ui-button wt-ui-button--primary"}),__wtPanelLayout.button(e,__wtAuto.value?"自动开箱：已开启":"自动开箱：已关闭",__wtToggle,{"aria-pressed":__wtAuto.value,title:"宝箱到期后延迟 5 秒领取"})])');
 if(!lite){
 settings=injectComponent(settings,"MainPanelAtlasTab","const __wtTrial=__wtLocalWardrobe.settings(y,Oe);","__wtLocalWardrobe.renderSettings(e,__wtTrial)");
 settings=once(settings,'function k(h){if(Ke(h.asset_type)!=="character_skin")return!1;','function k(h){if(Ke(h.asset_type)!=="character_skin")return!1;if(__wtTrial.mode.value)return __wtLocalWardrobe.selected(h,t.selectedRoleId);');
@@ -197,8 +197,13 @@ settings=injectComponent(settings,'SettingsModule','const __wtEmoteMode=__wtAuto
 panel=once(panel,'async function __wtInstallHelperActions(){','async function __wtInstallHelperActions(){__wtSynth.start();__wtHelperStops.push(await tt("wt-synthesis-reminder-updated",()=>__wtSynth.sync()));__wtWardrobe.start();__wtAutoEmote.start();__wtFun.start();__wtHelperStops.push(await tt("wt-auto-emotes-updated",()=>__wtAutoEmote.sync()));__wtHelperStops.push(await tt("wt-pet-fun-updated",()=>__wtFun.sync()));__wtHelperStops.push(await tt("wt-wardrobe-mode-updated",()=>__wtWardrobe.sync()));__wtHelperStops.push(await tt("wt-wardrobe-reset",()=>__wtWardrobe.clear()));');
 settings+='\nimport{__wtAutoEmotes}from"./index-CuzHFfJW.js";\n';
 settings=injectComponent(settings,'SettingsModule','let __wtMonitorStop,__wtMonitorClosed=false;ft(()=>{__wtMonitorClosed=true;__wtMonitorStop?.()});Qe(async()=>{try{const m=await import("http://127.0.0.1:48642/ui.js");if(!__wtMonitorClosed){const stop=await m.mountDefaultMonitorSettings({root:document.getElementById("wt-monitor-settings"),list:uo,listen:no,emit:__wtMonitorEmit});__wtMonitorClosed?stop():__wtMonitorStop=stop}}catch{const r=document.getElementById("wt-monitor-settings");r&&(r.textContent="默认显示器设置加载失败，请运行完整 Helper")}});','e("div",{id:"wt-monitor-settings"})');
-settings=injectComponent(settings,'MainPanelRoomTab','async function __wtVisible(visible){await ue({type:"set-room-members-visibility",visible})}async function __wtHistory(){try{const module=await import("http://127.0.0.1:48642/ui.js");await module.openRoomHistory({state:()=>({accountId:ae.isLoggedIn?ae.userInfo?.id:0,roomId:String(s.currentRoomId??""),mode:s.roomMode}),send:ue,listen:no,toast:Oe})}catch{Oe("历史房间加载失败，请运行完整 Helper")}}','e("div",{style:{display:"flex",gap:"8px",margin:"12px 0",flexWrap:"wrap"}},[e("button",{type:"button",class:"setting-btn",style:{position:"static",padding:"6px 12px",border:"1px solid #E7B77C",borderRadius:"14px",background:"#fff3dd",color:"#8e5e43",font:"inherit"},onClick:()=>__wtVisible(false)},"一键不可见"),e("button",{type:"button",class:"setting-btn",style:{position:"static",padding:"6px 12px",border:"1px solid #E7B77C",borderRadius:"14px",background:"#fff3dd",color:"#8e5e43",font:"inherit"},onClick:()=>__wtVisible(true)},"一键可见"),e("button",{type:"button",class:"setting-btn",style:{position:"static",padding:"6px 12px",border:"1px solid #E7B77C",borderRadius:"14px",background:"#fff3dd",color:"#8e5e43",font:"inherit"},onClick:__wtHistory},"历史房间")])');
-settings=injectComponent(settings,'MainPanelRoomTab','const __wtPlacement=__wtRoomPositions.settings(y,ue);','__wtRoomPositions.render(e,__wtPlacement)');
+settings=injectComponent(settings,'MainPanelRoomTab','const __wtRestoreRoom=()=>ue({type:"set-room-members-visibility",visible:true});async function __wtHistory(){try{const module=await import("http://127.0.0.1:48642/ui.js");await module.openRoomHistory({state:()=>({accountId:ae.isLoggedIn?ae.userInfo?.id:0,roomId:String(s.currentRoomId??""),mode:s.roomMode}),send:ue,listen:no,toast:Oe})}catch{Oe("历史房间加载失败，请运行完整 Helper")}}const __wtPlacement=__wtRoomPositions.settings(y,ue);',null);
+settings=once(settings,'wr={class:"join-rooms"}','wr={class:"join-rooms wt-ui-join"}');
+const historyButton='__wtPanelLayout.button(e,"历史房间",__wtHistory,{class:"wt-ui-button wt-ui-room-history"})';
+settings=once(settings,'S(p(t)("rooms_join")),9,kr)])','S(p(t)("rooms_join")),9,kr),'+historyButton+'])');
+settings=once(settings,'e("span",{class:"room-number-copy",role:"button",onClick:A})','e("button",{type:"button",class:"room-number-copy","aria-label":"复制房间号",onClick:A}),'+historyButton);
+settings=once(settings,'e("label",Er,[e("input",{type:"checkbox",checked:s.onlyShowSelf','__wtPanelLayout.room(e,e("label",Er,[e("input",{type:"checkbox",checked:s.onlyShowSelf');
+settings=once(settings,'S(p(t)("rooms_only_show_self")),1)]),s.roomMembers.length','S(p(t)("rooms_only_show_self")),1)]),__wtRoomPositions.render(e,__wtPlacement),__wtRestoreRoom),s.roomMembers.length');
 settings+='\nimport{__wtRoomPositions}from"./index-CuzHFfJW.js";\n';
 settings=once(settings,'function T(){requestAnimationFrame(()=>{xo().catch(x=>{console.warn("[panel] raise above pets failed",x)})})}','function T(){requestAnimationFrame(()=>{__wtNormalPanel(g).catch(x=>console.warn("[panel] normalize failed",x))})}');
 settings=once(settings,'W[t.action]=l,await ms("set_app_shortcuts",{config:W})','W[t.action]=l,__wtCheckShortcutConflict(W,__wtHotkeys.read()),await ms("set_app_shortcuts",{config:W})');
@@ -228,6 +233,50 @@ if(lite){
  settings=once(settings,'S(X.value),1),e("div",El,S(le.value),1)','S('+JSON.stringify(target+' · \u8f7b\u91cf\u9884\u89c8')+'),1),e("div",El,S(le.value),1)');
  settings=once(settings,'class:"setting-btn btn-check-update",','class:"setting-btn btn-check-update",hidden:!0,');
 }
+// Reorder the reviewed settings rows without replacing their bindings or actions.
+function groupSettings(source){
+ let panelCall;
+ traverse(babelParse(source,'settings.mjs',true),{ObjectExpression(p){
+  if(!p.node.properties.some(prop=>prop.key?.name==='__name'&&prop.value?.value==='SettingsModule'))return;
+  p.traverse({CallExpression(p){
+   const node=p.node;
+   if(node.arguments[1]?.properties?.some(prop=>prop.key?.name==='class'&&prop.value?.value==='panel-content')&&node.arguments[2]?.type==='ArrayExpression'){
+    assert(!panelCall,'Ambiguous settings content');panelCall=node;
+   }
+  }});
+ }});
+ assert(panelCall,'Missing settings panel');
+ const rows=panelCall.arguments[2];
+ const available=rows.elements.map(node=>source.slice(node.start,node.end));
+ const take=marker=>{
+  const matches=available.filter(row=>row.includes(marker));
+  assert.equal(matches.length,1,'Settings row changed: '+marker);
+  available.splice(available.indexOf(matches[0]),1);
+  return matches[0];
+ };
+ const group=(id,items)=>'__wtPanelLayout.group(e,"'+id+'",['+items.join(',')+'])';
+ const sections=[
+  group('basic',[take('wt-ui-basic-actions'),take('__wtSynthesis.renderBasicSettings')]),
+  group('account',[take('"setting_nickname"'),take('"setting_total_click"'),take('"setting_redeem_code"'),take('"setting_view_log"')])
+ ];
+ if(!lite)sections.push(group('input',[take('__wtKeyboardUi.renderSettings'),take('__wtHotkeys.render')]));
+ sections.push(group('desktop',[
+  ...['pet_scale','window_opacity','toggle_pet','game_mode','auto_game_mode_fullscreen','window_penetrate','hover_auto_hide','always_show_chest','screen'].map(id=>take('"setting_'+id+'"')),
+  ...(!lite?[take('wt-monitor-settings')]:[])
+ ]));
+ if(!lite)sections.push(group('interaction',[take('__wtPetFun.renderSettings'),take('__wtAutoEmotes.renderSettings')]));
+ sections.push(group('maintenance',[
+  ...['auto_launch','show_taskbar_icon','language','version'].map(id=>take('"setting_'+id+'"')),
+  ...(v104&&!lite?[take('"wt-us"')]:[])
+ ]));
+ // Keep the original about/legal links in the footer outside the disclosures.
+ assert.equal(available.length,1,'Unexpected ungrouped settings rows');
+ assert(available[0].includes('href')||available[0].includes('onClick'));
+ const flag=panelCall.arguments[3];
+ if(flag)source=source.slice(0,flag.start)+'-2'+source.slice(flag.end);
+ return source.slice(0,rows.start)+'['+sections.concat(available).join(',')+']'+source.slice(rows.end);
+}
+if(v104)settings=groupSettings(settings);
 let about=upstream(assets.about);
 about=once(about,'y=q();let g;','y=q();const __wtLegal=__wtNotice.about(y,R);let g;');
 about=once(about,'function A(){const r=b.value;','function A(){if(__wtLegal.active.value){y.setTitle("免责说明");return}const r=b.value;');

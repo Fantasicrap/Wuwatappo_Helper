@@ -4,7 +4,7 @@
 
 WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前源码版本为 **Helper v1.0.4.4**，适配官方 WuwaTappo v1.0.4。
+当前正式版为 **Helper v1.0.4.5**，适配官方 WuwaTappo v1.0.4。
 
 ## 已实现功能
 
@@ -14,31 +14,36 @@ WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、�
 - ✅ **图鉴试装与表情** — 可在本机试装角色、配件及六槽表情，支持快捷键和按键自动表情。见[图鉴试装](docs/图鉴试装.md)。
 - ✅ **i弗TV 专属互动** — BE / HE 两种分支，支持配件动画、道具掉落和可自定义的按键台词。见[i弗TV 说明](docs/i弗TV.md)。
 - ✅ **桌面辅助** — 默认显示器、可自定义快捷键与冲突提醒、本地点击数、防连点、延迟 5 秒自动领取宝箱。
+- ✅ **低保与轻量版** — 可在余额低于 10000 时自动触发一次本地 `+10000`。Lite 单文件只加入基础辅助功能。
 - ✅ **应用内更新** — 官方升版时由 Helper 接管更新提示。从 GitHub 查找匹配的正式版，可选 GH-Proxy 加速下载，校验后安装。
 - ✅ **按需运行** — 收起映射时停止补充采集，隐藏的联机桌宠按需卸载图片。见[运行优化说明](docs/按需运行优化说明.md)和[内存测试](docs/内存优化测试说明.md)。
 
+新版设置把 `+10000`、低保、自动开箱和合成提醒放在「基础辅助」，其余设置按用途折叠。联机页集中显示「仅显示自己」、恢复显隐和排列选项。见[界面导航](docs/使用说明.md#新版界面导航)。
+
 ## 下载
 
-在 GitHub 的正式发布页选择带版本号的安装包、免安装 ZIP 或单文件 EXE。页面显示的版本以实际发布为准。 [下载最新正式版](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/latest) · [查看所有版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
+**GitHub 正式下载** · v1.0.4.5 [完整版安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Setup.exe) · [完整版免安装 ZIP](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Portable.zip) · [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5.exe) · [轻量版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Lite.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/SHA256SUMS.txt)
 
-**中国大陆备用下载（第三方 GH-Proxy）** · v1.0.4.4 [安装包](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4-Setup.exe) · [免安装 ZIP](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4-Portable.zip) · [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/Wuwatappo_Helper-1.0.4.4.exe) · [GitHub 校验清单](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.4/SHA256SUMS.txt)。下载其他版本可在 GitHub 附件直链前加 `https://gh-proxy.com/`。
+**中国大陆备用下载（第三方 GH-Proxy）** · [完整版安装包](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Setup.exe) · [完整版免安装 ZIP](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Portable.zip) · [完整版单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5.exe) · [轻量版单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Lite.exe)
+
+[最新正式发布](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/latest) · [历史版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
 
 ## 应用内更新
 
 Helper 版本号的前三段对应官方桌宠版本，第四段是 Helper 的修订号。v1.0.4.3 是首个带应用内更新的版本，v1.0.4.2 及更早版本需要手动替换一次。
 
-- **只更新第四段**。例如 `1.0.4.3` → `1.0.4.4`，用户可以在设置里点「检查更新」。下载并校验后，点「重启并更新」。
+- **只更新第四段**。例如 `1.0.4.4` → `1.0.4.5`，完整版可在设置的「程序与更新」点「检查更新」。下载并校验后，点「重启并更新」。轻量版通过上方链接手动更新。
 - **官方先升版**。例如官方发布 `1.0.5`，Helper 会接管官方更新提示，等待 GitHub 上前三段匹配的 `1.0.5.X` 正式版。适配版未发布时，当前 Helper 可以继续运行，在线功能以服务器的实际兼容性为准。
 - **上次退出前未检查这次升版**。下次启动时自动查 GitHub。如果已经有适配版，后台下载、校验，然后退出桌宠并启动新版。上次已经检查过这次升版，可以在设置里再次手动检查。
 - **下载较慢时**。v1.0.4.4 起可在设置的「更新下载源」选「GH-Proxy（尝试）」。选择保存在本机，手动检查和启动时自动更新都会使用。镜像下载或校验失败时会改用 GitHub；检查新版本和读取可信 SHA-256 仍需要访问 GitHub API。
 - **下载或安装失败**。设置会提供「去 GitHub 下载」，也可以重试。安装版保留旧文件备份，免安装版把新版保存为同目录下带版本号的 EXE。
 
-## preview1.0.4.5 可选预览
+## 完整版与轻量版
 
-[前往预发布页手动下载](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/preview1.0.4.5)。两个单文件 EXE 的程序版本均为 v1.0.4.4。启动前请从托盘完全退出当前运行的版本。
+两个版本都适配官方 WuwaTappo v1.0.4。启动或切换版本前，请从托盘完全退出当前运行的桌宠。
 
-- **完整版**增加「低保」开关，其余功能照常使用。
-- **轻量版**保留官方桌宠功能，Helper 只增加手动 `+10000`、低保、延迟 5 秒自动开箱和平阶／升阶合成提醒。轻量版无需启动 Helper 的键鼠补充采集、SDL3 手柄服务或本地 HTTP 服务。预览版需手动下载，现有稳定版的自动更新不会安装此预览。
+- **完整版**包含基础辅助、联机管理、映射与录制、图鉴试装、库存分享及 i弗TV，支持应用内更新。
+- **轻量版**保留官方桌宠功能，Helper 只增加手动 `+10000`、低保、延迟 5 秒自动开箱和平阶／升阶合成提醒。轻量版无需启动 Helper 的键鼠补充采集、SDL3 手柄服务或本地 HTTP 服务。
 
 低保默认关闭。开启后，登录且在线时如果剩余点击数低于 10000，会走现有的本地 `+10000` 流程。每次处于低余额时只加一次，余额恢复到 10000 或以上后才重新等待下一次触发。
 
@@ -94,7 +99,7 @@ Ctrl+Alt+1～6 发送表情菜单中对应槽位当前装备的表情，无需�
 - 默认显示器：保存启动时优先使用的屏幕，支持立即切换、断开回退主屏和重连恢复；保留临时切屏快捷键。详见[使用说明](docs/使用说明.md#默认显示器)。
 - 设置面板请求取消置顶、显示在任务栏，点击外部保留面板，保留关闭按钮。
 - 保留自动宝箱开关：默认关闭，倒计时结束至少等 5 秒，检查领取条件，失败后退避重试。
-- 联机页一键显示、隐藏其他成员的桌宠，仅影响本机显示。一键隐藏沿用官方「仅显示自己」设置，后来加入、重连、换房和重启都会遵循该设置。关闭后可逐人显隐；「一键可见」还会清除逐人隐藏。
+- 联机页的「仅显示自己」只影响本机显示，后来加入、重连、换房和重启都会遵循该设置。关闭后可逐人显隐。新版的「恢复显示全部」（旧版称「一键可见」）同时清除逐人隐藏。
 - 自定义刷新、游戏模式、屏幕切换和桌宠显隐快捷键，提供冲突提醒，保留 PrtScr 截图键。
 - 本地“+10000”按钮增加防连点保护：间隔至少 0.5 秒，保存未完成时重复点击会被忽略，不会积攒待执行点击；面板普通刷新合并为每秒最多 5 次。本地显示变化不代表服务器已接受或已发放奖励。
 - 显隐、游戏模式及切屏保留官方 1.0.4 的原生快捷键机制；不再套用 1.0.2 的取消注册机器码补丁。若 F7/F8/F9 与其他软件冲突，请在官方快捷键区域修改或清空。
@@ -143,12 +148,12 @@ pnpm install --frozen-lockfile
 pwsh -File scripts/build.ps1 -SourceExe 'F:\WuwaTappo\WuwaTappo.exe' -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
 ```
 
-脚本会核验原件摘要，提取构建所需资源，运行检查，默认输出 EXE、安装包、免安装 ZIP 和 SHA-256 校验文件到 `dist/local-1.0.4.4/`。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
+脚本会核验原件摘要，提取构建所需资源并运行检查，默认输出完整版 EXE、安装包、免安装 ZIP、轻量版 EXE 和 SHA-256 校验文件到 `dist/local-1.0.4.5/`。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
 
-安装 Edge 后，首次视觉回归先运行 `node scripts/prepare-ui-fixtures.cjs` 获取固定的公开测试素材，再运行 `pnpm test:migration`。逻辑测试使用仓库内的最小公开目录样本；视觉测试使用六个系列人物和三件配件，不依赖开发者本机缓存。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.4.2`。
+安装 Edge 后，首次视觉回归先运行 `node scripts/prepare-ui-fixtures.cjs` 获取固定的公开测试素材，再运行 `pnpm test:migration`。逻辑测试使用仓库内的最小公开目录样本；视觉测试使用六个系列人物和三件配件，不依赖开发者本机缓存。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.4.5`。
 
 ### 发布流程
 
-在 Windows 本地用已核验的官方原件打包。以默认分支的发布提交创建对应版本的 GitHub Release 草稿，上传单文件 EXE、安装包、免安装 ZIP 和 `SHA256SUMS.txt`。在 Actions 中运行 **Verify and publish release**，填写草稿 ID。工作流核对版本、目标提交和附件 SHA-256 后公开发布。
+在 Windows 本地用已核验的官方原件打包。以默认分支的发布提交创建对应版本的 GitHub Release 草稿，上传完整版 EXE、安装包、免安装 ZIP、轻量版 EXE 和 `SHA256SUMS.txt`。在 Actions 中运行 **Verify and publish release**，填写草稿 ID。工作流核对版本、目标提交和附件 SHA-256 后公开发布。
 
 详见 [免责声明](DISCLAIMER.txt) 与 [第三方说明](THIRD_PARTY_NOTICES.md)。

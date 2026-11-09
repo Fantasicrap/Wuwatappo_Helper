@@ -12,6 +12,13 @@ if($LASTEXITCODE -ne 0){throw '1.0.4 resource migration failed'}
 & node (Join-Path $PSScriptRoot 'test-v103-suite.cjs')
 if($LASTEXITCODE -ne 0){throw '1.0.4 migration verification failed'}
 & (Join-Path $PSScriptRoot 'build-controller-host.ps1') -OutputDirectory $out -PayloadPath $payload
+& node (Join-Path $repoRoot 'patches/v103/build-preview.cjs') --v104 --lite
+if($LASTEXITCODE -ne 0){throw 'Lite resource migration failed'}
+& node (Join-Path $PSScriptRoot 'test-v103-preview.cjs') --lite
+if($LASTEXITCODE -ne 0){throw 'Lite migration verification failed'}
+$liteOut=Join-Path $out 'lite'
+& (Join-Path $PSScriptRoot 'build-controller-host.ps1') -OutputDirectory $liteOut -Lite
+Copy-Item -LiteralPath (Join-Path $liteOut "Wuwatappo_Helper-$version-Lite.exe") -Destination $out -Force
 & (Join-Path $PSScriptRoot 'test-launcher.ps1') -DistributionDirectory $out -PayloadPath $payload
 & (Join-Path $PSScriptRoot 'test-helper-update.ps1') -DistributionDirectory $out
 & (Join-Path $PSScriptRoot 'test-stream-extract.ps1') -DistributionDirectory $out -PayloadPath $payload

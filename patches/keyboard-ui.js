@@ -31,17 +31,25 @@ const __wtKeyboardUi=(()=>{
   return model
  }
  function renderSettings(h,model){
-  return h('div',{style:{padding:'12px 0',borderTop:'1px solid #EFD4B7',marginTop:'14px'}},[
-   h('div',{style:{fontSize:'18px',color:'#8e5e43',marginBottom:'8px'}},'桌面键盘映射'),
-   h('div',{style:{display:'flex',gap:'8px'}},[['hidden','不显示'],['letters','26 字母键'],['wuwa','鸣潮专属'],['controller','手柄']].map(([mode,label])=>h('button',{type:'button',style:{position:'static',padding:'5px 12px',border:'1px solid #E7B77C',borderRadius:'14px',color:'#8e5e43',background:model.mode.value===mode?'#fed291':'#fff3dd',font:'inherit'},onClick:()=>model.set(mode)},label,4))),
-   h('button',{type:'button',style:{position:'static',marginTop:'8px',padding:'5px 12px',border:'1px solid #E7B77C',borderRadius:'14px',color:'#8e5e43',background:'#fff3dd',font:'inherit'},onClick:model.toggleControls},model.controls.value?'隐藏映射控制':'显示映射控制',1),
-   h('button',{type:'button',style:{position:'static',marginTop:'8px',padding:'5px 12px',border:'1px solid #E7B77C',borderRadius:'14px',color:'#8e5e43',background:'#fff3dd',font:'inherit'},onClick:()=>model.setPosition(['bottom','left','right'][(['bottom','left','right'].indexOf(model.position.value)+1)%3])},'映射位置：'+({bottom:'下方',left:'左侧',right:'右侧'})[model.position.value],1),
-   h('label',{style:{display:'flex',alignItems:'center',gap:'8px',marginTop:'10px',color:'#8e5e43'}},[
-    h('input',{type:'checkbox',checked:model.bubbles.value,onChange:event=>model.setBubbles(event.target.checked)},null,8,['checked']),
-    h('span',null,'用气泡显示输入')
-   ]),
-   h('div',{style:{fontSize:'12px',color:'#8e7b6a',marginTop:'8px',lineHeight:'1.5'}},'鸣潮专属只录 1/2/3、Q/E/R、空格、鼠标左右键；开始和结束录制使用下方独立快捷键。')
+  const active=model.mode.value!=='hidden',visual=active&&!model.bubbles.value;
+  const option=(label,checked,onChange)=>h('label',{class:'wt-ui-actions'},[
+   h('input',{type:'checkbox',checked,onChange:event=>onChange(event.target.checked)},null,8,['checked']),h('span',null,label)
   ]);
+  const node=h('section',null,[
+   h('h3',{class:'wt-ui-card-title'},'桌面输入映射'),
+   h('div',{class:'wt-ui-mapping-controls',role:'group','aria-label':'映射模式'},
+    [['hidden','不显示'],['letters','26 字母键'],['wuwa','鸣潮专属'],['controller','手柄']].map(([mode,label])=>
+     h('button',{type:'button',class:'wt-ui-button','aria-pressed':model.mode.value===mode,onClick:()=>model.set(mode)},label,8,['aria-pressed']))),
+   option('用气泡显示输入',model.bubbles.value,model.setBubbles),
+   visual?h('div',{class:'wt-ui-mapping-controls'},[
+    h('label',{class:'wt-ui-actions'},['映射位置',h('select',{value:model.position.value,onChange:event=>model.setPosition(event.target.value)},
+     [['bottom','下方'],['left','左侧'],['right','右侧']].map(([value,label])=>h('option',{value},label)),8,['value'])]),
+    option('在桌宠旁显示映射控制',model.controls.value,model.toggleControls)
+   ]):null,
+   visual&&model.mode.value==='wuwa'?h('p',{class:'wt-ui-card-description'},'鸣潮专属录制 1/2/3、Q/E/R、空格和鼠标左右键。'):null
+  ],512);
+  node.patchFlag=-2;
+  return node;
  }
  function create(deps={}){
   const doc=deps.document??document,core=__wtInputRecorder.create(deps.recorderOptions);let mode=readMode(),previousMode=mode==='hidden'?lastMode():mode,root=null,status=null,recordButton=null,exportsBox=null,counter=null,expandButton=null,stopListen=null,stopMouse=null,ticker=null,disposed=false;

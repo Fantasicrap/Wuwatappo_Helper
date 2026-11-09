@@ -41,7 +41,7 @@ const __wtRoomPositions=(()=>{
  }
  function settings(ref,send){return{mode:ref(getMode()),async change(value){if(!validMode(value))return;await send({type:'set-room-placement',mode:value});this.mode.value=value}}}
  function render(e,settings){
-  return e('label',{style:{display:'flex',alignItems:'center',flexWrap:'wrap',gap:'8px',margin:'10px 0',fontWeight:'600',color:'#8e5e43'}},[
+  return e('label',{class:'wt-ui-placement',style:{display:'flex',alignItems:'center',flexWrap:'wrap',gap:'8px',fontWeight:'600',color:'#8e5e43'}},[
    '联机桌宠排列',e('select',{value:settings.mode.value,style:{padding:'5px 24px 5px 9px',border:'1px solid #d5a87c',borderRadius:'9px',background:'#fff8ed',color:'#75492e',font:'inherit',maxWidth:'100%'},onChange:event=>settings.change(event.target.value)},
     Object.entries(modes).map(([value,label])=>e('option',{value},label)))
   ]);
