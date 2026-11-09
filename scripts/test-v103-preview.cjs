@@ -1,4 +1,6 @@
-const {fixturePath}=require('./upstream-fixtures.cjs');
+const {fixturePath:resolveFixture,target}=require('./upstream-fixtures.cjs');
+const lite=process.argv.includes('--lite');
+const fixturePath=file=>{const resolved=resolveFixture(file);return lite?resolved.replace('dist/migration-'+target+'/', 'dist/migration-'+target+'-lite/'):resolved};
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
 const root=path.resolve(__dirname,'..'),dir=path.join(root,'dist/migration-1.0.3.4');
 function globals(s){const names=new Set();traverse(babelParse(s,'resource.mjs',true),{ReferencedIdentifier(p){if(!p.scope.getBinding(p.node.name))names.add(p.node.name)}});return names}
@@ -22,7 +24,16 @@ for(const [name,body] of modules)for(const node of body){
  }
 }
 const panel=fs.readFileSync(fixturePath(path.join(dir,'index-pp8VWaUF.js')),'utf8');
+if(!lite){
 const animation={};traverse(babelParse(panel,'panel.mjs',true),{FunctionDeclaration(p){if(['Ul','Vc'].includes(p.node.id.name))animation[p.node.id.name]=panel.slice(p.node.start,p.node.end)}});const held={__wtKeysConnected:false,A:{value:1},nn:null,qr:new Set(['Q','E']),va:new Set(),Bl:n=>n,clearTimeout:()=>{},setTimeout:()=>1,__wtHotkeys:{nativeUp:()=>{}},__wtKeyboard:{key:()=>{}},Ie:()=>false,R:{incrementLocalClickCount:()=>{}},Wl:()=>{}};held.__wtThrust={up(){}};held.__wtFun={input(){},rawKey:()=>false};vm.createContext(held);vm.runInContext(animation.Ul+';'+animation.Vc+';Ul(3);Vc("Q");',held);assert.equal(held.A.value,3);vm.runInContext('Vc("E");',held);assert.equal(held.A.value,1);
+}else{
+ const settings=fs.readFileSync(fixturePath(path.join(dir,'index-CiT_jZa7.js')),'utf8');
+ const shared=fs.readFileSync(fixturePath(path.join(dir,'index-CuzHFfJW.js')),'utf8');
+ for(const marker of ['__wtKeyboard','__wtPetFun','__wtInventoryShare','__wtLocalWardrobe','__wtRoomHistory','__wtAutoEmotes','127.0.0.1:48642'])
+  assert(![panel,settings,shared].some(source=>source.includes(marker)),'Lite includes optional subsystem '+marker);
+ assert(settings.includes('__wtSynthesis.renderBasicSettings'));
+ assert(panel.includes('__wtSynth.start()')&&panel.includes('boost:()=>__wtBoostLocalClicks(1e4)'));
+}
 const start=panel.indexOf('const __wtAutoChestKey='),end=panel.indexOf('function jp(',start);assert(start>=0&&end>start);
 const calls=[],storage=new Map();let now=10000;const ctx={R:{isLoggedIn:true,userInfo:{id:1},totalClickCount:2000},Ie:()=>false,nt:{value:{status:'online'}},Mi:{value:false},br:{value:false},Qn:{value:true},Fn:{value:false},Ns:1000,Wn:{value:true},Gn:{value:false},localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)},Date:{now:()=>now},performance:{now:()=>now},console,__wtRenewSession:async()=>{},pc:async s=>{calls.push(s);ctx.Wn.value=false}};
 ctx.__wtChestLedger={sync:async()=>true};

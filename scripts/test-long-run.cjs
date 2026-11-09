@@ -5,6 +5,20 @@ let core;const funcs={};traverse(babelParse(common,'common',true),{VariableDecla
 const api=vm.runInNewContext(core,{performance,Date}),settle=async()=>{for(let i=0;i<8;i++)await Promise.resolve()};
 function setup(){let t=10000,w=1800000000000,on=true,syncs=0;const calls=[],events=[],s={account:1,online:true,blocked:false,ready:true,busy:false,clicks:1000000,minimum:1000,due:{left:true,right:false}};const deps={state:()=>s,enabled:()=>on,now:()=>t,wall:()=>w,claim:async side=>{calls.push(side);s.due[side]=false},sync:async()=>{syncs++;return s.ready=true},diagnostic:e=>events.push(e)};const engine=api.create(deps);return{s,deps,engine,calls,events,advance(ms,wallMs=ms){t+=ms;w+=wallMs},setOn(v){on=v;engine.reset()},get syncs(){return syncs}}}
 (async()=>{
+ const low={account:1,online:true,blocked:false,busy:false,clicks:9999};
+ let boostEnabled=false,boostCalls=0,completeBoost;
+ const topUp=api.topUp(()=>{boostCalls++;return new Promise(resolve=>completeBoost=resolve)},()=>boostEnabled);
+ await topUp(low);assert.equal(boostCalls,0,'Low-balance automation is opt-in');
+ boostEnabled=true;await topUp({...low,clicks:10000});await topUp({...low,online:false});await topUp({...low,busy:true});await topUp({...low,account:null});
+ assert.equal(boostCalls,0,'Exact threshold, offline, busy and logged-out states must not boost');
+ const firstBoost=topUp(low);await topUp(low);assert.equal(boostCalls,1);
+ completeBoost(false);await firstBoost;
+ const retryBoost=topUp(low);assert.equal(boostCalls,2,'A manual boost holding the lock should defer the automatic attempt');
+ completeBoost(true);await retryBoost;await topUp(low);assert.equal(boostCalls,2,'One accepted boost per low-balance period');
+ await topUp({...low,clicks:10000});const nextBoost=topUp(low);assert.equal(boostCalls,3,'A later threshold crossing can trigger once again');
+ completeBoost(true);await nextBoost;
+ const anotherAccount=topUp({...low,account:2});assert.equal(boostCalls,4);completeBoost(true);await anotherAccount;
+
  const f=setup();await f.engine.tick();f.advance(4999);await f.engine.tick();assert.equal(f.calls.length,0);f.advance(1);await f.engine.tick();assert.deepEqual(f.calls,['left']);
  f.s.due.right=true;await f.engine.tick();f.advance(5000);await f.engine.tick();assert.deepEqual(f.calls,['left','right']);
  const failed=setup();failed.s.ready=false;let attempts=0;failed.deps.sync=async()=>{attempts++;return failed.s.ready=attempts>=2};const retryEngine=api.create(failed.deps);await retryEngine.tick();failed.advance(29999);await retryEngine.tick();assert.equal(attempts,1);failed.advance(1);await retryEngine.tick();assert.equal(attempts,2);await retryEngine.tick();failed.advance(5000);await retryEngine.tick();assert.deepEqual(failed.calls,['left'],'Failed initial clock sync must recover without relogin or a network transition');

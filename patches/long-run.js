@@ -1,6 +1,23 @@
 // Scheduling only; rewards and session validity remain server decisions.
 const __wtLongRun=(()=>{
- function create({state,enabled,claim,sync,now=()=>performance.now(),wall=()=>Date.now(),diagnostic=()=>{}}){
+ const topUpKey='wuwatappo-auto-top-up-v1';
+ const topUpEnabled=()=>{try{return localStorage.getItem(topUpKey)==='1'}catch{return false}};
+ function topUp(boost,enabled=topUpEnabled){
+  let owner=null,armed=true,pending=false;
+  return async function tick({account,clicks,online,blocked,busy}){
+   if(owner!==account){owner=account;armed=true}
+   if(!enabled()){armed=true;return}
+   if(!account||!online||!Number.isFinite(clicks)||clicks<0)return;
+   if(clicks>=10000){armed=true;return}
+   if(!armed||pending||blocked||busy)return;
+   pending=true;armed=false;
+   try{if(!await boost()&&owner===account)armed=true}
+   catch{if(owner===account)armed=true}
+   finally{pending=false}
+  };
+ }
+ function create({state,enabled,claim,sync,boost,now=()=>performance.now(),wall=()=>Date.now(),diagnostic=()=>{}}){
+  const replenish=boost?topUp(boost):null;
   let stopped=false,running=false,account=null,last=null,lastWall=null,needsSync=false,syncAfter=0,lastSide='right';
   const due={left:null,right:null},retry={left:0,right:0};
   const reset=()=>{due.left=due.right=null;retry.left=retry.right=0;syncAfter=0;needsSync=false};
@@ -8,6 +25,7 @@ const __wtLongRun=(()=>{
   async function tick(){
    if(stopped)return;
    const s=state(),t=now(),w=wall();
+   if(replenish)void replenish(s);
    const gap=last!==null&&(t<last||t-last>60000||Math.abs((w-lastWall)-(t-last))>60000);
    last=t;lastWall=w;
    if(s.account!==account){account=s.account;reset()}
@@ -52,5 +70,5 @@ const __wtLongRun=(()=>{
    try{await renew()}catch{}finally{running=false}
   },dispose(){stopped=true}};
  }
- return{create,session};
+ return{create,session,topUp,topUpKey,topUpEnabled};
 })();

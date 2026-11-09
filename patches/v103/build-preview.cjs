@@ -6,8 +6,10 @@ function babelParse(source,file,module){
  catch(error){throw Error(`${file} at ${error.loc?.line}:${error.loc?.column}: ${source.slice(error.pos-100,error.pos+100)}`)}
 }
 const v104=process.argv.includes('--v104');
+const lite=process.argv.includes('--lite');
+assert(!lite||v104,'Lite requires WuwaTappo 1.0.4');
 const target=v104?require('../../package.json').releaseVersion:'1.0.3.4';
-const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-'+(v104?'1.0.4':'1.0.3')),out=path.join(root,'dist/migration-'+target);fs.mkdirSync(out,{recursive:true});
+const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-'+(v104?'1.0.4':'1.0.3')),out=path.join(root,'dist/migration-'+target+(lite?'-lite':''));fs.mkdirSync(out,{recursive:true});
 const original=fs.readFileSync(input),hash=b=>crypto.createHash('sha256').update(b).digest('hex'),manifest=JSON.parse(fs.readFileSync(path.join(stage,'extraction-manifest.json'),'utf8'));
 assert.equal(hash(original),v104?'ee829c55916619ea2882e4a13546cbaf2f880363237608285105c7a4958e70b3':'cedc37d0c11d112f4d933647fb6cf00e1dca847fc763250984c647080f849080');
 assert.equal(manifest.sourceSha256,hash(original),'Extraction must match the source executable');
@@ -29,12 +31,14 @@ function once(s,a,b){assert.equal(s.split(a).length-1,1,'Changed migration ancho
 function editFunction(s,name,fn){const matches=[];traverse(babelParse(s,'resource.mjs',true),{FunctionDeclaration(p){if(p.node.id.name===name)matches.push(p.node)}});assert.equal(matches.length,1,'Ambiguous function '+name);const n=matches[0];return s.slice(0,n.start)+fn(s.slice(n.start,n.end))+s.slice(n.end)}
 const panelAsset='/assets/'+assets.panel,commonAsset='/assets/'+assets.common;let panel=upstream(assets.panel),common=upstream(assets.common);
 Object.assign(mapping,{Qp:'nh',Am:'xm'});
+if(!lite){
 panel='const __wtRoomHistory=__wtRoomHistoryCore.create();\n'+panel;
 common+='\n'+read('room-history-core.js')+'\nexport {__wtRoomHistoryCore};\n';
 panel=once(panel,'a.value=Cd(xe?.o)?"owner":"member",We("rd",{r:u.value},st)',`a.value=Cd(xe?.o)?"owner":"member",${v104?'Ee>0&&Ee===T':'xe'}&&R.isLoggedIn&&__wtRoomHistory.remember(Ee,u.value),We("rd",{r:u.value},st)`);
+}
 panel=editFunction(panel,'it',()=>translate(read('counter-guard-runtime.js'),{tt:'it'}));
-panel=editFunction(panel,'jp',s=>read('auto-chest-runtime.js')+s.replace('switch(e.type){','switch(e.type){case"boost-local-clicks":__wtBoostLocalClicks(e.delta);break;case"set-auto-claim-chests":__wtSetAutoChest(e.enabled);it();break;case"set-room-members-visibility":__wtSetAllRoomMembersVisible(e.visible);break;'));
-panel=editFunction(panel,'jp',s=>translate(read('room-history-runtime.js'))+s.replace('switch(e.type){','switch(e.type){case"join-room-history":__wtEnterHistoryRoom(e);break;'));
+panel=editFunction(panel,'jp',s=>read('auto-chest-runtime.js')+s.replace('switch(e.type){','switch(e.type){case"boost-local-clicks":__wtBoostLocalClicks(e.delta);break;case"set-auto-claim-chests":__wtSetAutoChest(e.enabled);it();break;'+(lite?'':'case"set-room-members-visibility":__wtSetAllRoomMembersVisible(e.visible);break;')));
+if(!lite)panel=editFunction(panel,'jp',s=>translate(read('room-history-runtime.js'))+s.replace('switch(e.type){','switch(e.type){case"join-room-history":__wtEnterHistoryRoom(e);break;'));
 panel=once(panel,'Lr=setInterval(()=>{R.isLoggedIn&&Vn()},1e3)','Lr=setInterval(()=>{R.isLoggedIn&&Vn();__wtAutoChestTick()},1e3)');
 // Preserve claim deadlines across resume in the synchronized server clock.
 panel=editFunction(panel,'Cp',s=>once(s,'performance.now()+fr','is()+fr'));
@@ -91,6 +95,7 @@ panel=once(panel,'ht.value.map(e=>[e.id,String(e.characterAssetId??0)', 'ht.valu
 panel=once(panel,'t=ht.value.filter(f=>f.roleId!==null)','t=ht.value.filter(f=>f.roleId!==null&&!no(f.id))');
 panel=once(panel,'l=new Set([...An.value].filter(f=>!o.has(f)))','l=new Set([...An.value].filter(f=>o.has(f)))');
 panel=editFunction(panel,'yc',s=>once(s,'if(!l)return;','if(!l||no(o))return;'));
+if(!lite){
 panel=editFunction(panel,'vt',s=>once(s,'o.value={...o.value,...t}','o.value={...o.value,...t};__wtSaveRoomPosition(e,t)'));
 panel=editFunction(panel,'Bi',s=>s.slice(0,-1)+';__wtSaveRoomPosition(e,{left:e.left,top:e.top})}');
 panel=editFunction(panel,'Fd',s=>once(s,'if(ut.has(e.id)||!Lt.value)return;','if(ut.has(e.id)||!Lt.value)return;if(__wtRestoreRoomPosition(e))return;'));
@@ -101,7 +106,9 @@ panel=editFunction(panel,'Nl',s=>once(s,'let ho=0,Qo=null;','if(__wtRoomMode==="
 panel=editFunction(panel,'Hl',s=>once(s,'if(ht.value.length>=24)','if(__wtRoomMode!=="vertical"&&ht.value.length>=24)'));
 panel=once(panel,'function Ul(e){A.value=Bl(e),nn&&clearTimeout(nn),nn=setTimeout(()=>{A.value=1,nn=null},220)}','function Ul(e){A.value=Bl(e);if(nn)clearTimeout(nn);nn=qr.size?null:setTimeout(()=>{A.value=1;nn=null},220)}');
 panel=once(panel,'const t=qr.delete(e),o=va.delete(e);!t&&!o||Ie()','const t=qr.delete(e),o=va.delete(e);if(t&&!qr.size&&!nn)A.value=1;!t&&!o||Ie()');
-const helpers=['hotkeys-core.js','inventory-share.js','input-recorder.js','keyboard-ui.js','room-positions-core.js','startup-notice.js','auto-emotes.js','accessory-thrust.js','phrolova-reaction.js','happy-ending.js','oath-core.js','pet-fun-dialogue.js','pet-fun.js','local-wardrobe.js','synthesis-reminder.js'].map(n=>n==='hotkeys-core.js'?read(n).replace(' const defaults=',' actions.splice(0,3);\n const defaults='):n==='startup-notice.js'?read(n).replace('__WT_DISCLAIMER_TEXT__',JSON.stringify(fs.readFileSync(path.join(root,'DISCLAIMER.txt'),'utf8').replace(/^\uFEFF/,''))):n==='pet-fun.js'?read(n).replace('__WT_OATH_CORE_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/oath-core.png')).toString('base64'))):n==='happy-ending.js'?read(n).replace('__WT_WILTED_ECHO_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/wilted-echo.png')).toString('base64'))):read(n)).join('\n');common+='\n'+helpers;
+}
+const helperFiles=lite?['startup-notice.js','synthesis-reminder.js']:['hotkeys-core.js','inventory-share.js','input-recorder.js','keyboard-ui.js','room-positions-core.js','startup-notice.js','auto-emotes.js','accessory-thrust.js','phrolova-reaction.js','happy-ending.js','oath-core.js','pet-fun-dialogue.js','pet-fun.js','local-wardrobe.js','synthesis-reminder.js'];
+const helpers=helperFiles.map(n=>n==='hotkeys-core.js'?read(n).replace(' const defaults=',' actions.splice(0,3);\n const defaults='):n==='startup-notice.js'?read(n).replace('__WT_DISCLAIMER_TEXT__',JSON.stringify(fs.readFileSync(path.join(root,'DISCLAIMER.txt'),'utf8').replace(/^\uFEFF/,''))):n==='pet-fun.js'?read(n).replace('__WT_OATH_CORE_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/oath-core.png')).toString('base64'))):n==='happy-ending.js'?read(n).replace('__WT_WILTED_ECHO_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/wilted-echo.png')).toString('base64'))):read(n)).join('\n');common+='\n'+helpers;
 common+='\n'+read('long-run.js')+'\nexport {__wtLongRun,renewTokenIfNeeded as __wtRenewSession};\n';
 common=editFunction(common,'renewTokenIfNeeded',()=>read('session-renewal-runtime.js'));
 common=editFunction(common,'extendTokenExpireLocally',()=>`function extendTokenExpireLocally(days=TOKEN_COOKIE_DAYS){const token=getCookie("infoToken");if(!token)return;const old=getCookie("lastLoginTime"),expire=Date.now()+days*86400000;setCookie("infoToken",token,TOKEN_COOKIE_DAYS);setCookie("lastLoginTime",/^\\d{10}$/.test(old?.trim()??"")?String(Math.floor(expire/1000)):String(expire),TOKEN_COOKIE_DAYS)}`);
@@ -128,12 +135,14 @@ assert(imageTable);common=common.slice(0,imageTable.start)+'{}'+common.slice(ima
 const retiredImages=[];
 traverse(babelParse(common,'common.mjs',true),{VariableDeclaration(p){const retired=p.get('declarations').filter(d=>/^__vite_glob_0_\d+$/.test(d.node.id.name)&&p.scope.getBinding(d.node.id.name).referencePaths.length===0);if(retired.length){const removed=new Set(retired.map(d=>d.node.start));retiredImages.push({start:p.node.start,end:p.node.end,text:p.node.kind+' '+p.node.declarations.filter(d=>!removed.has(d.start)).map(d=>common.slice(d.start,d.end)).join(',')+';'})}}});
 for(const edit of retiredImages.sort((a,b)=>b.start-a.start))common=common.slice(0,edit.start)+edit.text+common.slice(edit.end);
-common+='\n'+read('controller-core.js').replace('export const ControllerCore','const __wtControllerCore')+'\n';
+if(!lite)common+='\n'+read('controller-core.js').replace('export const ControllerCore','const __wtControllerCore')+'\n';
 let mainBoot;
 traverse(babelParse(panel,'panel.mjs',true),{CallExpression(p){const n=p.node;if(n.callee.name==='js'&&n.arguments[0]?.type==='ArrowFunctionExpression'&&panel.slice(n.start,n.end).includes('main_mount_failed')){assert(!mainBoot);mainBoot=n.arguments[0].body.start+1}}});
 assert(mainBoot);panel=panel.slice(0,mainBoot)+'if(!await __wtNotice.confirm()){await Ct("exit_app");return}'+panel.slice(mainBoot);
 panel=once(panel,'Nv()||Bv().catch','true||Bv().catch');
-const init='const __wtSynth=__wtSynthesis.create({watch:Oe,account:()=>R.isLoggedIn?R.userInfo?.id:0,inventory:()=>C.value,catalog:()=>w.value,root:()=>ce.value?.querySelector(".cat-stack"),open:()=>Xp("exchange"),blocked:Ie,changed:()=>Fe(Me),load:async()=>{let a=await G();if(!a&&R.isLoggedIn)a=await G();await St();return Array.isArray(a)}});Ai(()=>__wtSynth.dispose());'+translate(read('keyboard-position.js'))+'\n'+(v104?read('v103/helper-actions.js'):read('v103/helper-actions.js').replace(/^ .*roomOnlySelf.*\n/m,''))+'\n'+read('v103/mouse-feed.js')+'\nconst __wtKeyboard=__wtKeyboardUi.create({listen:tt,activity:()=>{__wtSyncMouseFeed();__wtFun.syncController()},layout:()=>Fe(()=>{__wtPositionKeyboard();Me()}),toClient:Wt,pointer:()=>({x:oe.value,y:fe.value}),visible:()=>_.value,hotkeys:__wtHotkeys,blocked:()=>Ie()||__wtHelperCapture.size>0});Oe(_,()=>__wtKeyboard.syncActivity());Ai(()=>{__wtStopMouseFeed();__wtDisposeHelperActions();__wtDisposePosition();__wtKeyboard.dispose();__wtDisposeCounter();__wtChestTask.dispose();__wtSessionTask.dispose()});\n';
+const synthesisInit='const __wtSynth=__wtSynthesis.create({watch:Oe,account:()=>R.isLoggedIn?R.userInfo?.id:0,inventory:()=>C.value,catalog:()=>w.value,root:()=>ce.value?.querySelector(".cat-stack"),open:()=>Xp("exchange"),blocked:Ie,changed:()=>Fe(Me),load:async()=>{let a=await G();if(!a&&R.isLoggedIn)a=await G();await St();return Array.isArray(a)}});Ai(()=>__wtSynth.dispose());';
+if(!lite){
+const init=synthesisInit+translate(read('keyboard-position.js'))+'\n'+(v104?read('v103/helper-actions.js'):read('v103/helper-actions.js').replace(/^ .*roomOnlySelf.*\n/m,''))+'\n'+read('v103/mouse-feed.js')+'\nconst __wtKeyboard=__wtKeyboardUi.create({listen:tt,activity:()=>{__wtSyncMouseFeed();__wtFun.syncController()},layout:()=>Fe(()=>{__wtPositionKeyboard();Me()}),toClient:Wt,pointer:()=>({x:oe.value,y:fe.value}),visible:()=>_.value,hotkeys:__wtHotkeys,blocked:()=>Ie()||__wtHelperCapture.size>0});Oe(_,()=>__wtKeyboard.syncActivity());Ai(()=>{__wtStopMouseFeed();__wtDisposeHelperActions();__wtDisposePosition();__wtKeyboard.dispose();__wtDisposeCounter();__wtChestTask.dispose();__wtSessionTask.dispose()});\n';
 panel=editFunction(panel,'Uc',s=>init+'const __wtAutoEmote=__wtAutoEmotes.create({defer:true,state:()=>({account:R.isLoggedIn?R.userInfo?.id:0,equipped:La.value}),load:G,send:item=>Ap({id:item.id,src:te("emote/"+item.name)}),normalize:__wtHotkeys.normalizeKey,blocked:()=>Ie()||__wtHelperCapture.size>0});Oe(()=>R.isLoggedIn?R.userInfo?.id:0,()=>__wtAutoEmote.refresh());Ai(()=>__wtAutoEmote.dispose());\n'+once(s.replace('{','{if(!__wtKeysConnected)__wtKeyboard.key(e,true);const __wtAction=__wtHotkeys.nativeDown(e);__wtPerformHelperAction(__wtAction);'),'qr.add(e);','qr.add(e);if(!__wtAction)__wtAutoEmote.down(e);'));
 panel=once(panel,'K=(async()=>{E.value=!0','K=(async()=>{const __wtAccount=R.userInfo?.id;E.value=!0');
 const bagCommit='const __wtItems=Gm(yt(await Ym()));if(__wtAccount===R.userInfo?.id){C.value=__wtItems;__wtAutoEmote.inventory(C.value,__wtAccount);return C.value}';
@@ -156,10 +165,23 @@ panel=once(panel,'const t=e.payload.button,o=e.payload.action;','const t=e.paylo
 panel=once(panel,'const ee=j.closest("button");','const ee=j.closest("button,a[download]");');
 panel=once(panel,'function He(D,x="visual"){const q=[],$=re=>','function He(D,x="visual"){const q=[];const k=G(D.querySelector("#wt-input-keyboard"));if(k)q.push(k);for(const lane of D.querySelectorAll(".wt-oath-core-lane,.wt-synthesis-reminder")){const r=G(lane);if(r)q.push(r)}const $=re=>');
 panel+='\nimport{__wtHotkeys,__wtKeyboardUi,__wtRoomPositions,__wtNotice,__wtRoomHistoryCore,__wtAutoEmotes,__wtAccessoryThrust,__wtPhrolovaReaction,__wtPetFun,__wtLocalWardrobe,__wtSynthesis,__wtLongRun,__wtRenewSession,'+(v104?'__wtClickIO,__wtClickSession,__wtReportClicks,__wtSubmittedClicks,__wtMakeChestLedger,':'')+'cV as __wtRoomEmit}from"./index-CuzHFfJW.js";\n';
+ }else{
+ const start='await tt("wt-synthesis-reminder-updated",()=>__wtSynth.sync())';
+ panel=editFunction(panel,'Uc',s=>synthesisInit+s);
+ panel=once(panel,'Sl=await tt("key-press",','__wtSynth.start(),__wtStopSynth='+start+',Sl=await tt("key-press",');
+ panel=once(panel,synthesisInit,synthesisInit+'let __wtStopSynth;Ai(()=>{__wtStopSynth?.();__wtDisposeCounter();__wtChestTask.dispose();__wtSessionTask.dispose()});');
+ panel=once(panel,'function He(D,x="visual"){const q=[],$=re=>','function He(D,x="visual"){const q=[],hint=G(D.querySelector(".wt-synthesis-reminder"));if(hint)q.push(hint);const $=re=>');
+ panel=once(panel,'K=(async()=>{E.value=!0','K=(async()=>{const __wtAccount=R.userInfo?.id;E.value=!0');
+ panel=once(panel,'C.value=Gm(yt(await Ym())),I.value=!1','const items=Gm(yt(await Ym()));if(__wtAccount===R.userInfo?.id){C.value=items;I.value=!1;return items}');
+ panel+='\nimport{__wtNotice,__wtSynthesis,__wtLongRun,__wtRenewSession,__wtClickIO,__wtClickSession,__wtReportClicks,__wtSubmittedClicks,__wtMakeChestLedger}from"./index-CuzHFfJW.js";\n';
+}
 let settings=upstream(assets.settings);
 function injectComponent(source,name,prefix,render){let setup;traverse(babelParse(source,'settings.mjs',true),{ObjectExpression(p){if(p.node.properties.some(x=>x.key?.name==='__name'&&x.value?.value===name))setup=p.get('properties').find(x=>x.node.key?.name==='setup')}});assert(setup,'Missing component '+name);const returns=setup.node.body.body.filter(n=>n.type==='ReturnStatement');assert.equal(returns.length,1);const returned=returns[0].argument,arrow=returned.type==='SequenceExpression'?returned.expressions.at(-1):returned;assert.equal(arrow.type,'ArrowFunctionExpression');const exp=arrow.body.type==='SequenceExpression'?arrow.body.expressions.at(-1):arrow.body;assert.equal(exp.type,'CallExpression');let array=exp.arguments[2];if(name==='SettingsModule')setup.traverse({CallExpression(p){const a=p.node.arguments;if(a[1]?.type==='ObjectExpression'&&a[1].properties.some(x=>x.key?.name==='class'&&x.value?.value==='panel-content')&&a[2]?.type==='ArrayExpression')array=a[2]}});assert.equal(array.type,'ArrayExpression');const at=array.start+1;source=source.slice(0,at)+render+','+source.slice(at);const start=setup.node.body.start+1;return source.slice(0,start)+prefix+source.slice(start)}
-settings=injectComponent(settings,'SettingsModule','const __wtKeys=__wtHotkeys.createSettings(y,Oe),__wtMapping=__wtKeyboardUi.settings(y,Oe),__wtAuto=y(localStorage.getItem("wuwatappo-auto-claim-chests-v1")==="1");let __wtBoostUntil=0;async function __wtBoost(){if(performance.now()<__wtBoostUntil)return;__wtBoostUntil=performance.now()+500;await ue({type:"boost-local-clicks",delta:10000})}async function __wtToggle(){const enabled=!__wtAuto.value;await ue({type:"set-auto-claim-chests",enabled});__wtAuto.value=enabled}',
- '__wtKeyboardUi.renderSettings(e,__wtMapping),__wtHotkeys.render(e,__wtKeys),e("div",{style:{display:"flex",gap:"8px",padding:"12px",flexWrap:"wrap"}},[e("button",{type:"button",class:"setting-btn",style:{position:"static",padding:"6px 12px",border:"1px solid #E7B77C",borderRadius:"14px",background:"#fff3dd",color:"#8e5e43",font:"inherit"},onClick:__wtBoost},"本地点击数 +10000"),e("button",{type:"button",class:"setting-btn",style:{position:"static",padding:"6px 12px",border:"1px solid #E7B77C",borderRadius:"14px",background:"#fff3dd",color:"#8e5e43",font:"inherit"},onClick:__wtToggle},__wtAuto.value?"自动宝箱：开（延迟5秒）":"自动宝箱：关",1)])');
+settings=injectComponent(settings,'SettingsModule','const __wtSynthSettings=__wtSynthesis.settings(y,Oe,true);','__wtSynthesis.renderBasicSettings(e,__wtSynthSettings)');
+settings+='\nimport{__wtSynthesis}from"./index-CuzHFfJW.js";\n';
+settings=injectComponent(settings,'SettingsModule',(lite?'const ':'const __wtKeys=__wtHotkeys.createSettings(y,Oe),__wtMapping=__wtKeyboardUi.settings(y,Oe),')+'__wtAuto=y(localStorage.getItem("wuwatappo-auto-claim-chests-v1")==="1");let __wtBoostUntil=0;async function __wtBoost(){if(performance.now()<__wtBoostUntil)return;__wtBoostUntil=performance.now()+500;await ue({type:"boost-local-clicks",delta:10000})}async function __wtToggle(){const enabled=!__wtAuto.value;await ue({type:"set-auto-claim-chests",enabled});__wtAuto.value=enabled}',
+ (lite?'': '__wtKeyboardUi.renderSettings(e,__wtMapping),__wtHotkeys.render(e,__wtKeys),')+'e("div",{style:{display:"flex",gap:"8px",padding:"12px",flexWrap:"wrap"}},[e("button",{type:"button",class:"setting-btn",style:{position:"static",padding:"6px 12px",border:"1px solid #E7B77C",borderRadius:"14px",background:"#fff3dd",color:"#8e5e43",font:"inherit"},onClick:__wtBoost},"本地点击数 +10000"),e("button",{type:"button",class:"setting-btn",style:{position:"static",padding:"6px 12px",border:"1px solid #E7B77C",borderRadius:"14px",background:"#fff3dd",color:"#8e5e43",font:"inherit"},onClick:__wtToggle},__wtAuto.value?"自动宝箱：开（延迟5秒）":"自动宝箱：关",1)])');
+if(!lite){
 settings=injectComponent(settings,"MainPanelAtlasTab","const __wtTrial=__wtLocalWardrobe.settings(y,Oe);","__wtLocalWardrobe.renderSettings(e,__wtTrial)");
 settings=once(settings,'function k(h){if(Ke(h.asset_type)!=="character_skin")return!1;','function k(h){if(Ke(h.asset_type)!=="character_skin")return!1;if(__wtTrial.mode.value)return __wtLocalWardrobe.selected(h,t.selectedRoleId);');
 settings=once(settings,'function D(h){if(Ke(h.asset_type)!=="accessory")return!1;','function D(h){if(Ke(h.asset_type)!=="accessory")return!1;if(__wtTrial.mode.value)return __wtLocalWardrobe.selected(h,t.selectedPartId);');
@@ -168,8 +190,7 @@ settings=once(settings,'function P(T){if(T.asset_type==="character_skin"){M(T.ro
 settings=once(settings,'function J(h){if(!h.owned||!h.asset_id)return null;const $=Ke(h.asset_type);return $?{asset_code:','function J(h){if(!h.asset_id||!h.owned&&!__wtTrial.mode.value)return null;const $=Ke(h.asset_type);return $?{__wt_preview:__wtTrial.mode.value,asset_code:');
 settings+='\nimport{__wtLocalWardrobe}from"./index-CuzHFfJW.js";\n';
 settings=injectComponent(settings,'MainPanelBagTab','const __wtShare=__wtInventoryShare.create(y,()=>({items:s.bagList,user:ae.userInfo,host:s.assetsCdnHost,loggedIn:ae.isLoggedIn,loading:s.bagListLoading}),Oe);','__wtInventoryShare.render(e,__wtShare)');
-settings=injectComponent(settings,'SettingsModule','const __wtSynthSettings=__wtSynthesis.settings(y,Oe);','__wtSynthesis.renderSettings(e,__wtSynthSettings)');
-settings+='\nimport{__wtSynthesis}from"./index-CuzHFfJW.js";\n';
+
 settings=injectComponent(settings,'SettingsModule','const __wtPetSettings=__wtPetFun.settings(y,Oe);','__wtPetFun.renderSettings(e,__wtPetSettings)');
 settings+='\nimport{__wtPetFun}from"./index-CuzHFfJW.js";\n';
 settings=injectComponent(settings,'SettingsModule','const __wtEmoteMode=__wtAutoEmotes.settings(y,Oe);','__wtAutoEmotes.renderSettings(e,__wtEmoteMode)');
@@ -184,11 +205,12 @@ settings=once(settings,'W[t.action]=l,await ms("set_app_shortcuts",{config:W})',
 settings=once(settings,'let __wtBoostUntil=0;','const __wtSaveKeys=__wtKeys.save;__wtKeys.save=async()=>{try{__wtCheckShortcutConflict(await ps(),__wtKeys.draft.value);__wtSaveKeys()}catch{__wtKeys.error.value=true;__wtKeys.message.value="与官方快捷键冲突或读取失败，请检查后重试"}};let __wtBoostUntil=0;');
 settings+='\nfunction __wtCheckShortcutConflict(native,helper){const used=new Set(Object.values(helper).map(__wtHotkeys.canonical).filter(Boolean));for(const b of Object.values(native))if(b?.key&&used.has(__wtHotkeys.canonical(gs(b))))throw Error("duplicate")}\n';
 settings+='\nimport{__wtHotkeys,__wtKeyboardUi,__wtInventoryShare,__wtNormalPanel,cV as __wtMonitorEmit}from"./index-CuzHFfJW.js";\n';
+}
 settings=once(settings,'label:o,href:Lt}),_','label:o,href:Lt}),_.push({key:"helper_disclaimer",label:"免责说明",href:"app://helper-disclaimer"}),_');
 settings=once(settings,'if(L){if(L===as','if(L){if(L==="app://helper-disclaimer"){__wtNotice.open().catch(()=>Oe("免责说明打开失败，请重试"));return}if(L===as');
 settings=once(settings,'Po().catch(ye=>{console.warn("[about] open failed",ye)})','__wtNotice.original().catch(ye=>{console.warn("[about] open failed",ye)})');
 settings+='\nimport{__wtNotice}from"./index-CuzHFfJW.js";\n';
-if(v104){
+if(v104&&!lite){
  settings=editFunction(settings,'Hs',source=>{
   assert(source.includes('updater_disabled'),'Official check button changed');
   return `const __wtUpdateState=y({});let __wtUpdateUi,__wtUpdateLoad,__wtUpdateClosed=false;
@@ -202,6 +224,10 @@ if(v104){
  settings=once(settings,'S(p(t)("setting_version_check_btn")),41,xl)])','S(__wtUpdateState.value.state==="ready"?"重启并更新":p(t)("setting_version_check_btn")),41,xl),e("button",{type:"button",class:"setting-btn",hidden:__wtUpdateState.value.state!=="error",onClick:__wtOpenUpdate},"去 GitHub 下载",8,["hidden"])])');
  settings=once(settings,']),e("div",Tl,[e("div",Rl,',']),e("div",{id:"wt-us"}),e("div",Tl,[e("div",Rl,');
 }
+if(lite){
+ settings=once(settings,'S(X.value),1),e("div",El,S(le.value),1)','S('+JSON.stringify(target+' · \u8f7b\u91cf\u9884\u89c8')+'),1),e("div",El,S(le.value),1)');
+ settings=once(settings,'class:"setting-btn btn-check-update",','class:"setting-btn btn-check-update",hidden:!0,');
+}
 let about=upstream(assets.about);
 about=once(about,'y=q();let g;','y=q();const __wtLegal=__wtNotice.about(y,R);let g;');
 about=once(about,'function A(){const r=b.value;','function A(){if(__wtLegal.active.value){y.setTitle("免责说明");return}const r=b.value;');
@@ -211,6 +237,7 @@ traverse(babelParse(about,'about.mjs',true),{ReturnStatement(p){const a=p.node.a
 assert(aboutRender);about=about.slice(0,aboutRender.start)+'__wtLegal.active.value?__wtNotice.render(__wtLegal):('+about.slice(aboutRender.start,aboutRender.end)+')'+about.slice(aboutRender.end);
 about+='\nimport{__wtNotice}from"./index-CuzHFfJW.js";\n';
 let bridge=upstream(assets.bridge);
+if(!lite){
 bridge=once(bridge,'async function Ha(e){await u("open_panel_window",{payload:{tab:e??null}})}','async function Ha(e){await u("set_skip_panel_outside_click_close",{skip:true}).catch(()=>{});await u("open_panel_window",{payload:{tab:e??null}});await u("set_skip_panel_outside_click_close",{skip:true}).catch(()=>{})}');
 bridge=once(bridge,'async function $a(){await u("raise_panel_window_above_pets")}','async function $a(){}');
 bridge=editFunction(bridge,'Aa',s=>{
@@ -223,10 +250,22 @@ bridge=editFunction(bridge,'Aa',s=>{
 bridge=editFunction(bridge,'An',()=> 'async function An(t){if(O){if(!t)return O;await O}O=Aa(t);try{return await O}finally{O=null}}');
 bridge+='\nimport{D as __wtWindow}from"./index-CuzHFfJW.js";if(__wtWindow().label==="main")import("http://127.0.0.1:48642/ui.js").then(m=>m.installDefaultMonitor({list:vn,move:An,current:async()=>K(await ye()),listen:A,emit:h})).catch(console.warn);\n';
 if(v104)bridge=once(bridge,'.then(m=>m.installDefaultMonitor({','.then(m=>{m.watchAutomaticHelperUpdate(()=>import("./quitApp-KiLkJnLY.js").then(q=>q.quitApp()));return m.installDefaultMonitor({').replace('listen:A,emit:h})).catch(console.warn)','listen:A,emit:h})}).catch(console.warn)');
+}
 const resources=[{name:panelAsset,text:panel},{name:commonAsset,text:common},{name:'/assets/'+assets.settings,text:settings},{name:'/assets/'+assets.bridge,text:bridge},{name:'/assets/'+assets.about,text:about}];
 if(v104)for(const resource of resources)resource.text=resource.text.replaceAll('./index-CuzHFfJW.js','./'+assets.common).replaceAll('cV as __wt',assets.emit+' as __wt');
-const output=Buffer.from(original),checks=[];for(const r of resources){const file=path.join(out,path.basename(r.name));fs.writeFileSync(file,r.text);babelParse(r.text,file,true);const meta=manifest.assets.find(a=>a.name===r.name),compressed=zlib.brotliCompressSync(Buffer.from(r.text),{params:{[zlib.constants.BROTLI_PARAM_QUALITY]:11,[zlib.constants.BROTLI_PARAM_MODE]:zlib.constants.BROTLI_MODE_TEXT,[zlib.constants.BROTLI_PARAM_LGWIN]:22}});assert(compressed.length<=meta.compressedBytes,`${r.name} exceeds reserved space (${compressed.length}/${meta.compressedBytes})`);output.fill(0,meta.offset,meta.offset+meta.compressedBytes);compressed.copy(output,meta.offset);assert(zlib.brotliDecompressSync(output.subarray(meta.offset,meta.offset+meta.compressedBytes)).equals(Buffer.from(r.text)));checks.push({asset:r.name,syntaxPassed:true,budget:meta.compressedBytes,compressed:compressed.length,fits:true,offset:meta.offset})}
+function compressResource(text, budget){
+ const bytes=Buffer.from(text);
+ const compress=mode=>zlib.brotliCompressSync(bytes,{params:{
+  [zlib.constants.BROTLI_PARAM_QUALITY]:11,
+  [zlib.constants.BROTLI_PARAM_MODE]:mode,
+  [zlib.constants.BROTLI_PARAM_LGWIN]:22
+ }});
+ const standard=compress(zlib.constants.BROTLI_MODE_TEXT);
+ // Alternate Brotli coding is compatible with the same decoder.
+ return standard.length<=budget?standard:compress(zlib.constants.BROTLI_MODE_FONT);
+}
+const output=Buffer.from(original),checks=[];for(const r of resources){const file=path.join(out,path.basename(r.name));fs.writeFileSync(file,r.text);babelParse(r.text,file,true);const meta=manifest.assets.find(a=>a.name===r.name),compressed=compressResource(r.text,meta.compressedBytes);assert(compressed.length<=meta.compressedBytes,`${r.name} exceeds reserved space (${compressed.length}/${meta.compressedBytes})`);output.fill(0,meta.offset,meta.offset+meta.compressedBytes);compressed.copy(output,meta.offset);assert(zlib.brotliDecompressSync(output.subarray(meta.offset,meta.offset+meta.compressedBytes)).equals(Buffer.from(r.text)));checks.push({asset:r.name,syntaxPassed:true,budget:meta.compressedBytes,compressed:compressed.length,fits:true,offset:meta.offset})}
 let cursor=0;for(const c of [...checks].sort((a,b)=>a.offset-b.offset)){assert(original.subarray(cursor,c.offset).equals(output.subarray(cursor,c.offset)));cursor=c.offset+c.budget}assert(original.subarray(cursor).equals(output.subarray(cursor)));fs.writeFileSync(path.join(out,'payload.exe'),output);
-fs.writeFileSync(path.join(out,'checkpoint.json'),JSON.stringify({target,sourceSha256:hash(original),resources:checks,nativeMachineCodeChanged:false,payloadProduced:true,allFeaturesReady:false,realAccountOrHardwareTested:false},null,2));console.log(JSON.stringify(checks,null,2));
+fs.writeFileSync(path.join(out,'checkpoint.json'),JSON.stringify({target,edition:lite?'lite':'full',sourceSha256:hash(original),resources:checks,nativeMachineCodeChanged:false,payloadProduced:true,allFeaturesReady:false,realAccountOrHardwareTested:false},null,2));console.log(JSON.stringify(checks,null,2));
 
 

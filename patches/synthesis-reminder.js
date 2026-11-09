@@ -26,8 +26,28 @@ const __wtSynthesis=(()=>{
   function sync(){const before=cfg;cfg=read();if(!before.same&&!before.upgrade&&(cfg.same||cfg.upgrade))refresh();else render()}
   return{start(){if(started||disposed)return;started=true;stops.push(watch(account,refresh),watch(inventory,()=>{if(owner===account())ready=true;render()},{deep:true}),watch(catalog,render,{deep:true}),watch(root,render));refresh()},sync,dispose(){disposed=true;epoch++;node?.remove();stops.forEach(stop=>stop())}};
  }
- function settings(ref,toast){const model={value:ref(read())};model.toggle=async(k,v)=>{try{const next={...model.value.value,[k]:!!v};localStorage.setItem(key,JSON.stringify(next));model.value.value=next;await emit(event,{})}catch{toast('合成提醒设置保存失败')}};return model}
+ function settings(ref,toast,includeTopUp=false){
+  const model={value:ref(read())};
+  if(includeTopUp)model.topUp=ref(__wtLongRun.topUpEnabled());
+  model.toggle=async(k,v)=>{try{const next={...model.value.value,[k]:!!v};localStorage.setItem(key,JSON.stringify(next));model.value.value=next;await emit(event,{})}catch{toast('合成提醒设置保存失败')}};
+  model.setTopUp=event=>{
+   const input=event.target;
+   try{localStorage.setItem(__wtLongRun.topUpKey,input.checked?'1':'0');model.topUp.value=input.checked}
+   catch{input.checked=model.topUp.value;toast('低保设置保存失败')}
+  };
+  return model;
+ }
  function renderSettings(h,model){const node=h('section',{class:'wt-synthesis-settings',style:{padding:'16px 0',borderTop:'1px solid #ead8bd',color:'#8e5e43'}},[h('h3',{style:{fontSize:'15px',margin:'0 0 8px'}},'合成提醒'),...[["same","平阶合成提醒（5 个重复素材）"],["upgrade","升阶合成提醒（10 个重复素材）"]].map(([k,text])=>h('label',{style:{display:'flex',alignItems:'center',gap:'8px',margin:'10px 0',fontSize:'13px'}},[h('input',{type:'checkbox',checked:model.value.value[k],onChange:e=>model.toggle(k,e.target.checked)}),h('span',null,text)])),h('p',{style:{fontSize:'12px',lineHeight:'1.6',margin:'6px 0',color:'#987e69'}},'同类别、同稀有度汇总，每种素材保留 1 个；最高稀有度不提醒升阶。库存满足条件时在人物右上方显示，不自动合成。')],512);node.patchFlag=-2;return node}
- return{key,event,read,analyze,create,settings,renderSettings};
+ function renderBasicSettings(h,model){
+  const topUp=h('label',{style:{display:'flex',alignItems:'center',gap:'8px',margin:'10px 0',color:'#8e5e43'}},[
+   h('input',{type:'checkbox',checked:model.topUp.value,onChange:model.setTopUp}),
+   h('span',null,'低保：剩余点击数低于 10000 时自动 +10000')
+  ],512);
+  topUp.patchFlag=-2;
+  const group=h('div',null,[topUp,renderSettings(h,model)],512);
+  group.patchFlag=-2;
+  return group;
+ }
+ return{key,event,read,analyze,create,settings,renderSettings,renderBasicSettings};
 })();
 export {__wtSynthesis};

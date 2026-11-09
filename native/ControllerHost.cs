@@ -15,6 +15,11 @@ using System.Security.Cryptography;
 using System.ComponentModel;
 [assembly: AssemblyTitle("Wuwatappo Helper")]
 static class HelperHost {
+#if HELPER_LITE
+ static readonly bool Lite=true;
+#else
+ static readonly bool Lite=false;
+#endif
  const int Port=48642; static volatile bool running=true; static long lastRequest=-10000; static readonly object gate=new object(); static readonly Queue<Frame> history=new Queue<Frame>(); static long sequence; static string error=""; static readonly Stopwatch clock=Stopwatch.StartNew(); static readonly Dictionary<uint,Device> devices=new Dictionary<uint,Device>();
  static readonly Lazy<string> UiModule=new Lazy<string>(()=>ReadResourceText("controller-ui.js"));
  static bool ControllerDemandActive(long now,long last){return now-last<750;}
@@ -98,12 +103,14 @@ static class HelperHost {
  static bool ElevationCancelled(Win32Exception ex){return ex.NativeErrorCode==1223;}
  static bool KeepAliveAfterExit(bool hasPet,long now,ref long missingSince){if(hasPet){missingSince=-1;return true;}if(missingSince<0)missingSince=now;return now-missingSince<3000;}
  static bool PetAlive(ref Process child,ref long missingSince,ref long nextScan){long now=clock.ElapsedMilliseconds;if(child!=null&&!child.HasExited)return KeepAliveAfterExit(true,now,ref missingSince);if(now>=nextScan){nextScan=now+250;foreach(var candidate in Process.GetProcessesByName("WuwaTappo")){try{if(!candidate.HasExited){if(child!=null)child.Dispose();child=candidate;return KeepAliveAfterExit(true,now,ref missingSince);}}catch{}candidate.Dispose();}}return KeepAliveAfterExit(false,now,ref missingSince);}
- [STAThread] static int Main(string[] args){if(HelperUpdate.IsWorker(args))return HelperUpdate.Apply(args);bool created;using(var mutex=new Mutex(true,"Local\\WuwatappoHelperControllerHostV1",out created)){if(!created){if(!args.Contains("--probe"))MessageBox.Show("请先退出正在运行的 Helper（包括托盘进程）再启动新版。","Wuwatappo Helper");return 2;}if(!args.Contains("--probe")&&Process.GetProcessesByName("WuwaTappo").Length>0){MessageBox.Show("检测到桌宠已经运行（可能来自开机启动或旧版）。请先从托盘完全退出桌宠，再运行带版本号的 Helper，否则本地辅助服务无法正确启动。","Wuwatappo Helper");return 2;}TcpListener listener=null;Process child=null;IntPtr ev=IntPtr.Zero;bool initialized=false;try{
- string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Wuwatappo_Helper","runtime",ResourceText("runtime-id").Trim());Directory.CreateDirectory(folder);string payload=Extract("WuwaTappo.exe",folder);Extract("SDL3.dll",folder);Extract("SDL3-LICENSE.txt",folder);SetDllDirectory(folder);
+ [STAThread] static int Main(string[] args){if(!Lite&&HelperUpdate.IsWorker(args))return HelperUpdate.Apply(args);bool created;using(var mutex=new Mutex(true,"Local\\WuwatappoHelperControllerHostV1",out created)){if(!created){if(!args.Contains("--probe"))MessageBox.Show("请先退出正在运行的 Helper（包括托盘进程）再启动新版。","Wuwatappo Helper");return 2;}if(!args.Contains("--probe")&&Process.GetProcessesByName("WuwaTappo").Length>0){MessageBox.Show("检测到桌宠已经运行（可能来自开机启动或旧版）。请先从托盘完全退出桌宠，再运行带版本号的 Helper，否则本地辅助服务无法正确启动。","Wuwatappo Helper");return 2;}TcpListener listener=null;Process child=null;IntPtr ev=IntPtr.Zero;bool initialized=false;try{
+ string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Wuwatappo_Helper","runtime",ResourceText("runtime-id").Trim());Directory.CreateDirectory(folder);string payload=Extract("WuwaTappo.exe",folder);if(!Lite){
+ Extract("SDL3.dll",folder);Extract("SDL3-LICENSE.txt",folder);SetDllDirectory(folder);
  listener=new TcpListener(IPAddress.Loopback,Port);listener.Start();var server=new Thread(()=>Serve(listener));server.IsBackground=true;server.Start();
  ev=Marshal.AllocHGlobal(256);
- bool probe=args.Contains("--probe");if(!probe){HelperUpdate.Start(true);MouseCapture.Start();child=Process.Start(ChildStartInfo(payload,folder));if(child==null)throw new InvalidOperationException("Windows 未返回桌宠进程，请退出旧版后重试。");}long refreshAt=0,probeEnd=clock.ElapsedMilliseconds+60000;
- long missingSince=-1,nextScan=0,retryAt=0;while(running&&(probe?clock.ElapsedMilliseconds<probeEnd:PetAlive(ref child,ref missingSince,ref nextScan))){long now=clock.ElapsedMilliseconds;bool active=ControllerDemandActive(now,Interlocked.Read(ref lastRequest));
+ }
+ bool probe=args.Contains("--probe");if(!probe){if(!Lite){HelperUpdate.Start(true);MouseCapture.Start();}child=Process.Start(ChildStartInfo(payload,folder));if(child==null)throw new InvalidOperationException("Windows 未返回桌宠进程，请退出旧版后重试。");}long refreshAt=0,probeEnd=clock.ElapsedMilliseconds+60000;
+ long missingSince=-1,nextScan=0,retryAt=0;while(running&&(probe?clock.ElapsedMilliseconds<probeEnd:PetAlive(ref child,ref missingSince,ref nextScan))){long now=clock.ElapsedMilliseconds;bool active=!Lite&&ControllerDemandActive(now,Interlocked.Read(ref lastRequest));
  if(active&&!initialized&&now>=retryAt){SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS","1");SDL_SetHint("SDL_JOYSTICK_HIDAPI","1");initialized=SDL_Init(0x2000);retryAt=now+5000;if(!initialized)error=Utf8(SDL_GetError());else{error="";retryAt=0;tickOffset=now-(long)(SDL_GetTicksNS()/1000000);refreshAt=now-750;}}
  if(!active&&initialized){foreach(var d in devices.Values)Close(d);devices.Clear();SDL_Quit();initialized=false;lock(gate){history.Clear();}}
  if(initialized&&active){SDL_PumpEvents();if(now-refreshAt>=750){Refresh();refreshAt=now;}
@@ -111,6 +118,6 @@ static class HelperHost {
  if(type==0x606||type==0x654){if(devices.TryGetValue(id,out device)){Close(device);devices.Remove(id);if(active)Publish(at);}continue;}
  if(type==0x605||type==0x653||type==0x655){if(type==0x655&&devices.TryGetValue(id,out device)){Close(device);devices.Remove(id);if(active)Publish(at);}Refresh();if(active)Publish(at);continue;}
  if(devices.TryGetValue(id,out device)&&ApplyInput(device.state,ev)&&active)Publish(at);}
- if(drained<256){foreach(var device in devices.Values)device.state=Read(device);Publish(clock.ElapsedMilliseconds);}}Thread.Sleep(active?16:150);}if(!probe)HelperUpdate.Handoff();return 0;
- }catch(Win32Exception ex){if(ElevationCancelled(ex)){if(!args.Contains("--probe"))MessageBox.Show("已取消 Windows 权限确认，桌宠未启动。需要使用时，请重新运行 Helper 并确认系统提示。","Wuwatappo Helper");return 3;}if(args.Contains("--probe")){Console.Error.WriteLine(ex.Message);return 1;}MessageBox.Show("启动失败："+ex.Message,"Wuwatappo Helper");return 1;}catch(Exception ex){if(args.Contains("--probe")){Console.Error.WriteLine(ex.Message);return 1;}MessageBox.Show("启动失败："+ex.Message,"Wuwatappo Helper");return 1;}finally{running=false;MouseCapture.Stop();if(listener!=null)listener.Stop();foreach(var d in devices.Values)Close(d);if(ev!=IntPtr.Zero)Marshal.FreeHGlobal(ev);if(initialized)SDL_Quit();}}}
+ if(drained<256){foreach(var device in devices.Values)device.state=Read(device);Publish(clock.ElapsedMilliseconds);}}Thread.Sleep(active?16:150);}if(!probe&&!Lite)HelperUpdate.Handoff();return 0;
+ }catch(Win32Exception ex){if(ElevationCancelled(ex)){if(!args.Contains("--probe"))MessageBox.Show("已取消 Windows 权限确认，桌宠未启动。需要使用时，请重新运行 Helper 并确认系统提示。","Wuwatappo Helper");return 3;}if(args.Contains("--probe")){Console.Error.WriteLine(ex.Message);return 1;}MessageBox.Show("启动失败："+ex.Message,"Wuwatappo Helper");return 1;}catch(Exception ex){if(args.Contains("--probe")){Console.Error.WriteLine(ex.Message);return 1;}MessageBox.Show("启动失败："+ex.Message,"Wuwatappo Helper");return 1;}finally{running=false;if(!Lite)MouseCapture.Stop();if(listener!=null)listener.Stop();foreach(var d in devices.Values)Close(d);if(ev!=IntPtr.Zero)Marshal.FreeHGlobal(ev);if(initialized)SDL_Quit();}}}
 }

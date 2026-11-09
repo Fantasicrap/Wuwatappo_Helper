@@ -3,7 +3,7 @@
 let __wtBoostBusy=false,__wtBoostNext=0;
 async function __wtBoostLocalClicks(delta){
   const now=performance.now();
-  if(delta!==10000||__wtBoostBusy||now<__wtBoostNext)return;
+  if(delta!==10000||__wtBoostBusy||now<__wtBoostNext)return false;
   __wtBoostBusy=true;__wtBoostNext=now+500;
   const cuid=A.isLoggedIn?String(A.userInfo?.cuid??""):"";
   try{
@@ -15,6 +15,7 @@ async function __wtBoostLocalClicks(delta){
       await ki(A.cumulativeClickCount,cuid);
   }catch(error){console.warn("[counter] save failed",error)}
   finally{__wtBoostBusy=false;tt()}
+  return true;
 }
 
 // All ordinary panel snapshots share one in-flight emit and one dirty bit.
