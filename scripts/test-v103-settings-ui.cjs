@@ -24,7 +24,7 @@ traverse(babelParse(source,'settings.mjs',true),{
   if(helper==='__wtPanelLayout'&&method==='room')room=slice(source,n);
   if(helper==='__wtPanelLayout'&&method==='button'&&n.arguments[1].value==='历史房间')historyButtons++;
   if(n.callee.name==='e'&&n.arguments[1]?.properties?.some(p=>p.key?.name==='id'&&p.value?.value==='wt-monitor-settings'))monitor=slice(source,n);
-  if(!v104&&(['__wtKeyboardUi','__wtHotkeys','__wtSynthesis'].includes(helper)&&['renderSettings','render','renderBasicSettings'].includes(method)||n.arguments[1]?.properties?.some(p=>p.key?.name==='class'&&p.value?.value?.includes('wt-ui-basic-actions'))))controls.push(slice(source,n));
+  if(!v104&&['__wtKeyboardUi','__wtHotkeys','__wtSynthesis','__wtPanelLayout'].includes(helper)&&['renderSettings','render','renderBasicSettings','basic'].includes(method))controls.push(slice(source,n));
  }
 });
 assert.equal(modules.size,names.length);
@@ -34,7 +34,7 @@ const sectionIds=v104?[...sections.keys()]:['basic','input','desktop','maintenan
 const render=sectionIds.map(id=>{
  if(v104&&['basic','input'].includes(id))return sections.get(id);
  let children='';
- if(!v104&&id==='basic')children=controls.filter(text=>text.includes('wt-ui-basic-actions')||text.includes('renderBasicSettings')).join(',');
+ if(!v104&&id==='basic')children=controls.filter(text=>text.includes('__wtPanelLayout.basic')||text.includes('renderBasicSettings')).join(',');
  if(!v104&&id==='input')children=controls.filter(text=>text.includes('__wtKeyboardUi')||text.includes('__wtHotkeys')).join(',');
  if(id==='desktop')children=monitor;
  if(id==='maintenance')children='e("div",{id:"wt-us"})';

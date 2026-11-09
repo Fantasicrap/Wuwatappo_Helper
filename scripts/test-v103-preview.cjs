@@ -1,6 +1,7 @@
 const {fixturePath:resolveFixture,target}=require('./upstream-fixtures.cjs');
-const lite=process.argv.includes('--lite');
-const fixturePath=file=>{const resolved=resolveFixture(file);return lite?resolved.replace('dist/migration-'+target+'/', 'dist/migration-'+target+'-lite/'):resolved};
+const lite=process.argv.includes('--lite'),alpha=process.argv.includes('--alpha');
+const suffix=lite?'-lite':alpha?'-alpha':'';
+const fixturePath=file=>resolveFixture(file).replace('dist/migration-'+target+'/', 'dist/migration-'+target+suffix+'/');
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
 const root=path.resolve(__dirname,'..'),dir=path.join(root,'dist/migration-1.0.3.4');
 function globals(s){const names=new Set();traverse(babelParse(s,'resource.mjs',true),{ReferencedIdentifier(p){if(!p.scope.getBinding(p.node.name))names.add(p.node.name)}});return names}

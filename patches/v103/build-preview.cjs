@@ -7,9 +7,11 @@ function babelParse(source,file,module){
 }
 const v104=process.argv.includes('--v104');
 const lite=process.argv.includes('--lite');
+const alpha=process.argv.includes('--alpha');
 assert(!lite||v104,'Lite requires WuwaTappo 1.0.4');
+assert(!alpha||(v104&&!lite),'Alpha requires the full WuwaTappo 1.0.4 build');
 const target=v104?require('../../package.json').releaseVersion:'1.0.3.4';
-const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-'+(v104?'1.0.4':'1.0.3')),out=path.join(root,'dist/migration-'+target+(lite?'-lite':''));fs.mkdirSync(out,{recursive:true});
+const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-'+(v104?'1.0.4':'1.0.3')),out=path.join(root,'dist/migration-'+target+(lite?'-lite':alpha?'-alpha':''));fs.mkdirSync(out,{recursive:true});
 const original=fs.readFileSync(input),hash=b=>crypto.createHash('sha256').update(b).digest('hex'),manifest=JSON.parse(fs.readFileSync(path.join(stage,'extraction-manifest.json'),'utf8'));
 assert.equal(hash(original),v104?'ee829c55916619ea2882e4a13546cbaf2f880363237608285105c7a4958e70b3':'cedc37d0c11d112f4d933647fb6cf00e1dca847fc763250984c647080f849080');
 assert.equal(manifest.sourceSha256,hash(original),'Extraction must match the source executable');
@@ -180,7 +182,7 @@ function injectComponent(source,name,prefix,render){let setup;traverse(babelPars
 settings=injectComponent(settings,'SettingsModule','const __wtSynthSettings=__wtSynthesis.settings(y,Oe,true);','__wtSynthesis.renderBasicSettings(e,__wtSynthSettings)');
 settings+='\nimport{__wtSynthesis,__wtPanelLayout}from"./index-CuzHFfJW.js";\n';
 settings=injectComponent(settings,'SettingsModule',(lite?'const ':'const __wtKeys=__wtHotkeys.createSettings(y,Oe),__wtMapping=__wtKeyboardUi.settings(y,Oe),')+'__wtAuto=y(localStorage.getItem("wuwatappo-auto-claim-chests-v1")==="1");let __wtBoostUntil=0;async function __wtBoost(){if(performance.now()<__wtBoostUntil)return;__wtBoostUntil=performance.now()+500;await ue({type:"boost-local-clicks",delta:10000})}async function __wtToggle(){const enabled=!__wtAuto.value;await ue({type:"set-auto-claim-chests",enabled});__wtAuto.value=enabled}',
- (lite?'':'__wtKeyboardUi.renderSettings(e,__wtMapping),__wtHotkeys.render(e,__wtKeys),')+'e("div",{class:"wt-ui-actions wt-ui-basic-actions"},[__wtPanelLayout.button(e,"本地点击数 +10000",__wtBoost,{class:"wt-ui-button wt-ui-button--primary"}),__wtPanelLayout.button(e,__wtAuto.value?"自动开箱：已开启":"自动开箱：已关闭",__wtToggle,{"aria-pressed":__wtAuto.value,title:"宝箱到期后延迟 5 秒领取"})])');
+ (lite?'':'__wtKeyboardUi.renderSettings(e,__wtMapping),__wtHotkeys.render(e,__wtKeys),')+'__wtPanelLayout.basic(e,__wtAuto.value,__wtBoost,__wtToggle)');
 if(!lite){
 settings=injectComponent(settings,"MainPanelAtlasTab","const __wtTrial=__wtLocalWardrobe.settings(y,Oe);","__wtLocalWardrobe.renderSettings(e,__wtTrial)");
 settings=once(settings,'function k(h){if(Ke(h.asset_type)!=="character_skin")return!1;','function k(h){if(Ke(h.asset_type)!=="character_skin")return!1;if(__wtTrial.mode.value)return __wtLocalWardrobe.selected(h,t.selectedRoleId);');
@@ -196,7 +198,7 @@ settings+='\nimport{__wtPetFun}from"./index-CuzHFfJW.js";\n';
 settings=injectComponent(settings,'SettingsModule','const __wtEmoteMode=__wtAutoEmotes.settings(y,Oe);','__wtAutoEmotes.renderSettings(e,__wtEmoteMode)');
 panel=once(panel,'async function __wtInstallHelperActions(){','async function __wtInstallHelperActions(){__wtSynth.start();__wtHelperStops.push(await tt("wt-synthesis-reminder-updated",()=>__wtSynth.sync()));__wtWardrobe.start();__wtAutoEmote.start();__wtFun.start();__wtHelperStops.push(await tt("wt-auto-emotes-updated",()=>__wtAutoEmote.sync()));__wtHelperStops.push(await tt("wt-pet-fun-updated",()=>__wtFun.sync()));__wtHelperStops.push(await tt("wt-wardrobe-mode-updated",()=>__wtWardrobe.sync()));__wtHelperStops.push(await tt("wt-wardrobe-reset",()=>__wtWardrobe.clear()));');
 settings+='\nimport{__wtAutoEmotes}from"./index-CuzHFfJW.js";\n';
-settings=injectComponent(settings,'SettingsModule','let __wtMonitorStop,__wtMonitorClosed=false;ft(()=>{__wtMonitorClosed=true;__wtMonitorStop?.()});Qe(async()=>{try{const m=await import("http://127.0.0.1:48642/ui.js");if(!__wtMonitorClosed){const stop=await m.mountDefaultMonitorSettings({root:document.getElementById("wt-monitor-settings"),list:uo,listen:no,emit:__wtMonitorEmit});__wtMonitorClosed?stop():__wtMonitorStop=stop}}catch{const r=document.getElementById("wt-monitor-settings");r&&(r.textContent="默认显示器设置加载失败，请运行完整 Helper")}});','e("div",{id:"wt-monitor-settings"})');
+settings=injectComponent(settings,'SettingsModule','__wtPanelLayout.monitor(Qe,ft,()=>import("http://127.0.0.1:48642/ui.js"),uo,no,__wtMonitorEmit);','e("div",{id:"wt-monitor-settings"})');
 settings=injectComponent(settings,'MainPanelRoomTab','const __wtRestoreRoom=()=>ue({type:"set-room-members-visibility",visible:true});async function __wtHistory(){try{const module=await import("http://127.0.0.1:48642/ui.js");await module.openRoomHistory({state:()=>({accountId:ae.isLoggedIn?ae.userInfo?.id:0,roomId:String(s.currentRoomId??""),mode:s.roomMode}),send:ue,listen:no,toast:Oe})}catch{Oe("历史房间加载失败，请运行完整 Helper")}}const __wtPlacement=__wtRoomPositions.settings(y,ue);',null);
 settings=once(settings,'wr={class:"join-rooms"}','wr={class:"join-rooms wt-ui-join"}');
 const historyButton='__wtPanelLayout.button(e,"历史房间",__wtHistory,{class:"wt-ui-button wt-ui-room-history"})';
@@ -256,7 +258,7 @@ function groupSettings(source){
  };
  const group=(id,items)=>'__wtPanelLayout.group(e,"'+id+'",['+items.join(',')+'])';
  const sections=[
-  group('basic',[take('wt-ui-basic-actions'),take('__wtSynthesis.renderBasicSettings')]),
+  group('basic',[take('__wtPanelLayout.basic'),take('__wtSynthesis.renderBasicSettings')]),
   group('account',[take('"setting_nickname"'),take('"setting_total_click"'),take('"setting_redeem_code"'),take('"setting_view_log"')])
  ];
  if(!lite)sections.push(group('input',[take('__wtKeyboardUi.renderSettings'),take('__wtHotkeys.render')]));
@@ -277,6 +279,29 @@ function groupSettings(source){
  return source.slice(0,rows.start)+'['+sections.concat(available).join(',')+']'+source.slice(rows.end);
 }
 if(v104)settings=groupSettings(settings);
+if(alpha){
+ common+='\n'+read('synthesis-alpha.js');
+ settings+='\nimport{__wtAlphaSerial,__wtAlphaBatch}from"./index-CuzHFfJW.js";\n';
+ settings=once(settings,',ie=y(""),we=y(!1),Ae=y(null)',',ie=y(""),Ae=y(null)');
+ settings=once(settings,'placeholder:p(t)("setting_code_placeholder"),disabled:we.value,','placeholder:p(t)("setting_code_placeholder"),');
+ settings=once(settings,'class:"setting-btn excode-submit",disabled:we.value,','class:"setting-btn excode-submit",');
+ settings=editFunction(settings,'Vt',source=>{
+  source=once(source,'async function Vt(){if(we.value)return;','const __wtRedeem=__wtAlphaSerial();async function Vt(){');
+  source=once(source,'we.value=!0;try{await fn(_),yn(_)','const user=ae.userInfo?.id;return __wtRedeem(async()=>{if(!user||!Te.value||ae.userInfo?.id!==user)return;try{await fn(_);if(!Te.value||ae.userInfo?.id!==user)return;yn(_)');
+  source=once(source,'ie.value="",await ue({type:"redeem-success"})','ie.value.trim()===_&&(ie.value=""),await ue({type:"redeem-success"})');
+  return once(source,'finally{we.value=!1}}','})}');
+ });
+ settings=once(settings,',W=y(!1),J=y(null)',',J=y(null)');
+ settings=once(settings,'H=E(()=>W.value||','H=E(()=>');
+ settings=once(settings,'S(p(t)("synthesis_submit")),3)','S(p(t)("synthesis_submit"))+" ×3",3)');
+ settings=editFunction(settings,'yt',source=>{
+  source=once(source,'async function yt(){','const __wtBatch=__wtAlphaBatch(()=>ae.isLoggedIn&&ae.userInfo?.id,()=>b.bagList,()=>Oe(t("synthesis_not_enough")));ft(__wtBatch.stop);function yt(){');
+  source=once(source,'W.value=!0;let d=!1;try{d=!0,Qt(a);const w=await xt(await(z.value?Jn($.value):Qn($.value)));','return __wtBatch.submit($.value,z.value,__wtSend,(ids,same)=>{if(same===z.value&&ids.join() === $.value.join())ke();F("synthesis-success")})}async function __wtSend(ids,same,current){const a=same?"same_level":"level_up";try{Qt(a);const w=await xt(await(same?Jn(ids):Qn(ids)));if(!current())return false;');
+  source=once(source,'x.value+=1,ke(),F("synthesis-success")}','x.value+=1;return true}');
+  source=once(source,'if(console.warn("[synthesis] failed",w),d){ys(z.value?','if(current()){console.warn("[synthesis] failed",w);ys(same?');
+  return once(source,'}Pt(w)}finally{W.value=!1}}',';Pt(w)}return false}}');
+ });
+}
 let about=upstream(assets.about);
 about=once(about,'y=q();let g;','y=q();const __wtLegal=__wtNotice.about(y,R);let g;');
 about=once(about,'function A(){const r=b.value;','function A(){if(__wtLegal.active.value){y.setTitle("免责说明");return}const r=b.value;');
@@ -315,6 +340,6 @@ function compressResource(text, budget){
 }
 const output=Buffer.from(original),checks=[];for(const r of resources){const file=path.join(out,path.basename(r.name));fs.writeFileSync(file,r.text);babelParse(r.text,file,true);const meta=manifest.assets.find(a=>a.name===r.name),compressed=compressResource(r.text,meta.compressedBytes);assert(compressed.length<=meta.compressedBytes,`${r.name} exceeds reserved space (${compressed.length}/${meta.compressedBytes})`);output.fill(0,meta.offset,meta.offset+meta.compressedBytes);compressed.copy(output,meta.offset);assert(zlib.brotliDecompressSync(output.subarray(meta.offset,meta.offset+meta.compressedBytes)).equals(Buffer.from(r.text)));checks.push({asset:r.name,syntaxPassed:true,budget:meta.compressedBytes,compressed:compressed.length,fits:true,offset:meta.offset})}
 let cursor=0;for(const c of [...checks].sort((a,b)=>a.offset-b.offset)){assert(original.subarray(cursor,c.offset).equals(output.subarray(cursor,c.offset)));cursor=c.offset+c.budget}assert(original.subarray(cursor).equals(output.subarray(cursor)));fs.writeFileSync(path.join(out,'payload.exe'),output);
-fs.writeFileSync(path.join(out,'checkpoint.json'),JSON.stringify({target,edition:lite?'lite':'full',sourceSha256:hash(original),resources:checks,nativeMachineCodeChanged:false,payloadProduced:true,allFeaturesReady:false,realAccountOrHardwareTested:false},null,2));console.log(JSON.stringify(checks,null,2));
+fs.writeFileSync(path.join(out,'checkpoint.json'),JSON.stringify({target,edition:lite?'lite':alpha?'alpha':'full',sourceSha256:hash(original),resources:checks,nativeMachineCodeChanged:false,payloadProduced:true,allFeaturesReady:false,realAccountOrHardwareTested:false},null,2));console.log(JSON.stringify(checks,null,2));
 
 
