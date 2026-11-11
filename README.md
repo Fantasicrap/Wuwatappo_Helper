@@ -31,6 +31,8 @@ WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、�
 1. 优化了一些已知bug
 2. 飞行雪绒爱弥斯在兑换码界面添加了一个进入虚质空间的入口等待大家发现。
 
+同版本修复：设置页切换输入映射时，分组偶发消失或错位的问题。
+
 **上一版 v1.0.4.5 完整包** · [完整版安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Setup.exe) · [完整版免安装 ZIP](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Portable.zip) · [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5.exe) · [轻量版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Lite.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/SHA256SUMS.txt)
 
 **中国大陆备用下载（第三方 GH-Proxy）** · v1.0.4.6 [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.6/Wuwatappo_Helper-1.0.4.6.exe)
