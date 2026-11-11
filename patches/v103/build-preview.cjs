@@ -274,9 +274,11 @@ function groupSettings(source){
  // Keep the original about/legal links in the footer outside the disclosures.
  assert.equal(available.length,1,'Unexpected ungrouped settings rows');
  assert(available[0].includes('href')||available[0].includes('onClick'));
- const flag=panelCall.arguments[3];
- if(flag)source=source.slice(0,flag.start)+'-2'+source.slice(flag.end);
- return source.slice(0,rows.start)+'['+sections.concat(available).join(',')+']'+source.slice(rows.end);
+ // Track only this container in the outer block. The grouped rows can change
+ // shape as settings toggle, so their descendants need a full local diff.
+ const args=source.slice(panelCall.arguments[0].start,rows.start);
+ const content='(i(!0),m('+args+'['+sections.concat(available).join(',')+'],-2))';
+ return source.slice(0,panelCall.start)+content+source.slice(panelCall.end);
 }
 if(v104)settings=groupSettings(settings);
 if(alpha){
