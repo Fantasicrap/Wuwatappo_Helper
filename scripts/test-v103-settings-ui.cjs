@@ -5,7 +5,7 @@ const source=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-CiT_jZa7.
 const common=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-CuzHFfJW.js'),'utf8');
 const runtime=require('./vue-runtime-fixture.cjs')(common,['createBaseVNode','ref','createTextVNode']);
 const modules=new Map(),prefix=[],sections=new Map(),controls=[];
-let room,monitor,roomRestore,historyButtons=0;
+let room,monitor,roomRestore,settingsPanel,settingsRows,historyButtons=0;
 const slice=(text,node)=>text.slice(node.start,node.end);
 const names=['__wtPanelLayout','__wtKeyboardUi','__wtHotkeys','__wtLongRun','__wtSynthesis','__wtRoomPositions'];
 traverse(babelParse(common,'common.mjs',true),{VariableDeclaration(p){
@@ -21,10 +21,16 @@ traverse(babelParse(source,'settings.mjs',true),{
  CallExpression(p){
   const n=p.node,helper=n.callee.object?.name,method=n.callee.property?.name;
   if(helper==='__wtPanelLayout'&&method==='group')sections.set(n.arguments[1].value,slice(source,n));
+  const children=n.arguments[2];
+  if(children?.type==='ArrayExpression'&&children.elements.some(row=>row?.callee?.object?.name==='__wtPanelLayout'&&row.callee.property?.name==='group')){
+   assert(!settingsPanel,'Expected a single grouped settings panel');
+   settingsRows=children;
+   settingsPanel=p.parentPath.isSequenceExpression()?p.parentPath.node:n;
+  }
   if(helper==='__wtPanelLayout'&&method==='room')room=slice(source,n);
   if(helper==='__wtPanelLayout'&&method==='button'&&n.arguments[1].value==='历史房间')historyButtons++;
   if(n.callee.name==='e'&&n.arguments[1]?.properties?.some(p=>p.key?.name==='id'&&p.value?.value==='wt-monitor-settings'))monitor=slice(source,n);
-  if(!v104&&(['__wtKeyboardUi','__wtHotkeys','__wtSynthesis'].includes(helper)&&['renderSettings','render','renderBasicSettings'].includes(method)||n.arguments[1]?.properties?.some(p=>p.key?.name==='class'&&p.value?.value?.includes('wt-ui-basic-actions'))))controls.push(slice(source,n));
+  if(!v104&&['__wtKeyboardUi','__wtHotkeys','__wtSynthesis','__wtPanelLayout'].includes(helper)&&['renderSettings','render','renderBasicSettings','basic'].includes(method))controls.push(slice(source,n));
  }
 });
 assert.equal(modules.size,names.length);
@@ -34,22 +40,28 @@ const sectionIds=v104?[...sections.keys()]:['basic','input','desktop','maintenan
 const render=sectionIds.map(id=>{
  if(v104&&['basic','input'].includes(id))return sections.get(id);
  let children='';
- if(!v104&&id==='basic')children=controls.filter(text=>text.includes('wt-ui-basic-actions')||text.includes('renderBasicSettings')).join(',');
+ if(!v104&&id==='basic')children=controls.filter(text=>text.includes('__wtPanelLayout.basic')||text.includes('renderBasicSettings')).join(',');
  if(!v104&&id==='input')children=controls.filter(text=>text.includes('__wtKeyboardUi')||text.includes('__wtHotkeys')).join(',');
  if(id==='desktop')children=monitor;
  if(id==='maintenance')children='e("div",{id:"wt-us"})';
  return '__wtPanelLayout.group(e,'+JSON.stringify(id)+',['+children+'])';
 });
+// Keep the production panel boundary inside an optimized outer block. A standalone
+// VNode does not catch children leaking into Vue's enclosing block tracker.
+const renderPanel=v104
+ ? source.slice(settingsPanel.start,settingsRows.start)+'['+render.join(',')+']'+source.slice(settingsRows.end,settingsPanel.end)
+ : "e('div',{class:'panel-content'},["+render.join(',')+"])";
 const roomProps=room.match(/null,40,([\w$]+)\)/)[1];
 (async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});try{const page=await browser.newPage({viewport:{width:440,height:1000},deviceScaleFactor:2}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('http://tauri.localhost/',r=>r.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><style>body{background:#f7f3ed;font:14px "Microsoft YaHei",sans-serif;margin:0;color:#694832}#root,#room{width:min(400px,calc(100vw - 24px));margin:12px auto;padding:12px;box-sizing:border-box;background:#fff8e9;border-radius:16px}</style><div id="root"></div><div id="room"></div>'}));await page.goto('http://tauri.localhost/');
 await page.addScriptTag({content:'(()=>{'+runtime+'})()'});
 await page.addScriptTag({content:`window.calls=[];window.emit=async()=>{};
-const {createApp,createBaseVNode:e,createTextVNode:Tt,ref:y}=__vue;
+const {createApp,createBaseVNode:e,createTextVNode:Tt,ref:y,openBlock:i,createElementBlock:m}=__vue;
 const Oe=()=>{},ps=async()=>({}),__wtCheckShortcutConflict=()=>{};
+const o=[],R=handler=>handler;
 async function ue(event){calls.push(event)}
 ${[...modules.values()].join('\n')}
 ${prefix.join('\n')}
-createApp({render:()=>e('div',{class:'panel-content'},[${render.join(',')}])}).mount('#root');
+createApp({render:()=>(i(),m('div',null,[(${renderPanel})]))}).mount('#root');
 const Er={class:'only-show-self'},${roomProps}=['checked','onChange'],s={onlyShowSelf:true};
 const t={},p=()=>()=>"仅显示自己",S=String,b=[],v=(type,checked)=>ue({type,checked});
 ${roomRestore}
@@ -61,13 +73,26 @@ const input=page.locator('[data-wt-section="input"]');
 assert.equal(await input.locator('input:visible').count(),0);
 await input.locator('summary').first().click();
 assert.equal(await input.locator('input[readonly]:visible').count(),3);
+const assertSections=async()=>{
+ const ids=await page.locator('#root .panel-content > [data-wt-section]').evaluateAll(cards=>cards.map(card=>card.dataset.wtSection));
+ assert.deepEqual(ids,sectionIds);
+ assert.equal(await input.evaluate(card=>card.open),true);
+};
+await input.getByRole('button',{name:'手柄',exact:true}).click();
+await assertSections();
+await input.getByRole('button',{name:'不显示',exact:true}).click();
+await assertSections();
+await input.getByRole('button',{name:'26 字母键',exact:true}).click();
+await assertSections();
 await input.getByText('表情快捷键（6 个槽位）',{exact:true}).click();
 assert.equal(await input.locator('input[readonly]:visible').count(),9);
 await input.getByText('表情快捷键（6 个槽位）',{exact:true}).click();
 await page.getByLabel('用气泡显示输入').check();
+await assertSections();
 assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-input-bubbles-v1')),'1');
 assert.equal(await page.getByLabel('映射位置').count(),0);
 await page.getByLabel('用气泡显示输入').uncheck();
+await assertSections();
 const roomKey=page.getByRole('textbox',{name:'联机仅显示自己',exact:true});
 assert.equal(await roomKey.inputValue(),'未设置');
 await roomKey.focus();

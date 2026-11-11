@@ -1,5 +1,6 @@
-param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$SdlPath,[string]$PayloadPath,[switch]$Lite)
+param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$SdlPath,[string]$PayloadPath,[switch]$Lite,[switch]$Alpha)
 $ErrorActionPreference='Stop'
+if($Lite -and $Alpha){throw 'Alpha requires the full Helper launcher'}
 $repoRoot=Split-Path -Parent $PSScriptRoot
 if(-not $SdlPath){$SdlPath=Join-Path (Split-Path -Parent $repoRoot) 'Wuwatappo_Helper-tools/SDL3-3.4.18/runtime/SDL3.dll'}
 $compiler=Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
@@ -13,8 +14,8 @@ $out=[IO.Path]::GetFullPath($OutputDirectory)
 $hostDir=Join-Path $out 'host-build'
 New-Item -ItemType Directory -Path $hostDir -Force|Out-Null
 $pkg=Get-Content -LiteralPath (Join-Path $repoRoot 'package.json') -Raw|ConvertFrom-Json
-$suffix=if($Lite){'-lite'}else{''}
-$payload=if($PayloadPath){[IO.Path]::GetFullPath($PayloadPath)}else{Join-Path $repoRoot ("dist/migration-"+$pkg.releaseVersion+$suffix+"/payload.exe")}
+$suffix=if($Lite){'-Lite'}elseif($Alpha){'-Alpha'}else{''}
+$payload=if($PayloadPath){[IO.Path]::GetFullPath($PayloadPath)}else{Join-Path $repoRoot ("dist/migration-"+$pkg.releaseVersion+$suffix.ToLowerInvariant()+"/payload.exe")}
 . (Join-Path $PSScriptRoot 'icon-resources.ps1')
 $iconFile=Join-Path $hostDir 'application.ico'
 [IO.File]::WriteAllBytes($iconFile,[WuwaHelper.IconResources]::ReadFirst($payload))
@@ -33,7 +34,7 @@ $versionSource=Join-Path $hostDir 'Version.cs'
 $hash=(Get-FileHash -LiteralPath $payload -Algorithm SHA256).Hash.ToLowerInvariant()
 $runtimeId=Join-Path $hostDir 'runtime-id'
 [IO.File]::WriteAllText($runtimeId,($pkg.releaseVersion+'-'+$hash.Substring(0,12)))
-$exe=Join-Path $out ("Wuwatappo_Helper-"+$pkg.releaseVersion+$(if($Lite){'-Lite'})+".exe")
+$exe=Join-Path $out ("Wuwatappo_Helper-"+$pkg.releaseVersion+$suffix+".exe")
 $license=Join-Path $repoRoot 'licenses/SDL3-LICENSE.txt'
 $buildOptions=@()
 $resourcesToVerify=,@('WuwaTappo.exe',$payload)
@@ -47,4 +48,4 @@ if($LASTEXITCODE -ne 0){throw 'Controller launcher compilation failed'}
 $asm=[Reflection.Assembly]::LoadFile($exe)
 $checks=@{}
 foreach($item in $resourcesToVerify){$stream=$asm.GetManifestResourceStream($item[0]);$sha=[Security.Cryptography.SHA256]::Create();try{$digest=[Convert]::ToHexString($sha.ComputeHash($stream)).ToLowerInvariant()}finally{$stream.Dispose();$sha.Dispose()};$expected=(Get-FileHash -LiteralPath $item[1] -Algorithm SHA256).Hash.ToLowerInvariant();if($digest -ne $expected){throw 'Embedded resource differs'};$checks[$item[0]]=$digest}
-[ordered]@{passed=$true;singleExe=$true;lite=[bool]$Lite;resources=$checks;sdlVersion=$(if(!$Lite){'3.4.18'});controllerRealHardwareTested=$false}|ConvertTo-Json -Depth 4|Set-Content -LiteralPath (Join-Path $out 'controller-bundle-verification.json') -Encoding utf8NoBOM
+[ordered]@{passed=$true;singleExe=$true;lite=[bool]$Lite;alpha=[bool]$Alpha;resources=$checks;sdlVersion=$(if(!$Lite){'3.4.18'});controllerRealHardwareTested=$false}|ConvertTo-Json -Depth 4|Set-Content -LiteralPath (Join-Path $out 'controller-bundle-verification.json') -Encoding utf8NoBOM

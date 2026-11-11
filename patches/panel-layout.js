@@ -57,12 +57,34 @@ const __wtPanelLayout=(()=>{
   styles();
   return dynamic(h,'button',{type:'button',class:'wt-ui-button',onClick:action,...extra},label);
  }
+ function basic(h,enabled,boost,toggle){
+  return dynamic(h,'div',{class:'wt-ui-actions wt-ui-basic-actions'},[
+   button(h,'本地点击数 +10000',boost,{class:'wt-ui-button wt-ui-button--primary'}),
+   button(h,enabled?'自动开箱：已开启':'自动开箱：已关闭',toggle,{'aria-pressed':enabled,title:'宝箱到期后延迟 5 秒领取'})
+  ]);
+ }
  function room(h,visibility,placement,restore){
   styles();
   return dynamic(h,'div',{class:'wt-ui-room-tools'},[
    dynamic(h,'div',{class:'wt-ui-actions'},[visibility,button(h,'恢复显示全部',restore,{title:'退出仅显示自己，并清除逐人隐藏'})]),placement
   ]);
  }
- return{styles,group,button,room};
+ function monitor(onMount,onUnmount,load,list,listen,emit){
+  let cleanup,closed=false;
+  onUnmount(()=>{closed=true;cleanup?.()});
+  onMount(async()=>{
+   try{
+    const {mountDefaultMonitorSettings}=await load();
+    if(closed)return;
+    const stop=await mountDefaultMonitorSettings({root:document.getElementById('wt-monitor-settings'),list,listen,emit});
+    if(closed)stop();else cleanup=stop;
+   }catch{
+    if(closed)return;
+    const root=document.getElementById('wt-monitor-settings');
+    if(root)root.textContent='默认显示器设置加载失败，请运行完整 Helper';
+   }
+  });
+ }
+ return{styles,group,button,basic,room,monitor};
 })();
 export {__wtPanelLayout};
