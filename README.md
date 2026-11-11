@@ -4,7 +4,7 @@
 
 WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前正式版为 **Helper v1.0.4.5**；当前测试版为 **Helper v1.0.4.6 Beta**，适配官方 WuwaTappo v1.0.4。
+当前正式版为 **Helper v1.0.4.6**，适配官方 WuwaTappo v1.0.4。
 
 ## 已实现功能
 
@@ -22,18 +22,18 @@ WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 ## 下载
 
-**v1.0.4.6 Beta 测试版** · [单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.6-beta/Wuwatappo_Helper-1.0.4.6-Beta.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.6-beta/SHA256SUMS.txt)
+**GitHub 正式下载** · v1.0.4.6 [单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.6/Wuwatappo_Helper-1.0.4.6.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.6/SHA256SUMS.txt)
 
-> 测试版仅提供单文件 EXE，稳定版仍为 v1.0.4.5。启动前请从托盘完全退出旧版。
+> 本版提供单文件 EXE；安装包、免安装 ZIP 和轻量版请使用下方 v1.0.4.5 完整包。启动前请从托盘完全退出旧版。
 
-**v1.0.4.6 Beta 更新说明**
+**v1.0.4.6 更新说明**
 
 1. 优化了一些已知bug
 2. 飞行雪绒爱弥斯在兑换码界面添加了一个进入虚质空间的入口等待大家发现。
 
-**GitHub 正式下载** · v1.0.4.5 [完整版安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Setup.exe) · [完整版免安装 ZIP](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Portable.zip) · [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5.exe) · [轻量版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Lite.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/SHA256SUMS.txt)
+**上一版 v1.0.4.5 完整包** · [完整版安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Setup.exe) · [完整版免安装 ZIP](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Portable.zip) · [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5.exe) · [轻量版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Lite.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/SHA256SUMS.txt)
 
-**中国大陆备用下载（第三方 GH-Proxy）** · [完整版安装包](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Setup.exe) · [完整版免安装 ZIP](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Portable.zip) · [完整版单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5.exe) · [轻量版单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Lite.exe)
+**中国大陆备用下载（第三方 GH-Proxy）** · v1.0.4.6 [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.6/Wuwatappo_Helper-1.0.4.6.exe)
 
 [最新正式发布](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/latest) · [历史版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
 
