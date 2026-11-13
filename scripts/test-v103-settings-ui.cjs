@@ -7,7 +7,7 @@ const runtime=require('./vue-runtime-fixture.cjs')(common,['createBaseVNode','re
 const modules=new Map(),prefix=[],sections=new Map(),controls=[];
 let room,monitor,roomRestore,settingsPanel,settingsRows,historyButtons=0;
 const slice=(text,node)=>text.slice(node.start,node.end);
-const names=['__wtPanelLayout','__wtKeyboardUi','__wtHotkeys','__wtLongRun','__wtSynthesis','__wtRoomPositions'];
+const names=['__wtPanelLayout','__wtAemeathMech','__wtTheme','__wtKeyboardUi','__wtHotkeys','__wtLongRun','__wtSynthesis','__wtRoomPositions'];
 traverse(babelParse(common,'common.mjs',true),{VariableDeclaration(p){
  for(const {id} of p.node.declarations)if(names.includes(id.name))modules.set(id.name,slice(common,p.node));
 }});
@@ -52,7 +52,7 @@ const renderPanel=v104
  ? source.slice(settingsPanel.start,settingsRows.start)+'['+render.join(',')+']'+source.slice(settingsRows.end,settingsPanel.end)
  : "e('div',{class:'panel-content'},["+render.join(',')+"])";
 const roomProps=room.match(/null,40,([\w$]+)\)/)[1];
-(async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});try{const page=await browser.newPage({viewport:{width:440,height:1000},deviceScaleFactor:2}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('http://tauri.localhost/',r=>r.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><style>body{background:#f7f3ed;font:14px "Microsoft YaHei",sans-serif;margin:0;color:#694832}#root,#room{width:min(400px,calc(100vw - 24px));margin:12px auto;padding:12px;box-sizing:border-box;background:#fff8e9;border-radius:16px}</style><div id="root"></div><div id="room"></div>'}));await page.goto('http://tauri.localhost/');
+(async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});try{const context=await browser.newContext({viewport:{width:440,height:1000},deviceScaleFactor:2}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await context.route('http://tauri.localhost/',r=>r.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><style>body{background:#f7f3ed;font:14px "Microsoft YaHei",sans-serif;margin:0;color:#694832}#root,#room{width:min(400px,calc(100vw - 24px));margin:12px auto;padding:12px;box-sizing:border-box;background:#fff8e9;border-radius:16px}</style><div id="root"></div><div id="room"></div>'}));await page.goto('http://tauri.localhost/');
 await page.addScriptTag({content:'(()=>{'+runtime+'})()'});
 await page.addScriptTag({content:`window.calls=[];window.emit=async()=>{};
 const {createApp,createBaseVNode:e,createTextVNode:Tt,ref:y,openBlock:i,createElementBlock:m}=__vue;
@@ -93,6 +93,66 @@ assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-input-bubbl
 assert.equal(await page.getByLabel('映射位置').count(),0);
 await page.getByLabel('用气泡显示输入').uncheck();
 await assertSections();
+if(v104){
+ const interaction=page.locator('[data-wt-section="interaction"]');
+ await interaction.locator(':scope > summary').click();
+ const theme=interaction.locator('.wt-aemeath-options');
+ await theme.locator(':scope > summary').click();
+ assert.equal(await theme.locator('.wt-mech-settings').count(),1);
+ const warm=theme.getByRole('button',{name:/原版暖色/}),pink=theme.getByRole('button',{name:/爱弥斯/});
+ const packagedUi=path.join(out,'host-build/controller-ui.js');
+ const moduleCode=fs.existsSync(packagedUi)?fs.readFileSync(packagedUi,'utf8'):'';
+ if(moduleCode)await context.route('http://127.0.0.1:48642/ui.js',route=>route.fulfill({
+  contentType:'text/javascript',headers:{'Access-Control-Allow-Origin':'http://tauri.localhost','Access-Control-Allow-Private-Network':'true'},body:moduleCode
+ }));
+ const basic=page.locator('[data-wt-section="basic"]');
+ const original=await basic.evaluate(card=>getComputedStyle(card).backgroundColor);
+ const other=await page.context().newPage();
+ await other.goto('http://tauri.localhost/');
+ await other.addScriptTag({content:`${modules.get('__wtPanelLayout')}\n${modules.get('__wtTheme')}`});
+ await page.evaluate(()=>document.querySelector('#root').insertAdjacentHTML('beforeend',
+  '<div class="wt-pad-board"><svg><linearGradient id="wt-pad-body"><stop stop-color="#fff2d8"/><stop stop-color="#ebcda0"/></linearGradient></svg></div>'));
+ const stop=page.locator('#wt-pad-body stop').first();
+ await pink.click();
+ await other.waitForFunction(()=>document.documentElement.dataset.wtTheme==='aemeath');
+ assert.equal(await pink.getAttribute('aria-pressed'),'true');
+ assert.notEqual(await basic.evaluate(card=>getComputedStyle(card).backgroundColor),original);
+ assert.equal(await stop.evaluate(node=>getComputedStyle(node).stopColor),'rgb(255, 242, 248)');
+ if(moduleCode.includes('data:image/jpeg;base64,')){
+  await page.waitForFunction(()=>getComputedStyle(document.documentElement).getPropertyValue('--wt-theme-bg').includes('data:image/jpeg;base64,'));
+ }
+ const file=theme.locator('input[type=file]'),reset=theme.getByRole('button',{name:'恢复默认',exact:true});
+ assert.equal(await reset.isDisabled(),true);
+ const png=await page.evaluate(()=>{
+  const canvas=document.createElement('canvas');canvas.width=64;canvas.height=36;
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#e98cb6';ctx.fillRect(0,0,64,36);
+  return canvas.toDataURL().split(',')[1];
+ });
+ await file.setInputFiles({name:'background.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
+ await page.waitForFunction(()=>document.documentElement.hasAttribute('data-wt-custom-background'));
+ await other.waitForFunction(()=>document.documentElement.hasAttribute('data-wt-custom-background'));
+ await theme.screenshot({path:path.join(out,'aemeath-theme-picker.png')});
+ const saved=await page.evaluate(()=>localStorage.getItem('wuwatappo-aemeath-background-v1'));
+ await file.setInputFiles({name:'broken.png',mimeType:'image/png',buffer:Buffer.from('broken')});
+ await theme.getByText('无法读取这张图片，请换一张。',{exact:true}).waitFor();
+ assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-aemeath-background-v1')),saved);
+ await other.reload();
+ await other.addScriptTag({content:`${modules.get('__wtPanelLayout')}\n${modules.get('__wtTheme')}`});
+ await other.waitForFunction(()=>document.documentElement.hasAttribute('data-wt-custom-background'));
+ await warm.click();
+ await other.waitForFunction(()=>!document.documentElement.hasAttribute('data-wt-theme'));
+ assert.equal(await basic.evaluate(card=>getComputedStyle(card).backgroundColor),original);
+ assert.equal(await stop.evaluate(node=>getComputedStyle(node).stopColor),'rgb(255, 242, 216)');
+ assert.equal(await page.locator('style[data-wt-theme-sheet="assets"]').count(),0);
+ assert.equal(await other.locator('html[data-wt-custom-background]').count(),0);
+ await pink.click();
+ await other.waitForFunction(()=>document.documentElement.hasAttribute('data-wt-custom-background'));
+ await reset.click();
+ await other.waitForFunction(()=>!document.documentElement.hasAttribute('data-wt-custom-background'));
+ assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-aemeath-background-v1')),null);
+ await warm.click();
+ await other.close();
+}
 const roomKey=page.getByRole('textbox',{name:'联机仅显示自己',exact:true});
 assert.equal(await roomKey.inputValue(),'未设置');
 await roomKey.focus();

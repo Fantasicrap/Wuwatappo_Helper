@@ -9,9 +9,34 @@ static class MouseCapture {
  static IntPtr keyboardHook;static volatile bool active,captureEnabled;static long requestedAt=-10000;static Control dispatcher;static HookProc keyCallback=OnKey;static readonly bool[] held=new bool[256];
  [DllImport("user32")] static extern short GetAsyncKeyState(int key);
  [DllImport("user32")] static extern bool GetPhysicalCursorPos(out Point point);
- static string KeyName(int key){if(key>=65&&key<=90)return ((char)key).ToString();if(key>=48&&key<=57)return ((char)key).ToString();if(key>=96&&key<=105)return (key-96).ToString();return key==32?"Space":null;}
+ static readonly string[] keyNames=BuildKeyNames();
+ static string[] BuildKeyNames(){
+  var names=new string[256];
+  var standard=new Dictionary<int,string>{
+   {8,"Backspace"},{9,"Tab"},{13,"Enter"},{19,"Pause"},{20,"CapsLock"},{21,"KanaMode"},
+   {27,"Escape"},{28,"Convert"},{29,"NonConvert"},{32,"Space"},{33,"PageUp"},{34,"PageDown"},
+   {35,"End"},{36,"Home"},{37,"ArrowLeft"},{38,"ArrowUp"},{39,"ArrowRight"},{40,"ArrowDown"},
+   {44,"PrintScreen"},{45,"Insert"},{46,"Delete"},{91,"Meta"},{92,"Meta"},{93,"ContextMenu"},
+   {106,"NumpadMultiply"},{107,"NumpadAdd"},{108,"NumpadSeparator"},{109,"NumpadSubtract"},
+   {110,"NumpadDecimal"},{111,"NumpadDivide"},{144,"NumLock"},{145,"ScrollLock"},
+   {160,"Shift"},{161,"Shift"},{162,"Ctrl"},{163,"Ctrl"},{164,"Alt"},{165,"Alt"},
+   {166,"BrowserBack"},{167,"BrowserForward"},{168,"BrowserRefresh"},{169,"BrowserStop"},
+   {170,"BrowserSearch"},{171,"BrowserFavorites"},{172,"BrowserHome"},{173,"AudioVolumeMute"},
+   {174,"AudioVolumeDown"},{175,"AudioVolumeUp"},{176,"MediaTrackNext"},{177,"MediaTrackPrevious"},
+   {178,"MediaStop"},{179,"MediaPlayPause"},{180,"LaunchMail"},{181,"MediaSelect"},
+   {186,"Semicolon"},{187,"Equal"},{188,"Comma"},{189,"Minus"},{190,"Period"},{191,"Slash"},
+   {192,"Backquote"},{219,"BracketLeft"},{220,"Backslash"},{221,"BracketRight"},{222,"Quote"},{226,"IntlBackslash"}
+  };
+  foreach(var entry in standard)names[entry.Key]=entry.Value;
+  for(int key=48;key<=57;key++)names[key]=((char)key).ToString();
+  for(int key=65;key<=90;key++)names[key]=((char)key).ToString();
+  for(int key=96;key<=105;key++)names[key]="Numpad"+(key-96);
+  for(int key=112;key<=135;key++)names[key]="F"+(key-111);
+  return names;
+ }
+ static string KeyName(int key){return keyNames[key];}
  static readonly int[] watchedKeys=BuildKeys();static readonly Edge[] emptyEdges=new Edge[0];
- static int[] BuildKeys(){var result=new List<int>{1,2,4,5,6,32};for(int k=48;k<=90;k++)if(k<=57||k>=65)result.Add(k);for(int k=96;k<=105;k++)result.Add(k);return result.ToArray();}
+ static int[] BuildKeys(){var result=new List<int>{1,2,4,5,6};for(int k=8;k<keyNames.Length;k++)if(KeyName(k)!=null)result.Add(k);return result.ToArray();}
  static string MouseName(int key){return key==1?"left":key==2?"right":key==4?"middle":key==5?"x1":key==6?"x2":null;}
  static void Record(int key,bool down,string button,int x,int y){lock(gate){if(held[key]==down)return;string name=button==null?KeyName(key):null;if(button==null&&name==null)return;held[key]=down;edges.Enqueue(new Edge{seq=++sequence,ms=clock.ElapsedMilliseconds,key=name,button=button,action=down?"press":"release",x=x,y=y});while(edges.Count>1024)edges.Dequeue();}}
  static IntPtr OnKey(int code,IntPtr w,IntPtr l){if(captureEnabled&&code>=0){int message=w.ToInt32();if(message==0x100||message==0x101||message==0x104||message==0x105){int key=Marshal.ReadInt32(l);if(key>=0&&key<256)Record(key,message==0x100||message==0x104,null,0,0);}}return CallNextHookEx(keyboardHook,code,w,l);}

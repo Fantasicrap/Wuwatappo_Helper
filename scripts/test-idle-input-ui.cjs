@@ -6,8 +6,8 @@ const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/idle-optimized-1.0.3.
 const source=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-pp8VWaUF.js'),'utf8'),fns={};
 traverse(babelParse(source,'main.mjs',true),{FunctionDeclaration(p){if(['Uc','Vc'].includes(p.node.id.name))fns[p.node.id.name]=source.slice(p.node.start,p.node.end)}});
 let claps=0,counts=0,releases=0;
-const c={__wtKeysConnected:false,__wtKeyboard:{key:()=>{}},__wtAutoEmote:{down:()=>false},__wtPerformHelperAction:()=>{},__wtHotkeys:{nativeDown:()=>null,nativeUp:()=>{}},qr:new Set(),va:new Set(),Fo:false,Wa:false,Bs:()=>false,Ie:()=>false,se:{value:''},Yo:()=>{claps++},Wl:()=>{releases++},R:{incrementLocalClickCount:()=>counts++},nn:null,A:{value:3}};
-c.__wtThrust={down(){},up(){}};c.__wtFun={input(){},rawKey:()=>false};vm.createContext(c);vm.runInContext(fns.Uc+';'+fns.Vc+';Uc("Q");Uc("Q");Vc("Q");',c);
+const c={__wtKeyboard:{key:()=>{}},__wtAutoEmote:{down:()=>false},__wtPerformHelperAction:()=>{},__wtHotkeys:{nativeDown:()=>null,nativeUp:()=>{}},qr:new Set(),va:new Set(),Fo:false,Wa:false,Bs:()=>false,Ie:()=>false,se:{value:''},Yo:()=>{claps++},Wl:()=>{releases++},R:{incrementLocalClickCount:()=>counts++},nn:null,A:{value:3}};
+c.__wtThrust={down(){},up(){}};c.__wtFun={input(){}};c.__wtKey=(key,down)=>{c.__wtKeyboard.key(key,down);c.__wtFun.input("keyboard",key,down)};vm.createContext(c);vm.runInContext(fns.Uc+';'+fns.Vc+';Uc("Q");Uc("Q");Vc("Q");',c);
 assert.equal(claps,1);assert.equal(counts,1);assert.equal(releases,1);assert.equal(c.A.value,1);
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
@@ -29,7 +29,7 @@ assert.equal(claps,1);assert.equal(counts,1);assert.equal(releases,1);assert.equ
  const fetchOriginal=window.fetch;window.fetch=async(url,...args)=>{if(String(url).includes('/mouse?')){reads.mouse++;return{ok:true,json:async()=>({seq:0,available:true,keyboardAvailable:true,events:[]})}}if(String(url).includes('/state?')){reads.pad++;return{ok:true,json:async()=>({protocol:1,seq:padSeq,ms:padMs,frames:padFrames.splice(0)})}}return fetchOriginal(url,...args)};
  window.emit=async()=>{};
  });
- for(const file of ['patches/input-recorder.js','patches/keyboard-ui.js','patches/v103/mouse-feed.js'])await page.addScriptTag({content:fs.readFileSync(file,'utf8').replace(/export \{[^}]+\};?/g,'')});
+ for(const file of ['patches/input-recorder.js','patches/keyboard-ui.js','patches/input-edge-merge.js','patches/v103/mouse-feed.js'])await page.addScriptTag({content:fs.readFileSync(file,'utf8').replace(/export \{[^}]+\};?/g,'')});
  await page.addScriptTag({content:'var __wtKeyboard=__wtKeyboardUi.create({visible:()=>live,activity:__wtSyncMouseFeed,listen:async(n,fn)=>{events.set(n,fn);return()=>events.delete(n)},hotkeys:{read:()=>({record:"Ctrl+Alt+F10"}),editable:()=>false}});window.demo=__wtKeyboard;window.ready=demo.mount();'});
  await page.evaluate(()=>ready);await page.waitForTimeout(120);
  const dock=page.locator('.pet-dock-content');

@@ -43,10 +43,14 @@ const __wtPanelLayout=(()=>{
   interaction:['互动与表情','i弗TV 和按键自动表情'],
   maintenance:['程序与更新','启动、语言、版本与更新来源']
  };
+ // Optional modules add their own settings card without this file naming them.
+ const slots={};
+ function extend(id,title,description,render){sections[id]=[title,description];slots[id]=render}
  function group(h,id,children){
   styles();
   const [title,description]=sections[id];
   const primary=id==='basic';
+  if(slots[id])children=[...children,slots[id](h)];
   const heading=h(primary?'h2':'span',{class:'wt-ui-card-title'},title);
   const label=h('div',null,[heading,h('p',{class:'wt-ui-card-description'},description)]);
   return dynamic(h,primary?'section':'details',{class:'wt-ui-card'+(primary?' wt-ui-card--primary':''),'data-wt-section':id},[
@@ -85,6 +89,6 @@ const __wtPanelLayout=(()=>{
    }
   });
  }
- return{styles,group,button,basic,room,monitor};
+ return{styles,group,button,basic,room,monitor,extend};
 })();
 export {__wtPanelLayout};

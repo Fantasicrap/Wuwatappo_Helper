@@ -57,11 +57,13 @@ const __wtKeyboardUi=(()=>{
   const keys=new Map(),onAt=new Map(),timers=new Map(),urls=[],bubbleHeld=new Set();
   const bubbleHost=()=>root?.parentElement?.querySelector('.cat-stack');
   const bubbleActive=()=>!!root&&!disposed&&bubbles&&mode!=='hidden'&&(!deps.visible||deps.visible());
-  const inputLabels={Space:'空格',MouseLeft:'鼠标左键',MouseRight:'鼠标右键',MouseMiddle:'鼠标中键',MouseX1:'鼠标侧键 1',MouseX2:'鼠标侧键 2',ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→'};
+  const inputLabels={Space:'空格',MouseLeft:'鼠标左键',MouseRight:'鼠标右键',MouseMiddle:'鼠标中键',MouseX1:'鼠标侧键 1',MouseX2:'鼠标侧键 2',ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→',PrintScreen:'截图键',NumpadAdd:'小键盘 +',NumpadSubtract:'小键盘 −',NumpadMultiply:'小键盘 ×',NumpadDivide:'小键盘 ÷',NumpadDecimal:'小键盘 .',NumpadEnter:'小键盘 Enter',Minus:'−',Equal:'=',BracketLeft:'[',BracketRight:']',Semicolon:';',Quote:"'",Backslash:'\\',Comma:',',Period:'.',Slash:'/',Backquote:'`'};
   function hideBubble(){clearTimeout(bubbleTimer);bubbleTimer=null;bubble?.remove();bubble=null}
   function showBubble(label){
    const host=bubbleHost();if(!label||!host||!bubbleActive()||!allow())return;
    if(bubble?.parentElement!==host){hideBubble();bubble=doc.createElement('div');bubble.className='wt-input-bubble';host.append(bubble)}
+   // A theme may animate the bubble. Replay it for each input because the element is reused.
+   else for(const animation of bubble.getAnimations?.({subtree:true})??[]){animation.currentTime=0;animation.play()}
    bubble.textContent=label;clearTimeout(bubbleTimer);bubbleTimer=setTimeout(hideBubble,1000);
   }
   function inputActive(){return !!root&&!disposed&&(bubbleActive()||mode==='letters'||mode==='wuwa')&&(!deps.visible||deps.visible())}
@@ -147,11 +149,11 @@ const __wtKeyboardUi=(()=>{
   function key(raw,down,options={}){
    if(!root||(!inputActive()&&!options.control))return;
    if(bubbleActive()){
-    const name=Object.hasOwn(inputLabels,raw)?raw:deps.hotkeys?.normalizeKey?.(raw)||__wtInputRecorder.normalize(raw);
-    if(!name||name==='PrintScreen')return;
+    const name=Object.hasOwn(inputLabels,raw)?raw:deps.hotkeys?.displayKey?.(raw)||deps.hotkeys?.normalizeKey?.(raw)||__wtInputRecorder.normalize(raw);
+    if(!name)return;
     if(!down){bubbleHeld.delete(name);return}
     if(options.control||!allow()||bubbleHeld.has(name))return;
-    bubbleHeld.add(name);showBubble(inputLabels[name]??name);return;
+    bubbleHeld.add(name);showBubble(inputLabels[name]??name.replace(/^Numpad(?=\d$)/,'小键盘 '));return;
    }
    if(core.active&&deps.visible&&!deps.visible())finish('pet_hidden');
    const normalized=__wtInputRecorder.normalize(raw),before=core.active;

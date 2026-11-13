@@ -23,6 +23,14 @@ const __wtHotkeys=(()=>{
   const base=parts.filter(p=>!["Ctrl","Alt","Shift"].includes(p));if(base.length!==1)return null;
   return [...["Ctrl","Alt","Shift"].filter(p=>parts.includes(p)),base[0]].join("+");
  }
+ const displayAliases={contextmenu:"ContextMenu",apps:"ContextMenu",pause:"Pause",numlock:"NumLock",scrolllock:"ScrollLock",multiply:"NumpadMultiply",add:"NumpadAdd",subtract:"NumpadSubtract",decimal:"NumpadDecimal",divide:"NumpadDivide",oem102:"IntlBackslash"};
+ function displayKey(raw){
+  const text=String(raw??""),id=text.toLowerCase();
+  const side=id.match(/^(?:left|right)(shift|ctrl|control|alt|meta|win)$/);
+  const keypad=id.match(/^(?:numpad|kp)(\d|add|subtract|multiply|divide|decimal|enter|equal|separator)$/);
+  if(keypad)return "Numpad"+keypad[1][0].toUpperCase()+keypad[1].slice(1);
+  return normalizeKey(side?.[1]??text)||displayAliases[id]||(/^(IntlBackslash|IntlRo|IntlYen|Convert|NonConvert|KanaMode|Lang[1-5]|Launch[A-Za-z]+|Media[A-Za-z]+|AudioVolume[A-Za-z]+|Browser[A-Za-z]+)$/.test(text)?text:"");
+ }
  function validate(config){
   const errors=[],warnings=[],used=new Map();
   for(const action of actions){const value=canonical(config[action.id]);
@@ -66,21 +74,21 @@ const __wtHotkeys=(()=>{
   return model;
  }
  function render(h,model){
-  const button={height:"28px",lineHeight:"normal",display:"inline-flex",alignItems:"center",justifyContent:"center",padding:"0 8px",border:"1px solid #E7B77C",borderRadius:"8px",background:"#fff5e2",color:"#784b33",cursor:"pointer",fontSize:"13px",whiteSpace:"nowrap"};
+  const button={height:"28px",lineHeight:"normal",display:"inline-flex",alignItems:"center",justifyContent:"center",padding:"0 8px",border:"1px solid var(--wt-ui-border,#E7B77C)",borderRadius:"8px",background:"var(--wt-ui-field,#fff5e2)",color:"var(--wt-ui-text,#784b33)",cursor:"pointer",fontSize:"13px",whiteSpace:"nowrap"};
   const row=action=>h("div",{key:action.id,class:"wt-ui-key-row"},[
-   h("span",{style:{fontSize:"13px",color:"#784b33"}},action.label),
-   h("input",{"aria-label":action.label,readonly:true,value:model.recording.value===action.id?"请按新快捷键":model.draft.value[action.id]||"未设置",style:{width:"140px",minWidth:"0",height:"30px",boxSizing:"border-box",border:"1px solid #E7B77C",borderRadius:"8px",background:"#fffaf1",padding:"0 7px",fontSize:"13px",color:"#784b33"},onFocus:()=>model.start(action.id),onClick:()=>model.start(action.id),onBlur:model.finish,onKeydown:event=>model.record(action.id,event)},null,8,["value"]),
+   h("span",{style:{fontSize:"13px",color:"var(--wt-ui-text,#784b33)"}},action.label),
+   h("input",{"aria-label":action.label,readonly:true,value:model.recording.value===action.id?"请按新快捷键":model.draft.value[action.id]||"未设置",style:{width:"140px",minWidth:"0",height:"30px",boxSizing:"border-box",border:"1px solid var(--wt-ui-border,#E7B77C)",borderRadius:"8px",background:"var(--wt-ui-field,#fffaf1)",padding:"0 7px",fontSize:"13px",color:"var(--wt-ui-text,#784b33)"},onFocus:()=>model.start(action.id),onClick:()=>model.start(action.id),onBlur:model.finish,onKeydown:event=>model.record(action.id,event)},null,8,["value"]),
    h("button",{type:"button",style:button,onClick:()=>model.clear(action.id)},"清除")
   ]);
   const slots=actions.filter(action=>action.id.startsWith('emote'));
-  return h("div",{class:"wt-hotkey-settings",style:{margin:"18px 0",padding:"12px 0",borderTop:"1px solid #EFD4B7",borderBottom:"1px solid #EFD4B7"}},[
-   h("div",{style:{fontSize:"18px",fontWeight:"600",color:"#8e5e43",marginBottom:"8px"}},"快捷键设置"),
-   h("div",{style:{fontSize:"12px",lineHeight:"1.5",color:"#8e7b6a"}},"点击输入框录制，支持 Ctrl / Alt / Shift 组合；Esc 取消。清除后可禁用对应快捷键。"),
+  return h("div",{class:"wt-hotkey-settings",style:{margin:"18px 0",padding:"12px 0",borderTop:"1px solid var(--wt-ui-divider,#EFD4B7)",borderBottom:"1px solid var(--wt-ui-divider,#EFD4B7)"}},[
+   h("div",{style:{fontSize:"18px",fontWeight:"600",color:"var(--wt-ui-text,#8e5e43)",marginBottom:"8px"}},"快捷键设置"),
+   h("div",{style:{fontSize:"12px",lineHeight:"1.5",color:"var(--wt-ui-muted,#8e7b6a)"}},"点击输入框录制，支持 Ctrl / Alt / Shift 组合；Esc 取消。清除后可禁用对应快捷键。"),
    ...actions.filter(action=>!action.id.startsWith('emote')).map(row),
    h('details',{class:'wt-ui-optional'},[h('summary',null,'表情快捷键（6 个槽位）'),...slots.map(row)]),
    h("div",{style:{display:"flex",gap:"8px",marginTop:"10px"}},[h("button",{type:"button",style:button,onClick:model.save},"保存快捷键"),h("button",{type:"button",style:button,onClick:model.reset},"恢复默认")]),
-   h("div",{role:"status",style:{fontSize:"12px",lineHeight:"1.5",marginTop:"8px",color:model.error.value?"#b33a25":"#8e7b6a"}},model.message.value,5),
-   h("div",{style:{fontSize:"12px",lineHeight:"1.5",color:"#8e7b6a",marginTop:"6px"}},"表情槽位按菜单顺序对应当前装备；无需展开菜单。冲突检测覆盖本程序，其他软件占用无法完全检测。")
+   h("div",{role:"status",style:{fontSize:"12px",lineHeight:"1.5",marginTop:"8px",color:model.error.value?"#b33a25":"var(--wt-ui-muted,#8e7b6a)"}},model.message.value,5),
+   h("div",{style:{fontSize:"12px",lineHeight:"1.5",color:"var(--wt-ui-muted,#8e7b6a)",marginTop:"6px"}},"表情槽位按菜单顺序对应当前装备；无需展开菜单。冲突检测覆盖本程序，其他软件占用无法完全检测。")
   ]);
  }
  if(typeof window!=="undefined"){
@@ -88,6 +96,6 @@ const __wtHotkeys=(()=>{
   window.addEventListener("focusin",event=>{if(editable(event.target))capture(true)},true);
   window.addEventListener("focusout",event=>{if(editable(event.target))capture(false)},true);
  }
- return{actions,defaults,normalizeKey,canonical,validate,read,save,fromEvent,nativeDown,nativeUp,forward,capture,editable,createSettings,render};
+ return{actions,defaults,normalizeKey,displayKey,canonical,validate,read,save,fromEvent,nativeDown,nativeUp,forward,capture,editable,createSettings,render};
 })();
 export{__wtHotkeys};

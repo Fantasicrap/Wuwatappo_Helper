@@ -15,19 +15,28 @@ const __wtLocalWardrobe=(()=>{
    const next={...record,[value.type==='character_skin'?'characterId':'accessoryId']:value.id};localStorage.setItem(prefix+owner,JSON.stringify(next));record=next;reapply();changed();toast('已本地试装，云端角色和配件保持不变')
   }catch(error){toast('图鉴试装失败：'+(error?.message||'请重试'))}finally{busy=false}}
   const stop=watch(()=>[getAppearanceAssetById(characterId.value)?.url,getAppearanceAssetById(accessoryId.value)?.url,...(emoteIds.value??[]).map(id=>getAppearanceAssetById(id)?.url)],reapply);
-  return{characterId,accessoryId,emoteIds,select,sync,clear,reapply,start(){started=true;owner=account();record=readRecord();reapply()},accountChanged(){owner=account();record=readRecord();characterId.value=0;accessoryId.value=null;emoteIds.value=null;restore();reapply();changed()},role(base){if(mode.value&&characterId.value){const meta=getAppearanceAssetById(characterId.value);return{id:meta?.game_role_id??0,name:resolveAppearanceAssetFileName(characterId.value)}}return base},offset(original){if(mode.value&&characterId.value){const meta=getAppearanceAssetById(characterId.value);return{x:Number(meta?.offset_x)||0,y:Number(meta?.offset_y)||0}}return original()},dispose(){disposed=true;stop()}};
+  function role(base){
+   const name=String(base.name??getShown().character??'');
+   const file=name.split(/[?#]/,1)[0].split(/[\\/]/).at(-1);
+   const id=mode.value&&characterId.value;
+   const shown=id?getAppearanceAssetById(id):null;
+   const meta=shown&&resolveAppearanceAssetFileName(id)===file?shown:file&&typeof findAppearanceAssetByFileKey==='function'?findAppearanceAssetByFileKey(file,'character_skin'):null;
+   const namedRole=/^role_(\d+)(?:[_-]|\.png$|$)/i.exec(file)?.[1];
+   return {id:Number(meta?.game_role_id)||Number(namedRole)||base.id,name};
+  }
+  return{characterId,accessoryId,emoteIds,select,sync,clear,reapply,start(){started=true;owner=account();record=readRecord();reapply()},accountChanged(){owner=account();record=readRecord();characterId.value=0;accessoryId.value=null;emoteIds.value=null;restore();reapply();changed()},role,offset(original){if(mode.value&&characterId.value){const meta=getAppearanceAssetById(characterId.value);return{x:Number(meta?.offset_x)||0,y:Number(meta?.offset_y)||0}}return original()},dispose(){disposed=true;stop()}};
  }
  function settings(ref,toast){const model={mode:ref(enabled())};model.toggle=async value=>{try{localStorage.setItem(key,value?'1':'0');model.mode.value=!!value;await emit('wt-wardrobe-mode-updated',{});toast(value?'图鉴试装已开启':'图鉴试装已关闭，恢复云端外观')}catch{toast('图鉴试装设置保存失败')}};model.reset=()=>emit('wt-wardrobe-reset',{}).catch(()=>toast('恢复外观失败'));return model}
  function canEmote(item,ids){const id=resolvePetAssetIdFromAppearanceId(Number(item.asset_id));return ids.includes(id)||ids.length<6}
  function selected(item,name){if(!name)return false;const id=resolvePetAssetIdFromAppearanceId(Number(item.asset_id));return resolveAppearanceAssetFileName(id).replace(/\.png$/i,'')===String(name).replace(/\.png$/i,'')}
  function renderSettings(h,model){
-  const node=h('section',{class:'wt-atlas-preview-settings',style:{padding:'10px 12px',margin:'0 0 10px',border:'1px solid #e3c9aa',borderRadius:'14px',background:'#fff9ed',color:'#694832'}},[
+  const node=h('section',{class:'wt-atlas-preview-settings',style:{padding:'10px 12px',margin:'0 0 10px',border:'1px solid var(--wt-ui-border,#e3c9aa)',borderRadius:'14px',background:'var(--wt-ui-card-fill,#fff9ed)',color:'var(--wt-ui-text,#694832)'}},[
    h('div',{style:{display:'flex',gap:'8px',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap'}},[
     h('label',{style:{display:'flex',gap:'8px',alignItems:'center',fontSize:'15px',fontWeight:'600'}},[
      h('input',{type:'checkbox',checked:model.mode.value,onChange:event=>model.toggle(event.target.checked)}),h('span',null,'启用图鉴试装')]),
-    h('button',{type:'button',style:{position:'static',font:'inherit',padding:'5px 10px',border:'1px solid #d6ae83',borderRadius:'9px',background:'#fffaf1',color:'#68452f'},onClick:model.reset},'恢复云端外观')
+    h('button',{type:'button',style:{position:'static',font:'inherit',padding:'5px 10px',border:'1px solid var(--wt-ui-border,#d6ae83)',borderRadius:'9px',background:'var(--wt-ui-field,#fffaf1)',color:'var(--wt-ui-text,#68452f)'},onClick:model.reset},'恢复云端外观')
    ]),
-   h('p',{style:{fontSize:'12px',lineHeight:'1.5',margin:'6px 0 0',color:'#775e4b'}},'试装在本机生效。表情最多六槽，再点已选表情可卸下。')
+   h('p',{style:{fontSize:'12px',lineHeight:'1.5',margin:'6px 0 0',color:'var(--wt-ui-muted,#775e4b)'}},'试装在本机生效。表情最多六槽，再点已选表情可卸下。')
   ],512);
   node.patchFlag=-2;
   return node;

@@ -4,7 +4,7 @@
 
 WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前正式版为 **Helper v1.0.4.7**，适配官方 WuwaTappo v1.0.4。
+当前正式版为 **Helper v1.0.4.7-Aemeath**，适配官方 WuwaTappo v1.0.4。
 
 ## 已实现功能
 
@@ -13,8 +13,7 @@ WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、�
 - ✅ **库存长图与合成提醒** — 按角色、配件和表情分区导出 PNG，附稀有度占比和官方参考概率。可独立开启平阶、升阶提醒。
 - ✅ **图鉴试装与表情** — 可在本机试装角色、配件及六槽表情，支持快捷键和按键自动表情。见[图鉴试装](docs/图鉴试装.md)。
 - ✅ **i弗TV 专属互动** — BE / HE 两种分支，支持配件动画、道具掉落和可自定义的按键台词。见[i弗TV 说明](docs/i弗TV.md)。
-- ✅ **外观主题** — 在「设置 → 互动与表情」切换原版暖色和爱弥斯主题，可自定义爱弥斯主题的面板背景。见[主题说明](docs/主题.md)。
-- ✅ **飞行雪绒播放器** — 点击计数栏星星打开，默认内置《远航星的告别》《小小奇迹》《星炬不熄》三首歌曲；也可选择本机音乐文件夹，与默认曲目一起播放。见[主题说明](docs/主题.md)。
+- ✅ **爱弥斯主题与飞行雪绒播放器** — 粉色界面、可自定义背景、输入气泡与波纹宝箱。爱弥斯六套已核对的外观都可开启隧者伴飞、升空激光及隧者大剑。点计数栏的星星打开播放器。见[主题说明](docs/主题.md)。
 - ✅ **桌面辅助** — 默认显示器、可自定义快捷键与冲突提醒、本地点击数、防连点、延迟 5 秒自动领取宝箱。
 - ✅ **低保与轻量版** — 可在余额低于 10000 时自动触发一次本地 `+10000`。Lite 单文件只加入基础辅助功能。
 - ✅ **应用内更新** — 官方升版时由 Helper 接管更新提示。从 GitHub 查找匹配的正式版，可选 GH-Proxy 加速下载，校验后安装。
@@ -24,18 +23,21 @@ WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 ## 下载
 
-**GitHub 正式下载** · v1.0.4.7 [单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Wuwatappo_Helper-1.0.4.7.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/SHA256SUMS.txt)
+**GitHub 正式下载** · [v1.0.4.7-Aemeath 发布页](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/v1.0.4.7) · [单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Wuwatappo_Helper-1.0.4.7.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/SHA256SUMS.txt) · [激光预览 MP4](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Aemeath-Laser-Preview.mp4) · [大剑预览 MP4](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Aemeath-Greatsword-Preview.mp4)
 
 > 本版为单文件 EXE，已内置三首默认歌曲；安装包、免安装 ZIP 和轻量版请使用下方 v1.0.4.5 完整包。启动前请从托盘完全退出旧版。
 
-**v1.0.4.7 更新说明**
+**v1.0.4.7-Aemeath 更新说明**
 
-1. 完成新主题「爱弥斯」：粉色界面、面板背景、按键气泡和桌宠互动效果。
-2. 新增「飞行雪绒」播放器，默认内置《远航星的告别》《小小奇迹》《星炬不熄》三首歌曲，也可以选择本机音乐文件夹。
+1. 按正在显示的角色素材识别爱弥斯，覆盖普通装备与图鉴试装。伴飞机兵随 EXE 内置。
+2. 机兵激光从机兵正下方扫到角色对侧上方。隧者大剑每次新敲击有 1% 概率触发，成功后冷却 10 分钟。
+3. 飞行雪绒播放器内置《远航星的告别》《小小奇迹》《星炬不熄》，支持滚轮、拖动曲目列表和选本机音乐文件夹。三首歌曲经授权随版本分发，最终权利归歌曲作者和库洛游戏公司所有。
+
+已下载初版 v1.0.4.7 的用户，请从托盘完全退出旧版并重新下载单文件 EXE。
 
 **上一版 v1.0.4.5 完整包** · [完整版安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Setup.exe) · [完整版免安装 ZIP](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Portable.zip) · [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5.exe) · [轻量版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Lite.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/SHA256SUMS.txt)
 
-**中国大陆备用下载（第三方 GH-Proxy）** · v1.0.4.7 [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Wuwatappo_Helper-1.0.4.7.exe)
+**中国大陆备用下载（第三方 GH-Proxy）** · [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Wuwatappo_Helper-1.0.4.7.exe)
 
 [最新正式发布](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/latest) · [历史版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
 

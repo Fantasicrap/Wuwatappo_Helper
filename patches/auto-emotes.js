@@ -22,10 +22,10 @@ const __wtAutoEmotes=(()=>{
   return{down,sync,refresh,inventory,start(){if(!disposed&&!active){active=true;refresh()}},dispose(){disposed=true;epoch++;items=[];window.removeEventListener('storage',changed)}};
  }
  function settings(ref,toast){const model={mode:ref(read())};model.save=async value=>{const next=valid(value);try{localStorage.setItem(key,next);model.mode.value=next;await emit('wt-auto-emotes-updated',{});toast('按键自动表情：'+choices.find(([id])=>id===next)[1])}catch{toast('自动表情设置保存或同步失败，请重新打开设置检查')}};return model}
- function renderSettings(h,model){return h('section',{class:'wt-auto-emote-settings',style:{padding:'12px 0',margin:'12px 0',borderTop:'1px solid #efd4b7',color:'#8e5e43'}},[
+ function renderSettings(h,model){return h('section',{class:'wt-auto-emote-settings',style:{padding:'12px 0',margin:'12px 0',borderTop:'1px solid var(--wt-ui-divider,#efd4b7)',color:'var(--wt-ui-text,#8e5e43)'}},[
   h('label',{for:'wt-auto-emote-mode',style:{display:'block',fontSize:'18px',fontWeight:'600',marginBottom:'8px'}},'按键自动表情'),
-  h('select',{id:'wt-auto-emote-mode',value:model.mode.value,style:{position:'static',width:'100%',maxWidth:'320px',boxSizing:'border-box',padding:'7px 10px',border:'1px solid #e7b77c',borderRadius:'9px',background:'#fff8e9',color:'#8e5e43',font:'inherit'},onChange:event=>model.save(event.target.value)},choices.map(([value,label])=>h('option',{value},label))),
-  h('p',{style:{fontSize:'12px',lineHeight:'1.6',margin:'7px 0 0',color:'#8e7b6a'}},'键盘按下触发，长按不连发；任意1秒内最多3次，不补发。装备栏按槽位轮流发送；随机模式需登录并读取库存，联机沿用原版发送流程。')])}
+  h('select',{id:'wt-auto-emote-mode',value:model.mode.value,style:{position:'static',width:'100%',maxWidth:'320px',boxSizing:'border-box',padding:'7px 10px',border:'1px solid var(--wt-ui-border,#e7b77c)',borderRadius:'9px',background:'var(--wt-ui-field,#fff8e9)',color:'var(--wt-ui-text,#8e5e43)',font:'inherit'},onChange:event=>model.save(event.target.value)},choices.map(([value,label])=>h('option',{value},label))),
+  h('p',{style:{fontSize:'12px',lineHeight:'1.6',margin:'7px 0 0',color:'var(--wt-ui-muted,#8e7b6a)'}},'键盘按下触发，长按不连发；任意1秒内最多3次，不补发。装备栏按槽位轮流发送；随机模式需登录并读取库存，联机沿用原版发送流程。')])}
  return{key,read,pool,create,settings,renderSettings};
 })();
 export {__wtAutoEmotes};

@@ -45,6 +45,10 @@
           "my_offset_y": 0
         }
       },
+      "26": {
+        "game_role_id": 1210,
+        "url": "character/8049030e-4a76-4f24-b699-0c3f84ab6304.png?v=1791270693061"
+      },
       "92": {
         "game_role_id": 1608,
         "url": "character/f53ca683-0b46-4ecf-9efe-ed2da50f36df.png?v=1791270704567",
@@ -87,6 +91,26 @@
           "my_offset_x": 0,
           "my_offset_y": 0
         }
+      },
+      "266": {
+        "game_role_id": 1210,
+        "url": "character/5aff5d04-0fda-4226-b7a3-bbeddccfc6fa.png?v=1791272941613"
+      },
+      "422": {
+        "game_role_id": 1210,
+        "url": "character/bb3cfbbb-e76e-4cec-abb5-539a606fa6a1.png?v=1791274316994"
+      },
+      "662": {
+        "game_role_id": 1210,
+        "url": "character/ac663ce4-afa1-4d63-b0bf-018fdb218730.png?v=1791275557087"
+      },
+      "950": {
+        "game_role_id": 1210,
+        "url": "character/16670bb6-c257-4ea0-86ba-65a776274430.png?v=1791439706060"
+      },
+      "3006": {
+        "game_role_id": 1210,
+        "url": "character/7417e5e9-e343-4ef8-b20b-c9419246e3a8.png"
       }
     },
     "accessory": {
@@ -118,6 +142,9 @@
       }
     },
     "character_skin_atlas": {
+      "1135": {
+        "height_light_id": 26
+      },
       "1171": {
         "height_light_id": 92,
         "game_role_id": 0,
@@ -126,6 +153,21 @@
         "offset_y": 0,
         "my_offset_x": 0,
         "my_offset_y": 0
+      },
+      "1200": {
+        "height_light_id": 266
+      },
+      "1242": {
+        "height_light_id": 422
+      },
+      "1296": {
+        "height_light_id": 950
+      },
+      "1334": {
+        "height_light_id": 662
+      },
+      "2851": {
+        "height_light_id": 3006
       }
     },
     "accessory_atlas": {

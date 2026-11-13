@@ -21,15 +21,15 @@ foreach($check in @($demand,$padDemand)){
 }
 $record=$type.GetMethod('Record',[Reflection.BindingFlags]'NonPublic,Static')
 $snapshot=$type.GetMethod('Snapshot',[Reflection.BindingFlags]'Public,Static')
-foreach($vk in @(49,50,51,81,69,82,32,1,2)){
+$expected=@('1','2','3','Q','E','R','Space','left','right','ArrowLeft','Tab','Shift','F12','Numpad1','Semicolon','PrintScreen','MediaPlayPause')
+foreach($vk in @(49,50,51,81,69,82,32,1,2,37,9,160,123,97,186,44,179)){
  $button=if($vk -eq 1){'left'}elseif($vk -eq 2){'right'}else{$null}
  $record.Invoke($null,@([int]$vk,$true,$button,[int]0,[int]0))|Out-Null
  $record.Invoke($null,@([int]$vk,$true,$button,[int]0,[int]0))|Out-Null
  $record.Invoke($null,@([int]$vk,$false,$button,[int]0,[int]0))|Out-Null
 }
 $data=$snapshot.Invoke($null,@([long]0))|ConvertTo-Json -Depth 5|ConvertFrom-Json
-if($data.events.Count -ne 18){throw 'Repeated presses were not deduplicated'}
-$expected=@('1','2','3','Q','E','R','Space','left','right')
-for($i=0;$i -lt 9;$i++){$down=$data.events[$i*2];$up=$data.events[$i*2+1];$name=if($down.key){$down.key}else{$down.button};if($name -ne $expected[$i] -or $down.action -ne 'press' -or $up.action -ne 'release'){throw 'Raw edge mapping mismatch'}}
+if($data.events.Count -ne $expected.Count*2){throw 'Repeated presses were not deduplicated'}
+for($i=0;$i -lt $expected.Count;$i++){$down=$data.events[$i*2];$up=$data.events[$i*2+1];$name=if($down.key){$down.key}else{$down.button};if($name -ne $expected[$i] -or $down.action -ne 'press' -or $up.action -ne 'release'){throw 'Raw edge mapping mismatch'}}
 @{passed=$true;syntheticRecordTest=$true;allNineControls=$true;duplicatePressesIgnored=$true;realGameTested=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $DistributionDirectory 'raw-input-verification.json') -Encoding utf8NoBOM
-Write-Output 'PASS: native raw key and mouse mapping preserves 18 edges for all nine controls.'
+Write-Output 'PASS: native raw key and mouse mapping preserves press and release edges, including extended keyboard controls.'

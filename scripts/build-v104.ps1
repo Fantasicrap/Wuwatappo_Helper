@@ -7,6 +7,8 @@ $migration=Join-Path $repoRoot "dist/migration-$version"
 $payload=Join-Path $migration 'payload.exe'
 & node (Join-Path $PSScriptRoot 'inspect-upstream.cjs') $SourceExe (Join-Path $repoRoot 'dist/upstream-1.0.4')
 if($LASTEXITCODE -ne 0){throw 'Extraction failed'}
+# Optional theme pictures. The script reports what it skipped and never blocks the build.
+& node (Join-Path $PSScriptRoot 'build-theme-assets.cjs')
 & node (Join-Path $repoRoot 'patches/v103/build-preview.cjs') --v104
 if($LASTEXITCODE -ne 0){throw '1.0.4 resource migration failed'}
 & node (Join-Path $PSScriptRoot 'test-v103-suite.cjs')
