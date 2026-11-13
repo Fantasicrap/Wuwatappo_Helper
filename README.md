@@ -4,7 +4,7 @@
 
 WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前正式版为 **Helper v1.0.4.6**，适配官方 WuwaTappo v1.0.4。
+当前正式版为 **Helper v1.0.4.7**，适配官方 WuwaTappo v1.0.4。
 
 ## 已实现功能
 
@@ -13,6 +13,8 @@ WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、�
 - ✅ **库存长图与合成提醒** — 按角色、配件和表情分区导出 PNG，附稀有度占比和官方参考概率。可独立开启平阶、升阶提醒。
 - ✅ **图鉴试装与表情** — 可在本机试装角色、配件及六槽表情，支持快捷键和按键自动表情。见[图鉴试装](docs/图鉴试装.md)。
 - ✅ **i弗TV 专属互动** — BE / HE 两种分支，支持配件动画、道具掉落和可自定义的按键台词。见[i弗TV 说明](docs/i弗TV.md)。
+- ✅ **外观主题** — 在「设置 → 互动与表情」切换原版暖色和爱弥斯主题，可自定义爱弥斯主题的面板背景。见[主题说明](docs/主题.md)。
+- ✅ **飞行雪绒播放器** — 点击计数栏星星打开，默认内置《远航星的告别》《小小奇迹》《星炬不熄》三首歌曲；也可选择本机音乐文件夹，与默认曲目一起播放。见[主题说明](docs/主题.md)。
 - ✅ **桌面辅助** — 默认显示器、可自定义快捷键与冲突提醒、本地点击数、防连点、延迟 5 秒自动领取宝箱。
 - ✅ **低保与轻量版** — 可在余额低于 10000 时自动触发一次本地 `+10000`。Lite 单文件只加入基础辅助功能。
 - ✅ **应用内更新** — 官方升版时由 Helper 接管更新提示。从 GitHub 查找匹配的正式版，可选 GH-Proxy 加速下载，校验后安装。
@@ -22,20 +24,18 @@ WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 ## 下载
 
-**GitHub 正式下载** · v1.0.4.6 [单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.6/Wuwatappo_Helper-1.0.4.6.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.6/SHA256SUMS.txt)
+**GitHub 正式下载** · v1.0.4.7 [单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Wuwatappo_Helper-1.0.4.7.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/SHA256SUMS.txt)
 
-> 本版提供单文件 EXE；安装包、免安装 ZIP 和轻量版请使用下方 v1.0.4.5 完整包。启动前请从托盘完全退出旧版。
+> 本版为单文件 EXE，已内置三首默认歌曲；安装包、免安装 ZIP 和轻量版请使用下方 v1.0.4.5 完整包。启动前请从托盘完全退出旧版。
 
-**v1.0.4.6 更新说明**
+**v1.0.4.7 更新说明**
 
-1. 优化了一些已知bug
-2. 飞行雪绒爱弥斯在兑换码界面添加了一个进入虚质空间的入口等待大家发现。
-
-同版本修复：设置页切换输入映射时，分组偶发消失或错位的问题。
+1. 完成新主题「爱弥斯」：粉色界面、面板背景、按键气泡和桌宠互动效果。
+2. 新增「飞行雪绒」播放器，默认内置《远航星的告别》《小小奇迹》《星炬不熄》三首歌曲，也可以选择本机音乐文件夹。
 
 **上一版 v1.0.4.5 完整包** · [完整版安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Setup.exe) · [完整版免安装 ZIP](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Portable.zip) · [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5.exe) · [轻量版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Lite.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/SHA256SUMS.txt)
 
-**中国大陆备用下载（第三方 GH-Proxy）** · v1.0.4.6 [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.6/Wuwatappo_Helper-1.0.4.6.exe)
+**中国大陆备用下载（第三方 GH-Proxy）** · v1.0.4.7 [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Wuwatappo_Helper-1.0.4.7.exe)
 
 [最新正式发布](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/latest) · [历史版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
 
@@ -64,7 +64,7 @@ Helper 版本号的前三段对应官方桌宠版本，第四段是 Helper 的�
 
 只在服务器返回有效房间成员快照、确认当前账号在房间后记录；无效、已满或关闭的房间仍由官方接口校验。历史保存在本机应用偏好中，不从服务器追溯旧记录，也不会随单 EXE 分享给别人。详细行为见[使用说明](docs/使用说明.md#历史房间)。
 
-已补回 EXE 的原版六档图标（16/24/32/48/64/256 像素），安装程序与安装后的快捷方式也使用原版图标。构建时从原件提取，逐帧核验，避免再次丢失。
+已补回 EXE 的原版六档图标（16/24/32/48/64/256 像素），安装程序与安装后的快捷方式也使用原版图标。构建时从原件提取，逐帧核验，避免再次丢失。本机构建时如果准备了爱弥斯主题素材，EXE 会改用同样六档的爱弥斯图标；设置环境变量 `WUWA_ORIGINAL_ICON=1` 可保留原版图标，详见[主题说明](docs/主题.md#exe-图标)。
 
 ## 手柄显示与录制
 
@@ -166,5 +166,7 @@ pwsh -File scripts/build.ps1 -SourceExe 'F:\WuwaTappo\WuwaTappo.exe' -IsccPath '
 ### 发布流程
 
 在 Windows 本地用已核验的官方原件打包。以默认分支的发布提交创建对应版本的 GitHub Release 草稿，上传完整版 EXE、安装包、免安装 ZIP、轻量版 EXE 和 `SHA256SUMS.txt`。在 Actions 中运行 **Verify and publish release**，填写草稿 ID。工作流核对版本、目标提交和附件 SHA-256 后公开发布。
+
+包含默认歌单的发行版须在发布说明中注明：歌曲版权归原创作者及相关权利人所有。如有侵权，请通过 [GitHub Issues](https://github.com/Fantasicrap/Wuwatappo_Helper/issues) 联系下架。
 
 详见 [免责声明](DISCLAIMER.txt) 与 [第三方说明](THIRD_PARTY_NOTICES.md)。
