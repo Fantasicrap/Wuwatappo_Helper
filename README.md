@@ -25,7 +25,7 @@ WuwaTappo 1.0.5 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 **GitHub 正式下载** · v1.0.5.1 [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.1/Wuwatappo_Helper-1.0.5.1.exe) · [Lite 单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.1/Wuwatappo_Helper-1.0.5.1-Lite.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.1/SHA256SUMS.txt)
 
-> 本版提供完整版与 Lite 单文件 EXE，均已内置默认三首歌曲。启动前请从托盘完全退出旧版。
+> 本版提供完整版与 Lite 单文件 EXE。完整版内置三首默认歌曲；Lite 不包含播放器。启动前请从托盘完全退出旧版。
 
 **v1.0.5.1 更新说明**
 
@@ -34,7 +34,7 @@ WuwaTappo 1.0.5 的非官方 Windows 辅助修改版本。原程序、角色、�
 - 保留输入映射、录制、库存长图、图鉴试装、自动开箱、合成提醒、爱弥斯主题与播放器。
 - 修复高回报率鼠标拖动时的移动事件积压，以及图鉴和设置下拉菜单被裁切的问题。
 
-点计数栏的星星会在桌宠旁打开飞行雪绒播放器，点击右上角可关闭；也可从本机音乐文件夹选歌。内置《远航星的告别》《小小奇迹》《星炬不熄》，三首歌曲经授权随版本分发，最终权利归歌曲作者和库洛游戏公司所有。
+完整版点计数栏的星星会在桌宠旁打开飞行雪绒播放器，点击右上角可关闭；也可从本机音乐文件夹选歌。内置《远航星的告别》《小小奇迹》《星炬不熄》，三首歌曲经授权随版本分发，最终权利归歌曲作者和库洛游戏公司所有。
 
 **中国大陆备用下载（第三方 GH-Proxy）** · v1.0.5.1 [完整版](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.1/Wuwatappo_Helper-1.0.5.1.exe) · [Lite](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.1/Wuwatappo_Helper-1.0.5.1-Lite.exe)
 
