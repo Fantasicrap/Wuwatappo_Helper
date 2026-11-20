@@ -2,9 +2,9 @@
 
 **仅供娱乐使用，创作者概不负责。**
 
-WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
+WuwaTappo 1.0.5 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前正式版为 **Helper v1.0.4.7-Aemeath**，适配官方 WuwaTappo v1.0.4。
+当前正式版为 **Helper v1.0.5.1**，适配官方 WuwaTappo v1.0.5。
 
 ## 已实现功能
 
@@ -23,21 +23,22 @@ WuwaTappo 1.0.4 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 ## 下载
 
-**GitHub 正式下载** · [v1.0.4.7-Aemeath 发布页](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/v1.0.4.7) · [单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Wuwatappo_Helper-1.0.4.7.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/SHA256SUMS.txt) · [激光预览 MP4](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Aemeath-Laser-Preview.mp4) · [大剑预览 MP4](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Aemeath-Greatsword-Preview.mp4)
+**GitHub 正式下载** · v1.0.5.1 [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.1/Wuwatappo_Helper-1.0.5.1.exe) · [Lite 单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.1/Wuwatappo_Helper-1.0.5.1-Lite.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.1/SHA256SUMS.txt)
 
-> 本版为单文件 EXE，已内置三首默认歌曲；安装包、免安装 ZIP 和轻量版请使用下方 v1.0.4.5 完整包。启动前请从托盘完全退出旧版。
+> 本版提供完整版与 Lite 单文件 EXE，均已内置默认三首歌曲。启动前请从托盘完全退出旧版。
 
-**v1.0.4.7-Aemeath 更新说明**
+**v1.0.5.1 更新说明**
 
-1. 按正在显示的角色素材识别爱弥斯，覆盖普通装备与图鉴试装。伴飞机兵随 EXE 内置。
-2. 机兵激光从机兵正下方扫到角色对侧上方。隧者大剑每次新敲击有 1% 概率触发，成功后冷却 10 分钟。
-3. 飞行雪绒播放器内置《远航星的告别》《小小奇迹》《星炬不熄》，支持滚轮、拖动曲目列表和选本机音乐文件夹。三首歌曲随版本分发，最终权利归歌曲作者和库洛游戏公司所有。
+- 适配官方 WuwaTappo v1.0.5。
+- 沿用官方踢人、转让房主和仅显示自己，保留 Helper 的联机布局和位置记忆。
+- 保留输入映射、录制、库存长图、图鉴试装、自动开箱、合成提醒、爱弥斯主题与播放器。
+- 修复高回报率鼠标拖动时的移动事件积压，以及图鉴和设置下拉菜单被裁切的问题。
 
-已下载初版 v1.0.4.7 的用户，请从托盘完全退出旧版并重新下载单文件 EXE。
+点计数栏的星星会在桌宠旁打开飞行雪绒播放器，点击右上角可关闭；也可从本机音乐文件夹选歌。内置《远航星的告别》《小小奇迹》《星炬不熄》，三首歌曲经授权随版本分发，最终权利归歌曲作者和库洛游戏公司所有。
+
+**中国大陆备用下载（第三方 GH-Proxy）** · v1.0.5.1 [完整版](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.1/Wuwatappo_Helper-1.0.5.1.exe) · [Lite](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.1/Wuwatappo_Helper-1.0.5.1-Lite.exe)
 
 **上一版 v1.0.4.5 完整包** · [完整版安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Setup.exe) · [完整版免安装 ZIP](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Portable.zip) · [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5.exe) · [轻量版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/Wuwatappo_Helper-1.0.4.5-Lite.exe) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.5/SHA256SUMS.txt)
-
-**中国大陆备用下载（第三方 GH-Proxy）** · [单文件 EXE](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.4.7/Wuwatappo_Helper-1.0.4.7.exe)
 
 [最新正式发布](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/latest) · [历史版本](https://github.com/Fantasicrap/Wuwatappo_Helper/releases) · [使用说明](docs/使用说明.md)
 
@@ -49,11 +50,11 @@ Helper 版本号的前三段对应官方桌宠版本，第四段是 Helper 的�
 - **官方先升版**。例如官方发布 `1.0.5`，Helper 会接管官方更新提示，等待 GitHub 上前三段匹配的 `1.0.5.X` 正式版。适配版未发布时，当前 Helper 可以继续运行，在线功能以服务器的实际兼容性为准。
 - **上次退出前未检查这次升版**。下次启动时自动查 GitHub。如果已经有适配版，后台下载、校验，然后退出桌宠并启动新版。上次已经检查过这次升版，可以在设置里再次手动检查。
 - **下载较慢时**。v1.0.4.4 起可在设置的「更新下载源」选「GH-Proxy（尝试）」。选择保存在本机，手动检查和启动时自动更新都会使用。镜像下载或校验失败时会改用 GitHub；检查新版本和读取可信 SHA-256 仍需要访问 GitHub API。
-- **下载或安装失败**。设置会提供「去 GitHub 下载」，也可以重试。安装版保留旧文件备份，免安装版把新版保存为同目录下带版本号的 EXE。
+- **下载或安装失败**。设置会提供「去 GitHub 下载」，也可以重试。完整版与 Lite 均把新版保存为同目录下带版本号的 EXE。
 
 ## 完整版与轻量版
 
-两个版本都适配官方 WuwaTappo v1.0.4。启动或切换版本前，请从托盘完全退出当前运行的桌宠。
+两个版本都适配官方 WuwaTappo v1.0.5。启动或切换版本前，请从托盘完全退出当前运行的桌宠。
 
 - **完整版**包含基础辅助、联机管理、映射与录制、图鉴试装、库存分享及 i弗TV，支持应用内更新。
 - **轻量版**保留官方桌宠功能，Helper 只增加手动 `+10000`、低保、延迟 5 秒自动开箱和平阶／升阶合成提醒。轻量版无需启动 Helper 的键鼠补充采集、SDL3 手柄服务或本地 HTTP 服务。
@@ -115,16 +116,16 @@ Ctrl+Alt+1～6 发送表情菜单中对应槽位当前装备的表情，无需�
 - 联机页的「仅显示自己」只影响本机显示，后来加入、重连、换房和重启都会遵循该设置。关闭后可逐人显隐。新版的「恢复显示全部」（旧版称「一键可见」）同时清除逐人隐藏。
 - 自定义刷新、游戏模式、屏幕切换和桌宠显隐快捷键，提供冲突提醒，保留 PrtScr 截图键。
 - 本地“+10000”按钮增加防连点保护：间隔至少 0.5 秒，保存未完成时重复点击会被忽略，不会积攒待执行点击；面板普通刷新合并为每秒最多 5 次。本地显示变化不代表服务器已接受或已发放奖励。
-- 显隐、游戏模式及切屏保留官方 1.0.4 的原生快捷键机制；不再套用 1.0.2 的取消注册机器码补丁。若 F7/F8/F9 与其他软件冲突，请在官方快捷键区域修改或清空。
+- 显隐、游戏模式及切屏保留官方 1.0.5 的原生快捷键机制；不再套用 1.0.2 的取消注册机器码补丁。若 F7/F8/F9 与其他软件冲突，请在官方快捷键区域修改或清空。
 
 ## 安装与使用
 
 1. 退出正在运行的 WuwaTappo 或旧版修改程序。
-2. 下载并运行 `Wuwatappo_Helper-<版本号>-Setup.exe`，选择安装目录。也可解压免安装包后运行带版本号的 EXE。
+2. 下载并运行 `Wuwatappo_Helper-1.0.5.1.exe`（完整版）或 `Wuwatappo_Helper-1.0.5.1-Lite.exe`（轻量版）。本版为单文件 EXE，无需安装。
 3. 登录并打开库存，等库存加载结束后点击“分享库存长图”。
 4. 生成完成后点击“保存 PNG”或“复制图片”。
 
-安装包默认安装到当前用户目录，无需管理员权限。请保留 Windows WebView2 Runtime。升级前退出程序；卸载入口在 Windows“已安装的应用”中。卸载不清理原程序的账号和偏好数据。
+完整版包含联机管理、输入映射与录制、库存分享、图鉴试装、爱弥斯主题和播放器；轻量版只保留官方桌宠、基础辅助和合成提醒。请保留 Windows WebView2 Runtime。升级前退出程序；旧版安装包仍可从 v1.0.4.5 发布页获取。
 
 ## 导出文件的保存位置
 
@@ -139,15 +140,15 @@ TXT 和库存 PNG 均通过内置 WebView2 下载，程序没有固定保存目�
 
 ## 验证与限制
 
-已完成隔离逻辑测试、排序及五列分页测试、使用原版底图的离线 PNG 排版检查、JavaScript 语法检查和 EXE 资源独立解压核验。安装包会进行独立目录安装和文件摘要检查。
+已完成隔离逻辑测试、排序及五列分页测试、使用原版底图的离线 PNG 排版检查、JavaScript 语法检查和 EXE 资源独立解压核验。安装包文件检查仅适用于旧版安装包。
 
 新增键盘已通过隔离浏览器测试：26 键布局与尺寸、按键高亮、九键录制、控件点击排除、TXT 实际下载及生命周期清理。原生窗口遮盖、系统全局事件在真实游戏中的完整性、WebView 中保存与复制、真实账号宝箱领取尚未经自动化实机验证。离线测试图片是示例素材，不是用户账号库存。程序更新后需要重新适配，不能将本补丁直接用于其他原件。
 
 本版本只适配以下原始文件：
 
 ```text
-WuwaTappo.exe 1.0.4 / 78,128,864 bytes
-SHA-256: ee829c55916619ea2882e4a13546cbaf2f880363237608285105c7a4958e70b3
+WuwaTappo.exe 1.0.5 / 79,170,272 bytes
+SHA-256: 06a7222645e5da3a86baeaea3bb61a1f63c0408df1e21d5b985a9eb01054b7ae
 ```
 
 ## 从本地原件构建
@@ -161,13 +162,13 @@ pnpm install --frozen-lockfile
 pwsh -File scripts/build.ps1 -SourceExe 'F:\WuwaTappo\WuwaTappo.exe' -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
 ```
 
-脚本会核验原件摘要，提取构建所需资源并运行检查，默认输出完整版 EXE、安装包、免安装 ZIP、轻量版 EXE 和 SHA-256 校验文件到 `dist/local-1.0.4.5/`。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
+脚本会核验原件摘要，提取构建所需资源并运行检查，默认输出完整版 EXE、轻量版 EXE 和 SHA-256 校验文件到 `dist/local-1.0.5.1/`。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
 
-安装 Edge 后，首次视觉回归先运行 `node scripts/prepare-ui-fixtures.cjs` 获取固定的公开测试素材，再运行 `pnpm test:migration`。逻辑测试使用仓库内的最小公开目录样本；视觉测试使用六个系列人物和三件配件，不依赖开发者本机缓存。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.4.5`。
+安装 Edge 后，首次视觉回归先运行 `node scripts/prepare-ui-fixtures.cjs` 获取固定的公开测试素材，再运行 `pnpm test:migration`。逻辑测试使用仓库内的最小公开目录样本；视觉测试使用六个系列人物和三件配件，不依赖开发者本机缓存。测试使用独立临时配置，不读取用户真实操作。旧版安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.5.1`。
 
 ### 发布流程
 
-在 Windows 本地用已核验的官方原件打包。以默认分支的发布提交创建对应版本的 GitHub Release 草稿，上传完整版 EXE、安装包、免安装 ZIP、轻量版 EXE 和 `SHA256SUMS.txt`。在 Actions 中运行 **Verify and publish release**，填写草稿 ID。工作流核对版本、目标提交和附件 SHA-256 后公开发布。
+在 Windows 本地用已核验的官方原件打包。以默认分支的发布提交创建对应版本的 GitHub Release 草稿，上传完整版 EXE、Lite EXE 和 `SHA256SUMS.txt`。在 Actions 中运行 **Verify and publish release**，填写草稿 ID。工作流核对版本、目标提交和附件 SHA-256 后公开发布。
 
 包含默认歌单的发行版须在发布说明中注明：歌曲版权归原创作者及相关权利人所有。如有侵权，请通过 [GitHub Issues](https://github.com/Fantasicrap/Wuwatappo_Helper/issues) 联系下架。
 
