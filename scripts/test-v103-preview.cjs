@@ -25,6 +25,33 @@ for(const [name,body] of modules)for(const node of body){
  }
 }
 const panel=fs.readFileSync(fixturePath(path.join(dir,'index-pp8VWaUF.js')),'utf8');
+if(!lite&&panel.includes('__wtFrameMouseMoves')){
+ const common=fs.readFileSync(fixturePath(path.join(dir,'index-CuzHFfJW.js')),'utf8');
+ const definition=modules.get(path.basename(fixturePath(path.join(dir,'index-CuzHFfJW.js'))))
+  .find(node=>node.type==='FunctionDeclaration'&&node.id.name==='__wtFrameMouseMoves');
+ assert(definition,'Packaged frame coalescing helper is missing');
+ const frames=new Map(),positions=[];
+ let frameId=0;
+ const batch=vm.runInNewContext(common.slice(definition.start,definition.end)+';__wtFrameMouseMoves()',{
+  requestAnimationFrame:fn=>{frames.set(++frameId,fn);return frameId},
+  cancelAnimationFrame:id=>frames.delete(id)
+ });
+ const move=batch.listen(value=>positions.push(value));
+ batch.edge('left');
+ const press=batch.generation;
+ for(let i=1;i<=8000;i++)move(i);
+ assert.equal(frames.size,1,'High-rate mouse positions should schedule one frame');
+ assert.deepEqual(positions,[]);
+ [...frames.values()][0]();
+ assert.deepEqual(positions,[8000]);
+ move(8001);
+ batch.edge('left');
+ assert.notEqual(batch.generation,press,'A release invalidates a pending async drag start');
+ assert.deepEqual(positions,[8000,8001],'Apply the latest position before finishing the drag');
+ assert.equal(frames.size,0,'No queued pre-release move may run afterward');
+ move(8002);batch.dispose();
+ assert.equal(frames.size,0);
+}
 if(!lite){
 const animation={};traverse(babelParse(panel,'panel.mjs',true),{FunctionDeclaration(p){if(['Ul','Vc'].includes(p.node.id.name))animation[p.node.id.name]=panel.slice(p.node.start,p.node.end)}});const held={A:{value:1},nn:null,qr:new Set(['Q','E']),va:new Set(),Bl:n=>n,clearTimeout:()=>{},setTimeout:()=>1,__wtHotkeys:{nativeUp:()=>{}},__wtKeyboard:{key:()=>{}},Ie:()=>false,R:{incrementLocalClickCount:()=>{}},Wl:()=>{}};held.__wtThrust={up(){}};held.__wtFun={input(){}};held.__wtKey=(key,down)=>{held.__wtKeyboard.key(key,down);held.__wtFun.input("keyboard",key,down)};vm.createContext(held);vm.runInContext(animation.Ul+';'+animation.Vc+';Ul(3);Vc("Q");',held);assert.equal(held.A.value,3);vm.runInContext('Vc("E");',held);assert.equal(held.A.value,1);
 }else{

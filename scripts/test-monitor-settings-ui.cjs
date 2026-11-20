@@ -1,8 +1,10 @@
-const {fixturePath}=require('./upstream-fixtures.cjs');
+const {fixturePath,v104}=require('./upstream-fixtures.cjs');
 const fs=require('fs'),path=require('path'),assert=require('assert/strict'),{chromium}=require('playwright');
 const source=fs.readFileSync('patches/monitor-preference.js','utf8').replace(/export /g,''),out=path.resolve(process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/monitor-preview-1.0.3.4');fs.mkdirSync(out,{recursive:true});
 const settings=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-CiT_jZa7.js'),'utf8'),panel=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-pp8VWaUF.js'),'utf8');
-assert(settings.includes('id:"wt-monitor-settings"')&&settings.includes('m.mountDefaultMonitorSettings('));assert(panel.indexOf('window.__wtMainReady=1')>panel.indexOf('ta=await wv(gp),na=await bv(kp)'));
+assert(settings.includes('id:"wt-monitor-settings"')&&settings.includes(v104?'__wtPanelLayout.monitor(':'m.mountDefaultMonitorSettings('));
+const displayHandler=panel.indexOf('await bv(kp)');
+assert(displayHandler>=0&&panel.indexOf('window.__wtMainReady=1')>displayHandler);
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
  try{

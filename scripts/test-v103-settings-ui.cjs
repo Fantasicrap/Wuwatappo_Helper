@@ -62,12 +62,12 @@ async function ue(event){calls.push(event)}
 ${[...modules.values()].join('\n')}
 ${prefix.join('\n')}
 createApp({render:()=>(i(),m('div',null,[(${renderPanel})]))}).mount('#root');
-const Er={class:'only-show-self'},${roomProps}=['checked','onChange'],s={onlyShowSelf:true};
+const Er={class:'only-show-self'},Mc=Er,Ec={},Rc={},Tc={},${roomProps}=['checked','onChange'],s={onlyShowSelf:true};
 const t={},p=()=>()=>"仅显示自己",S=String,b=[],v=(type,checked)=>ue({type,checked});
 ${roomRestore}
 const __wtPlacement=__wtRoomPositions.settings(y,ue);
 createApp({render:()=>${room}}).mount('#room');`});
-if(v104)await page.addStyleTag({content:fs.readFileSync('dist/upstream-1.0.4/index-BbF1ZWW_.css','utf8')});
+if(v104)await page.addStyleTag({content:fs.readFileSync(fixturePath('dist/upstream-1.0.3/index-C3fG-hsi.css'),'utf8')});
 await page.locator('#root').screenshot({path:path.join(out,'settings-overview.png')});
 const input=page.locator('[data-wt-section="input"]');
 assert.equal(await input.locator('input:visible').count(),0);

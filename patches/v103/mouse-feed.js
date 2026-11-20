@@ -31,7 +31,7 @@ async function __wtPollMouse(){
   if(!gap&&__wtMouseCursor!==null)for(const event of data.events)if(event.seq>__wtMouseCursor){
    if(event.key){if(data.keyboardAvailable)__wtKey(event.key,event.action==='press',true);continue}
    __wtKeyboard.mouse(event.button,event.action,{x:event.x,y:event.y});
-   if(typeof __wtFun!=="undefined"&&__wtFun.active())__wtFun.input('mouse',event.button,event.action==='press');
+   if(typeof __wtFun!=="undefined")__wtFun.input('mouse',event.button,event.action==='press');
   }
   __wtMouseCursor=data.seq;
  }catch{if(epoch!==__wtMouseEpoch)return;if(__wtMouseConnected){__wtKeys.clear();if(typeof __wtFun!=="undefined")__wtFun.releasePointerInputs();__wtKeyboard.stopRecording('mouse_connection_lost');__wtKeyboard.mouse('left','release');__wtKeyboard.mouse('right','release');__wtKeyboard.releaseInputs?.()}__wtMouseConnected=false;__wtMouseCursor=null}

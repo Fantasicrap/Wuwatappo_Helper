@@ -24,7 +24,7 @@ const c={no:id=>hidden.has(id),Ce:()=>{},qe:node,Se:node,tr:node,dr:'fragment',p
  pl:()=>{loads.push('head');return 'head.png'},hl:()=>{loads.push('body');return 'body.png'},ml:()=>{loads.push('part');return 'part.png'},
  _y:[],ky:[],Cy:[],Sy:{},Ay:[],Ry:{},by:[],Ld:()=>{bubbles++;return []},Bd:()=>({}),
  pe:f=>f(),L:{value:'cdn'},sv:{value:new Set()},gu:()=>0,ht:{value:members},fc:0,An:{value:new Set()},Ip:async m=>preloads.push(m.id),
- ce:{value:true},dt:Number,de:{value:members},$:(x)=>x,np:()=>{},Hf:()=>{throw Error('Hidden emote allocated')},en:()=>{},vt:()=>{},mn:()=>{},window:{setTimeout:()=>{throw Error('Hidden emote timer')}}};
+ ce:{value:true},dt:Number,__wu105_93855:Number,de:{value:members},$:(x)=>x,np:()=>{},Hf:()=>{throw Error('Hidden emote allocated')},en:()=>{},vt:()=>{},mn:()=>{},window:{setTimeout:()=>{throw Error('Hidden emote timer')}}};
 vm.createContext(c);vm.runInContext('this.render='+render+';this.signature=()=>'+signature+';this.preload='+watcher+';'+emote+';this.emote=yc;',c);
 (async()=>{
  await startup.start();assert(mounted,'App still mounts without eager UI preloading');

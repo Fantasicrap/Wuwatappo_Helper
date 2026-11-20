@@ -23,7 +23,7 @@ function launch() {
     officialOnlyShowSelf: { value: settings.onlyShowSelf },
     Eo: { value: new Set() }, Wo: { value: self.id }, de: { value: [self, peer] },
     Ie: () => false, Go: m => m.id === self.id, on: () => {},
-    dt: Number, ut: new Set(), Mt: new Set(), Vr: new Set(), ip: () => {}, il: () => {},
+    dt: Number, __wu105_93855: Number, ut: new Set(), Mt: new Set(), Vr: new Set(), ip: () => {}, il: () => {},
     xo: () => {}, Fe: fn => callbacks.push(fn), Me: () => refreshes++,
     ri: patch => Object.assign(settings, patch)
   };

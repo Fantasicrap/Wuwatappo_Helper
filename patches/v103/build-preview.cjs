@@ -5,23 +5,33 @@ function babelParse(source,file,module){
  try{return parse(source,file,module)}
  catch(error){throw Error(`${file} at ${error.loc?.line}:${error.loc?.column}: ${source.slice(error.pos-100,error.pos+100)}`)}
 }
-const v104=process.argv.includes('--v104');
+const v105=process.argv.includes('--v105');
+const v104=v105||process.argv.includes('--v104');
 const lite=process.argv.includes('--lite');
 const alpha=process.argv.includes('--alpha');
 assert(!lite||v104,'Lite requires WuwaTappo 1.0.4');
 assert(!alpha||(v104&&!lite),'Alpha requires the full WuwaTappo 1.0.4 build');
-const target=v104?require('../../package.json').releaseVersion:'1.0.3.4';
+const base=v105?'1.0.5':v104?'1.0.4':'1.0.3';
+const configuredTarget=require('../../package.json').releaseVersion;
+const target=configuredTarget.startsWith(base+'.')?configuredTarget:v105?'1.0.5.1':v104?'1.0.4.7':'1.0.3.4';
 const edition=lite?'lite':alpha?'alpha':'full';
-const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-'+(v104?'1.0.4':'1.0.3')),out=path.join(root,'dist/migration-'+target+(edition==='full'?'':'-'+edition));fs.mkdirSync(out,{recursive:true});
+const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-'+base),out=path.join(root,'dist/migration-'+target+(edition==='full'?'':'-'+edition));fs.mkdirSync(out,{recursive:true});
 const original=fs.readFileSync(input),hash=b=>crypto.createHash('sha256').update(b).digest('hex'),manifest=JSON.parse(fs.readFileSync(path.join(stage,'extraction-manifest.json'),'utf8'));
-assert.equal(hash(original),v104?'ee829c55916619ea2882e4a13546cbaf2f880363237608285105c7a4958e70b3':'cedc37d0c11d112f4d933647fb6cf00e1dca847fc763250984c647080f849080');
+const sourceHashes={
+ '1.0.5':'06a7222645e5da3a86baeaea3bb61a1f63c0408df1e21d5b985a9eb01054b7ae',
+ '1.0.4':'ee829c55916619ea2882e4a13546cbaf2f880363237608285105c7a4958e70b3',
+ '1.0.3':'cedc37d0c11d112f4d933647fb6cf00e1dca847fc763250984c647080f849080'
+};
+assert.equal(hash(original),sourceHashes[base]);
 assert.equal(manifest.sourceSha256,hash(original),'Extraction must match the source executable');
-const assets=v104?{
+const assets=v105?{
+ panel:'index-BGIVWra7.js',common:'index-BelNnexT.js',settings:'index-Gk2CevxF.js',bridge:'switchDisplayMonitor-CKvd7TTl.js',about:'index-DerGl5Jb.js',emit:'dc'
+}:v104?{
  panel:'index-BFg5ADH5.js',common:'index-CM6qA69G.js',settings:'index-BIzzuO5B.js',bridge:'switchDisplayMonitor-Dqub4lRn.js',about:'index-inPQAlmI.js',emit:'c_'
 }:{
  panel:'index-pp8VWaUF.js',common:'index-CuzHFfJW.js',settings:'index-CiT_jZa7.js',bridge:'switchDisplayMonitor-B50jXMGD.js',about:'index-BEWn23m-.js',emit:'cV'
 };
-const bindingNames=v104?require('../v104/binding-names.json'):{};
+const bindingNames=v105?require('../v105/binding-names.json'):v104?require('../v104/binding-names.json'):{};
 function upstream(filename){
  const source=fs.readFileSync(path.join(stage,filename),'utf8');
  assert.equal(hash(Buffer.from(source)),manifest.assets.find(a=>a.name==='/assets/'+filename).sha256,'Extracted asset changed: '+filename);
@@ -37,7 +47,8 @@ Object.assign(mapping,{Qp:'nh',Am:'xm'});
 if(!lite){
 panel='const __wtRoomHistory=__wtRoomHistoryCore.create();\n'+panel;
 common+='\n'+read('room-history-core.js')+'\nexport {__wtRoomHistoryCore};\n';
-panel=once(panel,'a.value=Cd(xe?.o)?"owner":"member",We("rd",{r:u.value},st)',`a.value=Cd(xe?.o)?"owner":"member",${v104?'Ee>0&&Ee===T':'xe'}&&R.isLoggedIn&&__wtRoomHistory.remember(Ee,u.value),We("rd",{r:u.value},st)`);
+const roomRole=(v105?'i':'a')+'.value=Cd(xe?.o)?"owner":"member"';
+panel=once(panel,roomRole+',We("rd",{r:u.value},st)',`${roomRole},${v105?'Ee>0&&Ee===Number(R.userInfo?.id)':v104?'Ee>0&&Ee===T':'xe'}&&R.isLoggedIn&&__wtRoomHistory.remember(Ee,u.value),We("rd",{r:u.value},st)`);
 }
 panel=editFunction(panel,'it',()=>translate(read('counter-guard-runtime.js'),{tt:'it'}));
 panel=editFunction(panel,'jp',s=>read('auto-chest-runtime.js')+s.replace('switch(e.type){','switch(e.type){case"boost-local-clicks":__wtBoostLocalClicks(e.delta);break;case"set-auto-claim-chests":__wtSetAutoChest(e.enabled);it();break;'+(lite?'':'case"set-room-members-visibility":__wtSetAllRoomMembersVisible(e.visible);break;')));
@@ -49,11 +60,15 @@ panel=editFunction(panel,'Vn',s=>once(once(s,'kr-t','kr-e'),'Cr-t','Cr-e'));
 if(v104){
  common=editFunction(common,'isAppUpdaterEnabled',()=> 'function isAppUpdaterEnabled(){return false}');
  common+='\n'+read('v104/click-ledger.js');
- const roomAck='const se=r,ae=oe=>{if(r!==se||!se.connected)return;';
- panel=once(panel,roomAck,'const se=r,session=_==="rm"?__wtClickSession():null,ae=oe=>{if(r!==se||!se.connected||_==="rm"&&(!session?.()||K(u.value)!==K(k?.r)))return;');
- panel=once(panel,'if(!ye?.r||!Array.isArray(ye.m)||ye.m.length===0)', 'if(!fe||K(ye?.r)!==fe||!Array.isArray(ye.m)||ye.m.length===0)');
- panel=once(panel,'async function ge(_=!1,k=A){if(k!==A||!r?.connected||!R.isLoggedIn)return;const T=await __wu104_645();if(k===A&&!(!r?.connected||!R.isLoggedIn))try{const z=await ot("cr",{num:T});if(_&&Ze(k),k!==A||!ki(z))return;await Vs(T,R.userInfo?.cuid??""),R.applyClickReportSuccess(T),window.dispatchEvent(new CustomEvent("cat-click-report-success"))}catch{}}',
-  'async function ge(_=!1,k=A){const socket=r,same=__wtClickSession(),valid=()=>same?.()&&k===A&&r===socket&&socket?.connected;if(!valid())return;try{await __wtReportClicks(valid,num=>ot("cr",{num}),ki)}catch{}finally{if(_&&valid())Ze(k)}}');
+ const socket=v105?'f':'r',ack=v105?'ce':'ae';
+ const roomId=v105?'__wu105_99638':'K';
+ const roomAck=`const se=${socket},${ack}=oe=>{if(${socket}!==se||!se.connected)return;`;
+ panel=once(panel,roomAck,`const se=${socket},session=_==="rm"?__wtClickSession():null,${ack}=oe=>{if(${socket}!==se||!se.connected||_==="rm"&&(!session?.()||${roomId}(u.value)!==${roomId}(k?.r)))return;`);
+ panel=once(panel,'if(!ye?.r||!Array.isArray(ye.m)||ye.m.length===0)', `if(!fe||${roomId}(ye?.r)!==fe||!Array.isArray(ye.m)||ye.m.length===0)`);
+ panel=editFunction(panel,'ge',source=>{
+  assert(source.includes('ot("cr",{num:T})'),'Unexpected click report');
+  return `async function ge(_=!1,k=A){const socket=${socket},same=__wtClickSession(),valid=()=>same?.()&&k===A&&${socket}===socket&&socket?.connected;if(!valid())return;try{await __wtReportClicks(valid,num=>ot("cr",{num}),ki)}catch{}finally{if(_&&valid())Ze(k)}}`;
+ });
  common=editFunction(common,'resolveClickReportGrossTotal',s=>once(once(s,'resolveClickReportGrossTotal()','resolveClickReportGrossTotal(valid=()=>true)'),'const t=await loadKeyPressClickCount(),n=','const t=await loadKeyPressClickCount();if(!valid())return;const n='));
  common=once(common,'applyClickReportSuccess(e){const t=parseClickCount(e);this.userInfo&&(this.userInfo={...this.userInfo,total_click_count:t}),this.setLocalClickCount(0)', 'applyClickReportSuccess(e,sent=this.localClickCount){const t=parseClickCount(e);this.userInfo&&(this.userInfo={...this.userInfo,total_click_count:t}),this.setLocalClickCount(Math.max(0,this.localClickCount-sent))');
  common=once(common,'applyChestClickConsume(e){const t=parseSafeClickCount(e);if(!this.userInfo||t<=0)return;if(isFrozenClickCount(this.serverClickTotal)){this.userInfo={...this.userInfo,total_click_consume:clampClickCountSum(this.serverClickConsume+t)},this.setLocalClickCount(0),this.serverClickSpend=0;return}const n=clampClickCountSum(this.serverClickTotal+this.localClickCount);this.userInfo={...this.userInfo,total_click_count:n,total_click_consume:clampClickCountSum(this.serverClickConsume+t)},this.setLocalClickCount(0),this.serverClickSpend=0}',
@@ -62,6 +77,7 @@ if(v104){
  common=once(common,'async post(t,n,s){return await renewTokenBeforeRequest(t),(await this.instance.post(t,n,withAuthHeader(s))).data}',
   'async post(t,n,s,valid){await renewTokenBeforeRequest(t);if(valid&&!valid())throw new ApiBusinessError(-1,"领取状态已变化，请重试");return (await this.instance.post(t,n,withAuthHeader(s))).data}');
  panel=editFunction(panel,'pc',s=>{
+  if(v105)s=s.replace(/\bI\b/g,'M').replace(/\bnt\b/g,'Je').replace(/\bd\b/g,'f').replace('const K=ot();await pt(K)','const j=ot();await pt(j)');
   s=once(s,'async function pc(e){','async function pc(e,auto=false){');
   s=once(s,'Fn.value=!0;const f=Up(e);let b=!1;try{','const same=__wtClickSession();if(!same)return "skipped";const valid=()=>same()&&!Ie()&&(e==="left"?Wn.value:Gn.value)&&R.totalClickCount>=Ns&&(!auto||__wtAutoChestEnabled()&&nt.value.status==="online"&&Qn.value&&!Mi.value&&!br.value);Fn.value=!0;const f=Up(e);let b=!1,result="skipped";try{if(__wtChestLedger.hasPending()){result="uncertain";if(!await __wtChestLedger.sync())return result;result="skipped"}if(!same())return result;');
   s=once(s,'const M=await(async()=>{await G();const ee=await Pm({place:e,click_num:R.cumulativeClickCount}),Z=yt(ee);Cp(e);','await G();const M=await __wtClickIO(async()=>{if(!valid())return;const gross=R.cumulativeClickCount,sent=__wtSubmittedClicks(gross);__wtChestLedger.submitted(same,sent);result="uncertain";const Z=yt(await Pm({place:e,click_num:gross},valid));if(!same())return;');
@@ -95,8 +111,9 @@ assert(roomChildren,'Missing room shell children');
 panel=panel.slice(0,roomFlags.start)+'-2'+panel.slice(roomFlags.end);
 panel=panel.slice(0,roomChildren.start)+'no(o.id)?[]:'+panel.slice(roomChildren.start);
 panel=once(panel,'ht.value.map(e=>[e.id,String(e.characterAssetId??0)', 'ht.value.filter(e=>!no(e.id)).map(e=>[e.id,String(e.characterAssetId??0)');
-panel=once(panel,'t=ht.value.filter(f=>f.roleId!==null)','t=ht.value.filter(f=>f.roleId!==null&&!no(f.id))');
-panel=once(panel,'l=new Set([...An.value].filter(f=>!o.has(f)))','l=new Set([...An.value].filter(f=>o.has(f)))');
+const member=v105?'d':'f';
+panel=once(panel,`t=ht.value.filter(${member}=>${member}.roleId!==null)`,`t=ht.value.filter(${member}=>${member}.roleId!==null&&!no(${member}.id))`);
+panel=once(panel,`l=new Set([...An.value].filter(${member}=>!o.has(${member})))`,`l=new Set([...An.value].filter(${member}=>o.has(${member})))`);
 panel=editFunction(panel,'yc',s=>once(s,'if(!l)return;','if(!l||no(o))return;'));
 if(!lite){
 panel=editFunction(panel,'vt',s=>once(s,'o.value={...o.value,...t}','o.value={...o.value,...t};__wtSaveRoomPosition(e,t)'));
@@ -105,20 +122,27 @@ panel=editFunction(panel,'Fd',s=>once(s,'if(ut.has(e.id)||!Lt.value)return;','if
 panel=editFunction(panel,'tc',s=>once(s,'ut.has(e.id)&&Mt.add(e.id)','ut.has(e.id)&&!__wtRestoreRoomPosition(e)&&Mt.add(e.id)'));
 panel=editFunction(panel,'gl',s=>read('v103/room-positions.js')+s);
 panel=editFunction(panel,'jp',s=>once(s,'switch(e.type){','switch(e.type){case"set-room-placement":__wtSetRoomMode(e.mode);break;'));
-panel=editFunction(panel,'Nl',s=>once(s,'let ho=0,Qo=null;','if(__wtRoomMode==="vertical")return __wtRoomPositions.vertical(t,ht.value.length,{left:M,top:j,right:ee,bottom:Z,width:l,height:f,gap:Tt,offsetX:ft/2*(1-o),offsetY:Pn*(1-o)},Ne,ya,$d);let ho=0,Qo=null;'));
+const verticalBounds=v105?'left:I,top:K,right:ee,bottom:Z,width:l,height:d,gap:Tt,offsetX:__wu105_129613/2':'left:M,top:j,right:ee,bottom:Z,width:l,height:f,gap:Tt,offsetX:ft/2';
+panel=editFunction(panel,'Nl',s=>once(s,'let ho=0,Qo=null;',`if(__wtRoomMode==="vertical")return __wtRoomPositions.vertical(t,ht.value.length,{${verticalBounds}*(1-o),offsetY:Pn*(1-o)},Ne,ya,$d);let ho=0,Qo=null;`));
 panel=editFunction(panel,'Hl',s=>once(s,'if(ht.value.length>=24)','if(__wtRoomMode!=="vertical"&&ht.value.length>=24)'));
 panel=once(panel,'function Ul(e){A.value=Bl(e),nn&&clearTimeout(nn),nn=setTimeout(()=>{A.value=1,nn=null},220)}','function Ul(e){A.value=Bl(e);if(nn)clearTimeout(nn);nn=qr.size?null:setTimeout(()=>{A.value=1;nn=null},220)}');
 panel=once(panel,'const t=qr.delete(e),o=va.delete(e);!t&&!o||Ie()','const t=qr.delete(e),o=va.delete(e);if(t&&!qr.size&&!nn)A.value=1;!t&&!o||Ie()');
 }
 const helperFiles=lite?['startup-notice.js','synthesis-reminder.js','panel-layout.js']:['hotkeys-core.js','inventory-share.js','input-edge-merge.js','input-recorder.js','keyboard-ui.js','room-positions-core.js','startup-notice.js','auto-emotes.js','accessory-thrust.js','phrolova-reaction.js','happy-ending.js','oath-core.js','pet-fun-dialogue.js','pet-fun.js','local-wardrobe.js','synthesis-reminder.js','panel-layout.js','aemeath-mech.js','snowfluff-player.js','theme.js'];
 const toolbarFile=path.join(root,'dist/theme-assets/aemeath-toolbar.png');
+if(v104)helperFiles.push('v104/select-popovers.js');
 const toolbarCss=fs.existsSync(toolbarFile)?'background-image:url("data:image/png;base64,'+fs.readFileSync(toolbarFile).toString('base64')+'");filter:none':'filter:grayscale(1) sepia(.44) hue-rotate(288deg) saturate(2.8)';
 const mechFile=path.join(root,'dist/theme-assets/aemeath-mech.webp');
 const mechSprite=fs.existsSync(mechFile)?'data:image/webp;base64,'+fs.readFileSync(mechFile).toString('base64'):'';
 const helpers=helperFiles.map(n=>n==='aemeath-mech.js'?read(n).replace('__WT_AEMEATH_MECH_SPRITE__',mechSprite):n==='hotkeys-core.js'?read(n).replace(' const defaults=',' actions.splice(0,3);\n const defaults='):n==='startup-notice.js'?read(n).replace('__WT_DISCLAIMER_TEXT__',JSON.stringify(fs.readFileSync(path.join(root,'DISCLAIMER.txt'),'utf8').replace(/^\uFEFF/,''))):n==='pet-fun.js'?read(n).replace('__WT_OATH_CORE_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/oath-core.png')).toString('base64'))):n==='happy-ending.js'?read(n).replace('__WT_WILTED_ECHO_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/wilted-echo.png')).toString('base64'))):n==='theme.js'?read(n).replace('__WT_AEMEATH_TOOLBAR__',toolbarCss):read(n)).join('\n');common+='\n'+helpers;
 common+='\n'+read('long-run.js')+'\nexport {__wtLongRun,renewTokenIfNeeded as __wtRenewSession};\n';
-common=editFunction(common,'renewTokenIfNeeded',()=>read('session-renewal-runtime.js'));
-common=editFunction(common,'extendTokenExpireLocally',()=>`function extendTokenExpireLocally(days=TOKEN_COOKIE_DAYS){const token=getCookie("infoToken");if(!token)return;const old=getCookie("lastLoginTime"),expire=Date.now()+days*86400000;setCookie("infoToken",token,TOKEN_COOKIE_DAYS);setCookie("lastLoginTime",/^\\d{10}$/.test(old?.trim()??"")?String(Math.floor(expire/1000)):String(expire),TOKEN_COOKIE_DAYS)}`);
+common=editFunction(common,'renewTokenIfNeeded',()=>{
+ const runtime=read('session-renewal-runtime.js');
+ if(!v105)return runtime;
+ return once(once(runtime,'if(data!==true)', 'const expires=data?.expire_at_ms;\n   if(!Number.isSafeInteger(expires)||expires<=Date.now())'),
+  'extendTokenExpireLocally();','setCookie("infoToken",token,TOKEN_COOKIE_DAYS);setCookie("lastLoginTime",String(expires),TOKEN_COOKIE_DAYS);');
+});
+if(!v105)common=editFunction(common,'extendTokenExpireLocally',()=>`function extendTokenExpireLocally(days=TOKEN_COOKIE_DAYS){const token=getCookie("infoToken");if(!token)return;const old=getCookie("lastLoginTime"),expire=Date.now()+days*86400000;setCookie("infoToken",token,TOKEN_COOKIE_DAYS);setCookie("lastLoginTime",/^\\d{10}$/.test(old?.trim()??"")?String(Math.floor(expire/1000)):String(expire),TOKEN_COOKIE_DAYS)}`);
 common=editFunction(common,'handleApiCode',source=>{
  source=once(source,'function handleApiCode(e,t){','function handleApiCode(e,t){if(t?.config){const headers=t.config.headers,raw=typeof headers?.get==="function"?headers.get("Authorization"):headers?.Authorization??headers?.authorization;if(raw!==`Bearer ${getCookie("infoToken")}`)return}');
  source=once(source,'clearAuthTokens(),','logDiagnostic("AUTH","session_invalid",{code:e,source:"server"},"warn"),clearAuthTokens(),');
@@ -147,7 +171,7 @@ let mainBoot;
 traverse(babelParse(panel,'panel.mjs',true),{CallExpression(p){const n=p.node;if(n.callee.name==='js'&&n.arguments[0]?.type==='ArrowFunctionExpression'&&panel.slice(n.start,n.end).includes('main_mount_failed')){assert(!mainBoot);mainBoot=n.arguments[0].body.start+1}}});
 assert(mainBoot);panel=panel.slice(0,mainBoot)+'if(!await __wtNotice.confirm()){await Ct("exit_app");return}'+panel.slice(mainBoot);
 panel=once(panel,'Nv()||Bv().catch','true||Bv().catch');
-const synthesisInit='const __wtSynth=__wtSynthesis.create({watch:Oe,account:()=>R.isLoggedIn?R.userInfo?.id:0,inventory:()=>C.value,catalog:()=>w.value,root:()=>ce.value?.querySelector(".cat-stack"),open:()=>Xp("exchange"),blocked:Ie,changed:()=>Fe(Me),load:async()=>{let a=await G();if(!a&&R.isLoggedIn)a=await G();await St();return Array.isArray(a)}});Ai(()=>__wtSynth.dispose());';
+const synthesisInit=`const __wtSynth=__wtSynthesis.create({watch:Oe,account:()=>R.isLoggedIn?R.userInfo?.id:0,inventory:()=>C.value,catalog:()=>${v105?'__wu105_130050':'w'}.value,root:()=>ce.value?.querySelector(".cat-stack"),open:()=>Xp("exchange"),blocked:Ie,changed:()=>Fe(Me),load:async()=>{let a=await G();if(!a&&R.isLoggedIn)a=await G();await St();return Array.isArray(a)}});Ai(()=>__wtSynth.dispose());`;
 if(!lite){
 const init=synthesisInit+translate(read('keyboard-position.js'))+'\n'+(v104?read('v103/helper-actions.js'):read('v103/helper-actions.js').replace(/^ .*roomOnlySelf.*\n/m,''))+'\n'+read('v103/mouse-feed.js')+'\nconst __wtKeyboard=__wtKeyboardUi.create({listen:tt,activity:()=>{__wtSyncMouseFeed();__wtFun.syncController()},layout:()=>Fe(()=>{__wtPositionKeyboard();Me()}),toClient:Wt,pointer:()=>({x:oe.value,y:fe.value}),visible:()=>_.value,hotkeys:__wtHotkeys,blocked:()=>Ie()||__wtHelperCapture.size>0});Oe(_,()=>__wtKeyboard.syncActivity());Ai(()=>{__wtStopMouseFeed();__wtDisposeHelperActions();__wtDisposePosition();__wtKeyboard.dispose();__wtDisposeCounter();__wtChestTask.dispose();__wtSessionTask.dispose()});\n';
 panel=editFunction(panel,'Uc',s=>init+'const __wtAutoEmote=__wtAutoEmotes.create({defer:true,state:()=>({account:R.isLoggedIn?R.userInfo?.id:0,equipped:La.value}),load:G,send:item=>Ap({id:item.id,src:te("emote/"+item.name)}),normalize:__wtHotkeys.normalizeKey,blocked:()=>Ie()||__wtHelperCapture.size>0});Oe(()=>R.isLoggedIn?R.userInfo?.id:0,()=>__wtAutoEmote.refresh());Ai(()=>__wtAutoEmote.dispose());\n'+once(s.replace('{','{__wtKey(e,true);const __wtAction=__wtHotkeys.nativeDown(e);__wtPerformHelperAction(__wtAction);'),'qr.add(e);','qr.add(e);if(!__wtAction)__wtAutoEmote.down(e);'));
@@ -165,19 +189,44 @@ panel=once(panel,'const{x:e,y:t}=yu(R.userInfo);return{transform:','const{x:e,y:
 panel=editFunction(panel,"lh",source=>once(source,"async function lh(e){","async function lh(e){if(e?.__wt_preview){await __wtWardrobe.select(e);return}"));
 panel=once(panel,"Ai(()=>__wtAutoEmote.dispose());","Ai(()=>__wtAutoEmote.dispose());Oe([P,Ue],()=>__wtWardrobe.reapply());Oe(()=>R.isLoggedIn?R.userInfo?.id:0,()=>__wtWardrobe.accountChanged());Ai(()=>__wtWardrobe.dispose());");
 panel=once(panel,'Sl=await tt("key-press",','await __wtInstallHelperActions(),await __wtKeyboard.mount(),Sl=await tt("key-press",');
+const hit=v105?'K':'j',hitPoint=v105?'I':'M';
+const hitTarget=`const ${hit}=document.elementFromPoint(${hitPoint}.x,${hitPoint}.y);`;
+panel=once(panel,`${hitTarget}if(!${hit})return;`,`${hitTarget}if(!${hit}||window.__wtPlayerHit?.(${hit},Wt))return;`);
 panel=once(panel,'zi=await tt("dock-open-panel",e=>{const t=e.payload;_v(t)&&Xp(t)})','zi=await tt("dock-open-panel",e=>{const t=e.payload;_v(t)&&Xp(t)}),window.__wtMainReady=1,window.dispatchEvent(new Event("wt-main-ready"))');
 panel=once(panel,'const t=e.payload.button,o=e.payload.action;','const t=e.payload.button,o=e.payload.action;if(!__wtMouseConnected){__wtKeyboard.mouse(t,o,{x:oe.value,y:fe.value});__wtFun.input("mouse",t,o==="press");}');
-panel=once(panel,'const ee=j.closest("button");','const ee=j.closest("button,a[download]");');
+if(v104){
+ common+='\n'+read('v103/frame-mouse-moves.js');
+ panel=once(panel,synthesisInit,synthesisInit+'const __wtMove=__wtFrameMouseMoves();Ai(__wtMove.dispose);');
+ let handler;
+ traverse(babelParse(panel,'panel.mjs',true),{CallExpression(p){
+  const call=p.node;
+  if(call.callee.name==='tt'&&call.arguments[0]?.value==='mouse-move'){assert(!handler);handler=call.arguments[1]}
+ }});
+ assert(handler?.type==='ArrowFunctionExpression');
+ panel=panel.slice(0,handler.start)+'__wtMove.listen('+panel.slice(handler.start,handler.end)+')'+panel.slice(handler.end);
+ panel=once(panel,'const t=e.payload.button,o=e.payload.action;','const t=e.payload.button,o=e.payload.action;__wtMove.edge(t);');
+ panel=once(panel,'await Xc(t,o,oe.value,fe.value,e.payload.memberId),Hd(),await fp(),','Hd();const p=fp();await Xc(t,o,oe.value,fe.value,e.payload.memberId),await p,');
+ panel=editFunction(panel,'Xc',source=>{
+  const start=source.indexOf('if(t==="press"&&e==="left"){');
+  assert(start>=0);
+  const stop=v105?'!I||__wu105_137801.value':'!M';
+  const check=`if(${hitPoint}||(await rn(!1),${hitPoint}=Wt(o,l)),${stop}`;
+  return source.slice(0,start)+once(once(source.slice(start),'if(vn||Kn)return;','if(vn||Kn)return;const g=__wtMove.generation;'),check+')return;',check+'||g!==__wtMove.generation)return;');
+ });
+}
+panel=once(panel,`const ee=${hit}.closest("button");`,`const ee=${hit}.closest("button,a[download]");`);
 panel=once(panel,'function Zc(){mn(!1)}','function Zc(e){mn(e.detail===!0)}');
-panel=once(panel,'function He(D,x="visual"){const q=[],$=re=>','function He(D,x="visual"){const q=__wtRegions(D,x,G);const $=re=>');
+const hitMode=v105?'T':'x';
+panel=once(panel,`function He(D,${hitMode}="visual"){const q=[],$=re=>`,`function He(D,${hitMode}="visual"){const q=__wtRegions(D,${hitMode},G);const $=re=>`);
 panel=once(panel,'for(const je of D.querySelectorAll(".reward-anchor"))$(je);','');
-panel+='\nimport{__wtRegions,__wtHotkeys,__wtMergeKeyEdges,__wtKeyboardUi,__wtRoomPositions,__wtNotice,__wtRoomHistoryCore,__wtAutoEmotes,__wtAccessoryThrust,__wtPhrolovaReaction,__wtPetFun,__wtLocalWardrobe,__wtSynthesis,__wtLongRun,__wtRenewSession,'+(v104?'__wtClickIO,__wtClickSession,__wtReportClicks,__wtSubmittedClicks,__wtMakeChestLedger,':'')+'cV as __wtRoomEmit}from"./index-CuzHFfJW.js";\n';
+panel+='\nimport{__wtRegions,__wtHotkeys,__wtMergeKeyEdges,__wtKeyboardUi,__wtRoomPositions,__wtNotice,__wtRoomHistoryCore,__wtAutoEmotes,__wtAccessoryThrust,__wtPhrolovaReaction,__wtPetFun,__wtLocalWardrobe,__wtSynthesis,__wtLongRun,__wtRenewSession,'+(v104?'__wtClickIO,__wtClickSession,__wtReportClicks,__wtSubmittedClicks,__wtMakeChestLedger,__wtFrameMouseMoves,':'')+'cV as __wtRoomEmit}from"./index-CuzHFfJW.js";\n';
  }else{
  const start='await tt("wt-synthesis-reminder-updated",()=>__wtSynth.sync())';
  panel=editFunction(panel,'Uc',s=>synthesisInit+s);
  panel=once(panel,'Sl=await tt("key-press",','__wtSynth.start(),__wtStopSynth='+start+',Sl=await tt("key-press",');
  panel=once(panel,synthesisInit,synthesisInit+'let __wtStopSynth;Ai(()=>{__wtStopSynth?.();__wtDisposeCounter();__wtChestTask.dispose();__wtSessionTask.dispose()});');
- panel=once(panel,'function He(D,x="visual"){const q=[],$=re=>','function He(D,x="visual"){const q=[],hint=G(D.querySelector(".wt-synthesis-reminder"));if(hint)q.push(hint);const $=re=>');
+ const hitMode=v105?'T':'x';
+ panel=once(panel,`function He(D,${hitMode}="visual"){const q=[],$=re=>`,`function He(D,${hitMode}="visual"){const q=[],hint=G(D.querySelector(".wt-synthesis-reminder"));if(hint)q.push(hint);const $=re=>`);
  panel=once(panel,'K=(async()=>{E.value=!0','K=(async()=>{const __wtAccount=R.userInfo?.id;E.value=!0');
  panel=once(panel,'C.value=Gm(yt(await Ym())),I.value=!1','const items=Gm(yt(await Ym()));if(__wtAccount===R.userInfo?.id){C.value=items;I.value=!1;return items}');
  panel+='\nimport{__wtNotice,__wtSynthesis,__wtLongRun,__wtRenewSession,__wtClickIO,__wtClickSession,__wtReportClicks,__wtSubmittedClicks,__wtMakeChestLedger}from"./index-CuzHFfJW.js";\n';
@@ -190,13 +239,14 @@ settings=injectComponent(settings,'SettingsModule',(lite?'const ':'const __wtKey
  (lite?'':'__wtKeyboardUi.renderSettings(e,__wtMapping),__wtHotkeys.render(e,__wtKeys),')+'__wtPanelLayout.basic(e,__wtAuto.value,__wtBoost,__wtToggle)');
 if(!lite){
 settings=injectComponent(settings,"MainPanelAtlasTab","const __wtTrial=__wtLocalWardrobe.settings(y,Oe);","__wtLocalWardrobe.renderSettings(e,__wtTrial)");
-settings=once(settings,'function k(h){if(Ke(h.asset_type)!=="character_skin")return!1;','function k(h){if(Ke(h.asset_type)!=="character_skin")return!1;if(__wtTrial.mode.value)return __wtLocalWardrobe.selected(h,t.selectedRoleId);');
-settings=once(settings,'function D(h){if(Ke(h.asset_type)!=="accessory")return!1;','function D(h){if(Ke(h.asset_type)!=="accessory")return!1;if(__wtTrial.mode.value)return __wtLocalWardrobe.selected(h,t.selectedPartId);');
-settings=once(settings,'function l(h){const $=h;if(!$.owned)return!1;','function l(h){const $=h;if(__wtTrial.mode.value){const type=Ke($.asset_type);return type==="character_skin"||type==="accessory"||type==="emote"&&__wtLocalWardrobe.canEmote($,t.selectedEmoteAssetIds)}if(!$.owned)return!1;');
+const atlasProps=v105?'__wu105_46509':'t',settingsStore=v105?'__wu105_812':'ae';
+settings=once(settings,'function k(h){if(Ke(h.asset_type)!=="character_skin")return!1;',`function k(h){if(Ke(h.asset_type)!=="character_skin")return!1;if(__wtTrial.mode.value)return __wtLocalWardrobe.selected(h,${atlasProps}.selectedRoleId);`);
+settings=once(settings,'function D(h){if(Ke(h.asset_type)!=="accessory")return!1;',`function D(h){if(Ke(h.asset_type)!=="accessory")return!1;if(__wtTrial.mode.value)return __wtLocalWardrobe.selected(h,${atlasProps}.selectedPartId);`);
+settings=once(settings,'function l(h){const $=h;if(!$.owned)return!1;',`function l(h){const $=h;if(__wtTrial.mode.value){const type=Ke($.asset_type);return type==="character_skin"||type==="accessory"||type==="emote"&&__wtLocalWardrobe.canEmote($,${atlasProps}.selectedEmoteAssetIds)}if(!$.owned)return!1;`);
 settings=once(settings,'function P(T){if(T.asset_type==="character_skin"){M(T.role_id,','function P(T){if(T.__wt_preview){v("select-appearance",T);return}if(T.asset_type==="character_skin"){M(T.role_id,');
 settings=once(settings,'function J(h){if(!h.owned||!h.asset_id)return null;const $=Ke(h.asset_type);return $?{asset_code:','function J(h){if(!h.asset_id||!h.owned&&!__wtTrial.mode.value)return null;const $=Ke(h.asset_type);return $?{__wt_preview:__wtTrial.mode.value,asset_code:');
 settings+='\nimport{__wtLocalWardrobe}from"./index-CuzHFfJW.js";\n';
-settings=injectComponent(settings,'MainPanelBagTab','const __wtShare=__wtInventoryShare.create(y,()=>({items:s.bagList,user:ae.userInfo,host:s.assetsCdnHost,loggedIn:ae.isLoggedIn,loading:s.bagListLoading}),Oe);','__wtInventoryShare.render(e,__wtShare)');
+settings=injectComponent(settings,'MainPanelBagTab',`const __wtShare=__wtInventoryShare.create(y,()=>({items:s.bagList,user:${settingsStore}.userInfo,host:s.assetsCdnHost,loggedIn:${settingsStore}.isLoggedIn,loading:s.bagListLoading}),Oe);`,'__wtInventoryShare.render(e,__wtShare)');
 
 settings=injectComponent(settings,'SettingsModule','const __wtPetSettings=__wtPetFun.settings(y,Oe);','__wtPetFun.renderSettings(e,__wtPetSettings)');
 settings+='\nimport{__wtPetFun}from"./index-CuzHFfJW.js";\n';
@@ -204,13 +254,16 @@ settings=injectComponent(settings,'SettingsModule','const __wtEmoteMode=__wtAuto
 panel=once(panel,'async function __wtInstallHelperActions(){','async function __wtInstallHelperActions(){__wtSynth.start();__wtHelperStops.push(await tt("wt-synthesis-reminder-updated",()=>__wtSynth.sync()));__wtWardrobe.start();__wtAutoEmote.start();__wtFun.start();__wtHelperStops.push(await tt("wt-auto-emotes-updated",()=>__wtAutoEmote.sync()));__wtHelperStops.push(await tt("wt-pet-fun-updated",()=>__wtFun.sync()));__wtHelperStops.push(await tt("wt-wardrobe-mode-updated",()=>__wtWardrobe.sync()));__wtHelperStops.push(await tt("wt-wardrobe-reset",()=>__wtWardrobe.clear()));');
 settings+='\nimport{__wtAutoEmotes}from"./index-CuzHFfJW.js";\n';
 settings=injectComponent(settings,'SettingsModule','__wtPanelLayout.monitor(Qe,ft,()=>import("http://127.0.0.1:48642/ui.js"),uo,no,__wtMonitorEmit);','e("div",{id:"wt-monitor-settings"})');
-settings=injectComponent(settings,'MainPanelRoomTab','const __wtRestoreRoom=()=>ue({type:"set-room-members-visibility",visible:true});async function __wtHistory(){try{const module=await import("http://127.0.0.1:48642/ui.js");await module.openRoomHistory({state:()=>({accountId:ae.isLoggedIn?ae.userInfo?.id:0,roomId:String(s.currentRoomId??""),mode:s.roomMode}),send:ue,listen:no,toast:Oe})}catch{Oe("历史房间加载失败，请运行完整 Helper")}}const __wtPlacement=__wtRoomPositions.settings(y,ue);',null);
-settings=once(settings,'wr={class:"join-rooms"}','wr={class:"join-rooms wt-ui-join"}');
+settings=injectComponent(settings,'MainPanelRoomTab',`const __wtRestoreRoom=()=>ue({type:"set-room-members-visibility",visible:true});async function __wtHistory(){try{const module=await import("http://127.0.0.1:48642/ui.js");await module.openRoomHistory({state:()=>({accountId:${settingsStore}.isLoggedIn?${settingsStore}.userInfo?.id:0,roomId:String(s.currentRoomId??""),mode:s.roomMode}),send:ue,listen:no,toast:Oe})}catch{Oe("历史房间加载失败，请运行完整 Helper")}}const __wtPlacement=__wtRoomPositions.settings(y,ue);`,null);
+settings=once(settings,'{class:"join-rooms"}','{class:"join-rooms wt-ui-join"}');
 const historyButton='__wtPanelLayout.button(e,"历史房间",__wtHistory,{class:"wt-ui-button wt-ui-room-history"})';
-settings=once(settings,'S(p(t)("rooms_join")),9,kr)])','S(p(t)("rooms_join")),9,kr),'+historyButton+'])');
+const roomJoin=`S(p(t)("rooms_join")),9,${v105?'gc':'kr'})`;
+settings=once(settings,roomJoin+'])',roomJoin+','+historyButton+'])');
 settings=once(settings,'e("span",{class:"room-number-copy",role:"button",onClick:A})','e("button",{type:"button",class:"room-number-copy","aria-label":"复制房间号",onClick:A}),'+historyButton);
-settings=once(settings,'e("label",Er,[e("input",{type:"checkbox",checked:s.onlyShowSelf','__wtPanelLayout.room(e,e("label",Er,[e("input",{type:"checkbox",checked:s.onlyShowSelf');
-settings=once(settings,'S(p(t)("rooms_only_show_self")),1)]),s.roomMembers.length','S(p(t)("rooms_only_show_self")),1)]),__wtRoomPositions.render(e,__wtPlacement),__wtRestoreRoom),s.roomMembers.length');
+const selfLabel=v105?'e("label",Mc,[e("span",Ec,S(p(t)("rooms_only_show_self"))':'e("label",Er,[e("input",{type:"checkbox",checked:s.onlyShowSelf';
+const selfBeforePeers=v105?'b[9]||(b[9]=e("span",{class:"setting-slider"},null,-1))])])])':'S(p(t)("rooms_only_show_self")),1)])';
+settings=once(settings,selfLabel,'__wtPanelLayout.room(e,'+selfLabel);
+settings=once(settings,selfBeforePeers+',s.roomMembers.length',selfBeforePeers+',__wtRoomPositions.render(e,__wtPlacement),__wtRestoreRoom),s.roomMembers.length');
 settings+='\nimport{__wtRoomPositions}from"./index-CuzHFfJW.js";\n';
 settings=once(settings,'function T(){requestAnimationFrame(()=>{xo().catch(x=>{console.warn("[panel] raise above pets failed",x)})})}','function T(){requestAnimationFrame(()=>{__wtNormalPanel(g).catch(x=>console.warn("[panel] normalize failed",x))})}');
 settings=once(settings,'W[t.action]=l,await ms("set_app_shortcuts",{config:W})','W[t.action]=l,__wtCheckShortcutConflict(W,__wtHotkeys.read()),await ms("set_app_shortcuts",{config:W})');
@@ -232,8 +285,9 @@ if(v104&&!lite){
   async function __wtOpenUpdate(){const ui=await __wtLoadUpdate();if(ui)await ui.open();else window.open("https://github.com/Fantasicrap/Wuwatappo_Helper/releases","_blank","noopener,noreferrer")}`;
  });
  settings=once(settings,'S(X.value),1),e("div",El,S(le.value),1)','S(__wtUpdateState.value.current||'+JSON.stringify(target)+'),1),e("div",El,S(__wtUpdateState.value.message||le.value),1)');
- settings=once(settings,'disabled:!p(ne)||re.value,onMousedown:o[25]', 'disabled:re.value||["checking","downloading","applying"].includes(__wtUpdateState.value.state),onMousedown:o[25]');
- settings=once(settings,'S(p(t)("setting_version_check_btn")),41,xl)])','S(__wtUpdateState.value.state==="ready"?"重启并更新":p(t)("setting_version_check_btn")),41,xl),e("button",{type:"button",class:"setting-btn",hidden:__wtUpdateState.value.state!=="error",onClick:__wtOpenUpdate},"去 GitHub 下载",8,["hidden"])])');
+ settings=once(settings,'class:"setting-btn btn-check-update",disabled:!p(ne)||re.value,','class:"setting-btn btn-check-update",disabled:re.value||["checking","downloading","applying"].includes(__wtUpdateState.value.state),');
+ const updateText='S(p(t)("setting_version_check_btn")),41,xl)';
+ settings=once(settings,updateText,'S(__wtUpdateState.value.state==="ready"?"重启并更新":p(t)("setting_version_check_btn")),41,xl),e("button",{type:"button",class:"setting-btn",hidden:__wtUpdateState.value.state!=="error",onClick:__wtOpenUpdate},"去 GitHub 下载",8,["hidden"])');
  settings=once(settings,']),e("div",Tl,[e("div",Rl,',']),e("div",{id:"wt-us"}),e("div",Tl,[e("div",Rl,');
 }
 if(lite){
@@ -268,7 +322,7 @@ function groupSettings(source){
  ];
  if(!lite)sections.push(group('input',[take('__wtKeyboardUi.renderSettings'),take('__wtHotkeys.render')]));
  sections.push(group('desktop',[
-  ...['pet_scale','window_opacity','toggle_pet','game_mode','auto_game_mode_fullscreen','window_penetrate','hover_auto_hide','always_show_chest','screen'].map(id=>take('"setting_'+id+'"')),
+  ...['pet_scale','window_opacity','toggle_pet',...(v105?['game_mode_settings']:['game_mode','auto_game_mode_fullscreen']),'window_penetrate','hover_auto_hide','always_show_chest','screen'].map(id=>take('"setting_'+id+'"')),
   ...(!lite?[take('wt-monitor-settings')]:[])
  ]));
  if(!lite)sections.push(group('interaction',[take('__wtPetFun.renderSettings'),take('__wtAutoEmotes.renderSettings')]));
@@ -320,20 +374,28 @@ about+='\nimport{__wtNotice}from"./index-CuzHFfJW.js";\n';
 let bridge=upstream(assets.bridge);
 if(!lite){
 bridge=once(bridge,'async function Ha(e){await u("open_panel_window",{payload:{tab:e??null}})}','async function Ha(e){await u("set_skip_panel_outside_click_close",{skip:true}).catch(()=>{});await u("open_panel_window",{payload:{tab:e??null}});await u("set_skip_panel_outside_click_close",{skip:true}).catch(()=>{})}');
-bridge=once(bridge,'async function $a(){await u("raise_panel_window_above_pets")}','async function $a(){}');
-bridge=editFunction(bridge,'Aa',s=>{
- s=once(s,'async function Aa()','async function Aa(__wtTarget)');
+const raisePanel=v105?'en':'$a',switchImpl=v105?'Na':'Aa',switchPublic=v105?'On':'An';
+const lock=v105?'C':'O';
+bridge=once(bridge,`async function ${raisePanel}(){await u("raise_panel_window_above_pets")}`,`async function ${raisePanel}(){}`);
+bridge=editFunction(bridge,switchImpl,s=>{
+ s=once(s,`async function ${switchImpl}()`,`async function ${switchImpl}(__wtTarget)`);
  s=once(s,'if(d.length<=1)','if(!d.length||!__wtTarget&&d.length<=1)');
- s=once(s,'const g=(N+1)%d.length,c=d[g]','const g=__wtTarget?d.findIndex(m=>p(m)===__wtTarget):(N+1)%d.length;if(g<0)throw Error("Display disconnected");const c=d[g]');
- s=once(s,'w("DISPLAY","switch_start"','if(__wtTarget&&m===v)return!0;w("DISPLAY","switch_start"');
+ const index=v105?'S':'g',initialIndex=v105?'M':'N',display=v105?'l':'c';
+ s=once(s,`const ${index}=(${initialIndex}+1)%d.length,${display}=d[${index}]`,`const ${index}=__wtTarget?d.findIndex(m=>p(m)===__wtTarget):(${initialIndex}+1)%d.length;if(${index}<0)throw Error("Display disconnected");const ${display}=d[${index}]`);
+ const log=(v105?'h':'w')+'("DISPLAY","switch_start"';
+ s=once(s,log,'if(__wtTarget&&m===v)return!0;'+log);
  return once(s,'target_confirmed:f==null?null:p(f)===v},!0','target_confirmed:f==null?null:p(f)===v},__wtTarget?n.target_confirmed===!0:!0');
 });
-bridge=editFunction(bridge,'An',()=> 'async function An(t){if(O){if(!t)return O;await O}O=Aa(t);try{return await O}finally{O=null}}');
-bridge+='\nimport{D as __wtWindow}from"./index-CuzHFfJW.js";if(__wtWindow().label==="main")import("http://127.0.0.1:48642/ui.js").then(m=>m.installDefaultMonitor({list:vn,move:An,current:async()=>K(await ye()),listen:A,emit:h})).catch(console.warn);\n';
-if(v104)bridge=once(bridge,'.then(m=>m.installDefaultMonitor({','.then(m=>{m.watchAutomaticHelperUpdate(()=>import("./quitApp-KiLkJnLY.js").then(q=>q.quitApp()));return m.installDefaultMonitor({').replace('listen:A,emit:h})).catch(console.warn)','listen:A,emit:h})}).catch(console.warn)');
+bridge=editFunction(bridge,switchPublic,()=>`async function ${switchPublic}(t){if(${lock}){if(!t)return ${lock};await ${lock}}${lock}=${switchImpl}(t);try{return await ${lock}}finally{${lock}=null}}`);
+const monitor=v105?'list:Cn,move:On,current:async()=>K(await he()),listen:g,emit:w':'list:vn,move:An,current:async()=>K(await ye()),listen:A,emit:h';
+const watchUpdate=v104?'m.watchAutomaticHelperUpdate(()=>import("./quitApp-KiLkJnLY.js").then(q=>q.quitApp()));':'';
+bridge+=`\nimport{D as __wtWindow}from"./index-CuzHFfJW.js";if(__wtWindow().label==="main")import("http://127.0.0.1:48642/ui.js").then(m=>{${watchUpdate}return m.installDefaultMonitor({${monitor}})}).catch(console.warn);\n`;
 }
 const resources=[{name:panelAsset,text:panel},{name:commonAsset,text:common},{name:'/assets/'+assets.settings,text:settings},{name:'/assets/'+assets.bridge,text:bridge},{name:'/assets/'+assets.about,text:about}];
-if(v104)for(const resource of resources)resource.text=resource.text.replaceAll('./index-CuzHFfJW.js','./'+assets.common).replaceAll('cV as __wt',assets.emit+' as __wt');
+if(v104)for(const resource of resources){
+ resource.text=resource.text.replaceAll('./index-CuzHFfJW.js','./'+assets.common).replaceAll('cV as __wt',assets.emit+' as __wt');
+ if(v105)resource.text=resource.text.replaceAll('./quitApp-KiLkJnLY.js','./quitApp-UMRgPMAI.js');
+}
 function compressResource(text, budget){
  const bytes=Buffer.from(text);
  const compress=mode=>zlib.brotliCompressSync(bytes,{params:{
@@ -345,7 +407,19 @@ function compressResource(text, budget){
  // Alternate Brotli coding is compatible with the same decoder.
  return standard.length<=budget?standard:compress(zlib.constants.BROTLI_MODE_FONT);
 }
-const output=Buffer.from(original),checks=[];for(const r of resources){const file=path.join(out,path.basename(r.name));fs.writeFileSync(file,r.text);babelParse(r.text,file,true);const meta=manifest.assets.find(a=>a.name===r.name),compressed=compressResource(r.text,meta.compressedBytes);assert(compressed.length<=meta.compressedBytes,`${r.name} exceeds reserved space (${compressed.length}/${meta.compressedBytes})`);output.fill(0,meta.offset,meta.offset+meta.compressedBytes);compressed.copy(output,meta.offset);assert(zlib.brotliDecompressSync(output.subarray(meta.offset,meta.offset+meta.compressedBytes)).equals(Buffer.from(r.text)));checks.push({asset:r.name,syntaxPassed:true,budget:meta.compressedBytes,compressed:compressed.length,fits:true,offset:meta.offset})}
+const output=Buffer.from(original),checks=[];
+for(const r of resources)fs.writeFileSync(path.join(out,path.basename(r.name)),r.text);
+for(const r of resources){
+ const file=path.join(out,path.basename(r.name));
+ babelParse(r.text,file,true);
+ const meta=manifest.assets.find(a=>a.name===r.name);
+ const text=v105&&r.name!==commonAsset?require('../v105/compact-bindings.cjs')(r.text,file):r.text;
+ const compressed=compressResource(text,meta.compressedBytes);
+ assert(compressed.length<=meta.compressedBytes,`${r.name} exceeds reserved space (${compressed.length}/${meta.compressedBytes})`);
+ output.fill(0,meta.offset,meta.offset+meta.compressedBytes);compressed.copy(output,meta.offset);
+ assert(zlib.brotliDecompressSync(output.subarray(meta.offset,meta.offset+meta.compressedBytes)).equals(Buffer.from(text)));
+ checks.push({asset:r.name,syntaxPassed:true,budget:meta.compressedBytes,compressed:compressed.length,fits:true,offset:meta.offset});
+}
 let cursor=0;for(const c of [...checks].sort((a,b)=>a.offset-b.offset)){assert(original.subarray(cursor,c.offset).equals(output.subarray(cursor,c.offset)));cursor=c.offset+c.budget}assert(original.subarray(cursor).equals(output.subarray(cursor)));fs.writeFileSync(path.join(out,'payload.exe'),output);
 fs.writeFileSync(path.join(out,'checkpoint.json'),JSON.stringify({target,edition,sourceSha256:hash(original),resources:checks,nativeMachineCodeChanged:false,payloadProduced:true,allFeaturesReady:false,realAccountOrHardwareTested:false},null,2));console.log(JSON.stringify(checks,null,2));
 

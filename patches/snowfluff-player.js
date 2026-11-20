@@ -1,3 +1,7 @@
+function __wtPlayerHit(target,convert){
+ window.__wtPlayerPoint=convert;
+ return !!target.closest('.wt-snowfluff')&&!target.closest('button');
+}
 const __wtSnowfluffPlayer=(()=>{
  const tracks=[
   ['纸飞机','https://www.bilibili.com/video/BV1QAkcBtENr/'],
@@ -32,7 +36,7 @@ const __wtSnowfluffPlayer=(()=>{
 .wt-snowfluff button:disabled{opacity:.45;cursor:default}
 .wt-snowfluff [data-track]{display:flex;align-items:center;justify-content:space-between;gap:5px;width:100%;text-align:left;box-sizing:border-box;margin:0 0 5px}
 .wt-snowfluff [data-track] span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wt-snowfluff [data-track-list]{max-height:96px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-color:#d792b3 #ffe6f2;margin:0 0 5px}
+.wt-snowfluff [data-track-list]{max-height:96px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;margin:0 0 5px}
 .wt-snowfluff [data-track-list] button{display:block;width:100%;text-align:left}
 .wt-snowfluff [data-track-list] button[aria-current=true]{background:#ffd5e8}
 .wt-snowfluff input[type=file],.wt-snowfluff audio{display:none}
@@ -42,7 +46,7 @@ const __wtSnowfluffPlayer=(()=>{
 .wt-snowfluff [data-settings-box]{margin-top:6px}
 .wt-snowfluff-status{display:block;margin-top:4px;overflow-wrap:anywhere;color:var(--wt-ui-muted,#805169)}
 `;
- function create(root=document.body,open=url=>openUrl(url),load=()=>import('http://127.0.0.1:48642/ui.js')){
+ function create(root=document.body,open=url=>openUrl(url),load=()=>import('http://127.0.0.1:48642/ui.js'),point=(x,y)=>window.__wtPlayerPoint?.(x,y)){
   const style=document.createElement('style');style.setAttribute('data-wt-theme-sheet','snowfluff');style.textContent=css;document.head.append(style);
   const star=document.createElement('button'),panel=document.createElement('section');
   star.type='button';star.className='wt-snowfluff-star';star.title='飞行雪绒播放器';
@@ -55,6 +59,55 @@ const __wtSnowfluffPlayer=(()=>{
   iconButton(close,'close','关闭播放器');iconButton(prev,'previous','上一首');iconButton(next,'next','下一首');iconButton(settings,'settings','播放器设置');
   const input=panel.querySelector('input'),audio=panel.querySelector('audio');
   let files=[],defaults=[],options=[],selectedIndex=0,playingIndex=-1,objectUrl='',disposed=false;
+  let scrollSession=null;
+  const domWheel=[];
+  function matchWheel(events,delta){
+   const now=performance.now();
+   while(events.length&&now-events[0].at>120)events.shift();
+   const index=events.findIndex(event=>Math.sign(event.delta)===Math.sign(delta));
+   return index<0?null:events.splice(index,1)[0];
+  }
+  window.__wtPlayerHit=__wtPlayerHit;
+  function stopScroll(){
+   if(!scrollSession)return;
+   clearTimeout(scrollSession.timer);
+   for(const event of scrollSession.wheel)clearTimeout(event.timer);
+   scrollSession.abort.abort();scrollSession=null;domWheel.length=0;
+  }
+  function startScroll(){
+   stopScroll();
+   const session={abort:new AbortController(),cursor:null,ready:false,wheel:[]};
+   scrollSession=session;
+   function consume(event){
+    const p=point(event.x,event.y);
+    if(event.delta&&p&&trackList.contains(document.elementFromPoint(p.x,p.y))){
+     const delta=-event.delta;
+     if(matchWheel(domWheel,delta))return;
+     const pending={at:performance.now(),delta,timer:setTimeout(()=>{
+      const index=session.wheel.indexOf(pending);
+      if(index<0)return;
+      session.wheel.splice(index,1);
+      if(scrollSession===session)trackList.scrollTop+=delta;
+     },45)};
+     session.wheel.push(pending);
+    }
+   }
+   async function poll(){
+    try{
+     const response=await fetch('http://127.0.0.1:48642/player-scroll?after='+(session.cursor??0),{cache:'no-store',signal:AbortSignal.any([session.abort.signal,AbortSignal.timeout(1500)])});
+     if(!response.ok)throw Error('scroll service');
+     const data=await response.json();
+     if(scrollSession!==session)return;
+     session.ready=data.available===true;
+     if(session.ready&&session.cursor!==null&&data.seq>=session.cursor){
+      for(const event of data.events)if(event.seq>session.cursor)consume(event);
+     }
+     session.cursor=session.ready?data.seq:null;
+    }catch{session.ready=false;session.cursor=null}
+    if(scrollSession===session)session.timer=setTimeout(poll,session.ready?24:250);
+   }
+   poll();
+  }
   const caption=({name,file,src})=>name+(file||src?'':' · 官方试听');
   function resetAudio(){
    playingIndex=-1;audio.pause();audio.removeAttribute('src');audio.load();
@@ -154,35 +207,24 @@ const __wtSnowfluffPlayer=(()=>{
   close.addEventListener('click',()=>{expanded(false);star.focus()});
   settings.addEventListener('click',()=>{settingsBox.hidden=!settingsBox.hidden;settings.setAttribute('aria-expanded',String(!settingsBox.hidden));place()});
   for(const type of ['pointerdown','mousedown','click'])panel.addEventListener(type,event=>event.stopPropagation());
-  let drag=null,skipClick=false;
   trackList.addEventListener('wheel',event=>{
    if(event.ctrlKey||!event.deltaY||trackList.scrollHeight<=trackList.clientHeight)return;
    event.preventDefault();event.stopPropagation();
    const unit=event.deltaMode===1?22:event.deltaMode===2?trackList.clientHeight:1;
-   trackList.scrollTop+=event.deltaY*unit;
+   const delta=event.deltaY*unit;
+   if(scrollSession?.ready&&window.__wtPlayerPoint){
+    const pending=matchWheel(scrollSession.wheel,delta);
+    if(pending)clearTimeout(pending.timer);
+    else{
+     domWheel.push({at:performance.now(),delta});
+     if(domWheel.length>16)domWheel.shift();
+    }
+   }
+   trackList.scrollTop+=delta;
   },{passive:false});
-  trackList.addEventListener('pointerdown',event=>{
-   skipClick=false;
-   if(event.pointerType!=='mouse'||event.button!==0||!event.target.closest('[data-track-index]')||trackList.scrollHeight<=trackList.clientHeight)return;
-   drag={id:event.pointerId,y:event.clientY,top:trackList.scrollTop,active:false};
-  });
-  trackList.addEventListener('pointermove',event=>{
-   if(!drag||event.pointerId!==drag.id)return;
-   const delta=event.clientY-drag.y;
-   if(!event.buttons){drag=null;return}
-   if(!drag.active&&Math.abs(delta)<5)return;
-   if(!drag.active){drag.active=true;trackList.setPointerCapture(event.pointerId)}
-   trackList.scrollTop=drag.top-delta;
-  });
-  function endDrag(event){
-   if(event.pointerId!==drag?.id)return;
-   skipClick=drag.active;drag=null;
-  }
-  for(const type of ['pointerup','pointercancel','lostpointercapture'])trackList.addEventListener(type,endDrag);
-  function showTracks(show){drag=null;skipClick=false;trackList.hidden=!show;trackButton.setAttribute('aria-expanded',String(show));place()}
+  function showTracks(show){trackList.hidden=!show;trackButton.setAttribute('aria-expanded',String(show));place();if(show)startScroll();else stopScroll()}
   trackButton.addEventListener('click',()=>showTracks(trackList.hidden));
   trackList.addEventListener('click',event=>{
-   if(skipClick&&event.detail){skipClick=false;return}
    const item=event.target.closest('[data-track-index]');if(!item)return;
    selectedIndex=Number(item.dataset.trackIndex);refresh();showTracks(false);
   });
@@ -221,7 +263,7 @@ const __wtSnowfluffPlayer=(()=>{
    if(selected&&(files.length||playing)){const index=options.findIndex(item=>item.file===selected.file&&item.name===selected.name);if(index>=0)selectedIndex=index}
    refresh();
   }).catch(()=>{});
-  return ()=>{disposed=true;observer.disconnect();resize.disconnect();move.disconnect();window.removeEventListener('resize',schedule);if(frame!==undefined)cancelAnimationFrame(frame);resetAudio();star.remove();panel.remove();style.remove();geometry()};
+  return ()=>{disposed=true;stopScroll();observer.disconnect();resize.disconnect();move.disconnect();window.removeEventListener('resize',schedule);if(frame!==undefined)cancelAnimationFrame(frame);resetAudio();star.remove();panel.remove();style.remove();geometry()};
  }
  return {create};
 })();

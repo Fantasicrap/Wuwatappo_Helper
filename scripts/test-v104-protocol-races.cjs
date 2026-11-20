@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {babelParse,traverse}=require('playwright/lib/transform/babelBundle');
-const {fixturePath}=require('./upstream-fixtures.cjs');
+const {fixturePath,v105}=require('./upstream-fixtures.cjs');
 const panel=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-pp8VWaUF.js'),'utf8');
 const common=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-CuzHFfJW.js'),'utf8');
 
@@ -45,7 +45,8 @@ function setup(){
  const ctx={console:{warn:blank},setTimeout,clearTimeout,globalStore:store,R:store,getCookie:()=>token,loadKeyPressClickCount:async()=>0,
   persistCumulativeClickCount:async(...args)=>reports.push(args),persistKeyPressClickCount:()=>caches.push(store.localClickCount),
   window:{dispatchEvent:()=>caches.push(store.localClickCount)},CustomEvent:class{},
-  A:1,r:{connected:true},Ze:blank,ki:ack=>ack?.c===0,ot:async(event,body)=>{sends.push([event,body.num]);return{c:0}},
+  A:1,r:{connected:true},f:{connected:true},Ze:blank,ki:ack=>ack?.c===0,ot:async(event,body)=>{sends.push([event,body.num]);return{c:0}},
+  __wu105_137801:ref(false),__wu105_343:blank,
   Ie:()=>false,Fn:ref(false),kt:ref(false),Ei:ref(false),Oi:ref(false),xi:ref(false),Fi:ref(false),Wn:ref(true),Gn:ref(false),
   Qn:ref(true),Mi:ref(false),br:ref(false),nt:ref({status:'online'}),Ns:1000,__wtAutoChestEnabled:()=>auto,
   mt:blank,lu:blank,q:blank,go:blank,me:blank,an:blank,od:blank,$:v=>v,gr:blank,Up:async()=>{},G:async()=>{},yt:v=>v,
@@ -107,11 +108,13 @@ async function run(){
 
  const remembered=[],recovery=[],emit=[],socket={connected:true,emit:(...args)=>emit.push(args)};
  let session=1;
- const room={R:{isLoggedIn:true,userInfo:{id:1,room_no:'Room12345'}},r:socket,O:()=>1,yi:blank,u:ref('Room12345'),c:ref(''),a:ref('idle'),K:v=>String(v??'').trim(),
+ const role=ref('idle');
+ const room={R:{isLoggedIn:true,userInfo:{id:1,room_no:'Room12345'}},r:socket,f:socket,O:()=>1,k:()=>1,yi:blank,u:ref('Room12345'),c:ref(''),a:role,i:role,K:v=>String(v??'').trim(),
   ki:ack=>ack?.c===0,qs:ack=>ack?.c,nd:()=>true,Qh:blank,Zh:blank,X:blank,Qg:m=>m.map(row=>({id:row.u,online:true})),
   Ls:blank,G:blank,v:ref([]),d:ref([]),zt:0,n:{onMemberJoin:blank},dt:Number,Cd:Boolean,st:blank,
   __wtRoomHistory:{remember:(...args)=>remembered.push(args)},__wu104_111576:reason=>recovery.push(reason),
   __wtClickSession:()=>{const id=session;return()=>id===session}};
+ Object.assign(room,{__wu105_99638:room.K,__wu105_99509:blank,__wu105_98989:room.d,__wu105_98901:room.c,y:ref([]),__wu105_93855:Number});
  vm.createContext(room);vm.runInContext(`let te='enter';${panelFns.We};${panelFns.Ft};this.request=()=>We('rm',{r:u.value},Ft);`,room);
  const ack=(r,m)=>({c:0,d:{r,m}});
  room.request();emit.at(-1).at(-1)(ack('Room12345',[{u:2,o:true}]));
@@ -119,7 +122,7 @@ async function run(){
  room.request();emit.at(-1).at(-1)(ack('WrongRoom',[{u:1,o:true}]));
  assert.deepEqual(recovery,['rm-invalid-snapshot']);assert.equal(room.u.value,'Room12345');
  room.request();session++;emit.at(-1).at(-1)(ack('Room12345',[{u:1,o:true}]));
- room.request();room.r={connected:true};emit.at(-1).at(-1)(ack('Room12345',[{u:1,o:true}]));
+ room.request();room[v105?'f':'r']={connected:true};emit.at(-1).at(-1)(ack('Room12345',[{u:1,o:true}]));
  assert.deepEqual(remembered,[[1,'Room12345']]);
  console.log('PASS: production 1.0.4 handlers preserve click increments, reconcile a lost chest response and record only current room confirmations');
 }

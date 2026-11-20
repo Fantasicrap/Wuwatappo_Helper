@@ -1,4 +1,4 @@
-const {fixturePath}=require('./upstream-fixtures.cjs');
+const {fixturePath,v105}=require('./upstream-fixtures.cjs');
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const {babelParse,traverse}=require('playwright/lib/transform/babelBundle');
 const source=fs.readFileSync('patches/monitor-preference.js','utf8').replace(/export /g,'');
@@ -22,9 +22,12 @@ async function fixture(){
 }
 async function productionBridge(){
  const code=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/switchDisplayMonitor-B50jXMGD.js'),'utf8'),fns={};
- traverse(babelParse(code,'bridge.mjs',true),{FunctionDeclaration(p){if(['Aa','An','p','qe','j'].includes(p.node.id.name))fns[p.node.id.name]=code.slice(p.node.start,p.node.end)}});assert.equal(Object.keys(fns).length,5);
+ const names=v105?['Na','On','p','Ke','J']:['Aa','An','p','qe','j'];
+ traverse(babelParse(code,'bridge.mjs',true),{FunctionDeclaration(p){if(names.includes(p.node.id.name))fns[p.node.id.name]=code.slice(p.node.start,p.node.end)}});assert.equal(Object.keys(fns).length,5);
  let here=primary,monitors=[primary,secondary],confirm=true;const calls=[],cache=new Map(),c={Date,Math,console:{warn:()=>{},error:()=>{}},O:null,pa:'position',localStorage:{setItem:(k,v)=>cache.set(k,v)},ye:async()=>({}),me:async()=>monitors,H:async()=>primary,K:async()=>here,w:()=>{},ne:async()=>({}),ot:()=>({}),Ea:async()=>{calls.push('prepare');return true},ga:async()=>true,Sa:async()=>true,rt:async()=>{},ct:async fn=>fn(),_e:()=>{},u:async(name,args)=>{calls.push(name);if(name==='set_main_window_monitor_bounds'&&confirm)here=monitors.find(m=>m.position.x===args.payload.x)}};
- vm.createContext(c);vm.runInContext(Object.values(fns).join(';')+';this.switchTo=An;',c);
+ if(v105)Object.assign(c,{C:null,Sa:c.pa,he:c.ye,V:c.me,R:c.H,h:c.w,se:c.ne,dt:c.ot,Ma:c.Ea,
+  Be:()=>{},__wu105_16949:c.ga,__wu105_17422:c.Sa,_t:c.rt,ft:c.ct,pe:c._e,w:async()=>{},He:'switch-finish'});
+ vm.createContext(c);vm.runInContext(Object.values(fns).join(';')+';this.switchTo='+(v105?'On':'An')+';',c);
  assert.equal(await c.switchTo(api.key(secondary)),true);assert.equal(here,secondary);assert.equal(json(JSON.parse(cache.get('position'))).x,-2048,'Use target DPI when saving logical position');assert(calls.includes('sync_aux_windows_to_main_monitor'));assert.equal(calls.at(-1),'finish_main_window_monitor_switch');
  const before=calls.length;assert.equal(await c.switchTo(api.key(secondary)),true);assert.equal(calls.length,before,'Already on target must not move');
  assert.equal(await c.switchTo(),true);assert.equal(here,primary,'Original cycle shortcut remains functional');

@@ -1,4 +1,4 @@
-const {fixturePath}=require('./upstream-fixtures.cjs');
+const {fixturePath,v105}=require('./upstream-fixtures.cjs');
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict');
 const {chromium}=require('playwright'),{babelParse,traverse}=require('playwright/lib/transform/babelBundle');
 const dir='dist/migration-1.0.3.4',common=fs.readFileSync(fixturePath(path.join(dir,'index-CuzHFfJW.js')),'utf8'),main=fs.readFileSync(fixturePath(path.join(dir,'index-pp8VWaUF.js')),'utf8'),settings=fs.readFileSync(fixturePath(path.join(dir,'index-CiT_jZa7.js')),'utf8');
@@ -39,7 +39,7 @@ const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/startup-notice-1.0.3.
   await page.waitForTimeout(180);assert.equal(await page.evaluate(()=>noticeOpens),0,'Cannot open a native About window before its component is ready');
   await page.evaluate(()=>emit('wt-helper-notice-ready',{id:'previous-launch'}));
   await page.waitForTimeout(120);assert.equal(await page.evaluate(()=>noticeOpens),0,'An unrelated or stale ready event cannot release the startup gate');
-  await page.addScriptTag({content:`(()=>{const {defineComponent:T,ref:S,computed:f,watch:x,onMounted:j,onUnmounted:E,openBlock:i,createElementBlock:l,Fragment:n,createBaseVNode:e,toDisplayString$1:p,unref:h,createCommentVNode:w,createStaticVNode:d,withDirectives:D,vModelCheckbox:I,withModifiers:P,normalizeClass:U}=__vue;
+  await page.addScriptTag({content:`(()=>{const {defineComponent:T,ref:S,computed:f,watch:x,onMounted:j,onUnmounted:E,openBlock:i,createElementBlock:l,Fragment:n,createBaseVNode:e,toDisplayString$1:p,unref:h,createCommentVNode:w,createStaticVNode:d,withDirectives:D,vModelCheckbox:${v105?'P':'I'},withModifiers:${v105?'I':'P'},normalizeClass:U}=__vue;
    const q=()=>noticeWindow,G=()=>({locale:S('zh'),t:k=>k,te:()=>false}),B=listen,R=()=>invoke('close_about_window'),m=()=>localStorage.getItem('about_startup_skip')==='1',F=v=>localStorage.setItem('about_startup_skip',v?'1':'0'),O=()=> '关于 WuwaTappo',L=(component,props)=>{for(const[k,v]of props)component[k]=v;return component};
    ${about}
    window.aboutApp=__vue.createApp(window.aboutComponent);aboutApp.mount('#app');})()`});

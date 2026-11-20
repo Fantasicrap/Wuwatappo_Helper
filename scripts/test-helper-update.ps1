@@ -39,27 +39,32 @@ class UpdateSmoke {
  static int Main(string[] args){try{
   string app=args[0], old=args[1], next=args[2], folder=Path.GetDirectoryName(old);
   var asm=Assembly.LoadFile(app);type=asm.GetType("HelperUpdate",true);
-  var current=asm.GetName().Version;var upstream=new Version(1,0,5);var same=new Version(1,0,4);
+  var current=asm.GetName().Version;
+  var same=new Version(current.Major,current.Minor,current.Build);
+  var upstream=new Version(current.Major,current.Minor,current.Build+1);
+  var later=new Version(current.Major,current.Minor,current.Build+2);
+  var latestUpstream=new Version(upstream.Major,upstream.Minor,upstream.Build,2);
   Check(!(bool)Call("ShouldCheckOnStartup",current,same,null),"same-series startup checked GitHub");
   Check((bool)Call("ShouldCheckOnStartup",current,upstream,null),"startup skipped an unchecked official update");
   Check(!(bool)Call("ShouldCheckOnStartup",current,upstream,upstream),"previous checked official update retriggered");
-  Check((bool)Call("ShouldCheckOnStartup",current,new Version(1,0,6),upstream),"new official target should recheck");
+  Check((bool)Call("ShouldCheckOnStartup",current,later,upstream),"new official target should recheck");
   var sameNext=new Version(current.Major,current.Minor,current.Build,current.Revision+1);
-  object[] releases={Row(sameNext.ToString()),Row("1.0.5.9",true),Row("1.0.5.8",false,true),Row("1.0.5.1"),Row("1.0.5.2"),Row("1.0.6.1")};
+  object[] releases={Row(sameNext.ToString()),Row(upstream+".9",true),Row(upstream+".8",false,true),Row(upstream+".1"),Row(latestUpstream.ToString()),Row(later+".1")};
   Check(Selected(Call("SelectRelease",releases,current,same))==sameNext,"manual same-series check selected incompatible release");
-  Check(Selected(Call("SelectRelease",releases,current,upstream))==new Version(1,0,5,2),"did not select latest matching stable release");
-  Check(Call("SelectRelease",new object[]{Row("1.0.4.4"),Row("1.0.6.1")},current,upstream)==null,"cross-series update used incompatible asset");
-  try{Call("SelectRelease",new object[]{Row("1.0.5.1",digest:"missing")},current,upstream);throw new Exception("Unverified asset accepted");}
+  Check(Selected(Call("SelectRelease",releases,current,upstream))==latestUpstream,"did not select latest matching stable release");
+  Check(Call("SelectRelease",new object[]{Row(sameNext.ToString()),Row(later+".1")},current,upstream)==null,"cross-series update used incompatible asset");
+  try{Call("SelectRelease",new object[]{Row(upstream+".1",digest:"missing")},current,upstream);throw new Exception("Unverified asset accepted");}
   catch(TargetInvocationException ex){Check(ex.InnerException is InvalidDataException,"wrong invalid-metadata failure");}
 
   string digest=Hash(app);long size=new FileInfo(app).Length;
   Check((bool)Call("Verified",app,digest,current,size),"real package failed verification");
   Check(!(bool)Call("Verified",app,new string('0',64),current,size),"wrong digest accepted");
   Check(!(bool)Call("Verified",app,digest,current,size-1),"wrong length accepted");
-  Check(!(bool)Call("Verified",app,digest,new Version(1,0,5,1),size),"wrong embedded version accepted");
+  Check(!(bool)Call("Verified",app,digest,sameNext,size),"wrong embedded version accepted");
 
   digest=Hash(next);size=new FileInfo(next).Length;
-  var candidate=Call("SelectRelease",new object[]{Row(current.ToString(),digest:"sha256:"+digest,size:size)},new Version(1,0,4,0),same);
+  var previous=new Version(same.Major,same.Minor,same.Build,0);
+  var candidate=Call("SelectRelease",new object[]{Row(current.ToString(),digest:"sha256:"+digest,size:size)},previous,same);
   var attempts=new List<string>();
   var good=new Action<Uri,string,long>((url,temp,expected)=>{
    Check(!File.Exists(temp)&&expected==size,"stale partial download or invalid size");

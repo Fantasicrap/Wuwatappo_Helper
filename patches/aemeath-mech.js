@@ -5,6 +5,7 @@ const __wtAemeathMech=(()=>{
  const css=`
 .wt-mech-settings{margin:12px 0 0;padding:10px 12px;border:1px solid var(--wt-ui-border,#e3c9aa);border-radius:12px;background:var(--wt-ui-card-fill,#fff9ed);color:var(--wt-ui-text,#694832)}
 .wt-mech-settings legend{padding:0 6px;font-weight:700}
+.wt-mech-settings p{margin:0 0 8px;color:var(--wt-ui-muted,#775e4b);font-size:12px;line-height:1.5}
 .wt-mech-settings label{display:flex;align-items:center;gap:8px;margin:4px 0;cursor:pointer}
 .wt-mech-settings label:has(:disabled){opacity:.65;cursor:default}
 .wt-mech-settings label:has([data-mech-setting=flash],[data-mech-setting=wings]){padding-left:22px}
@@ -94,6 +95,7 @@ const __wtAemeathMech=(()=>{
   styles();
   const field=document.createElement('fieldset');field.className='wt-mech-settings';
   const legend=document.createElement('legend');legend.textContent='爱弥斯 · 隧者兵装';field.append(legend);
+  const hint=document.createElement('p');hint.textContent='仅在装备爱弥斯时可用。若装备后仍未生效，请重新装备一次。';field.append(hint);
   const switches=new Map();
   for(const [name,text] of [['enabled','常驻伴飞（总开关）'],['idle','待机悬浮'],['sword','待机挥剑'],['orbit','自动环绕'],['input','输入联动'],['flash','按下时核心亮起'],['wings','长按时展开机翼'],['laser','长按升空发射激光'],['greatsword','敲击时召唤隧者大剑']]){
    const label=document.createElement('label'),input=document.createElement('input');
@@ -107,7 +109,7 @@ const __wtAemeathMech=(()=>{
   switches.get('orbit').title='2.5 秒内按下 6 次，或静置 18–24 秒后触发';
   switches.get('laser').title='长按 1.2 秒触发，间隔至少 20 秒';
   switches.get('greatsword').title='每次敲击有 1% 概率触发，成功后冷却 10 分钟';
-  function update(){const cfg=read();for(const [name,input] of switches){input.checked=cfg[name];input.disabled=name!=='enabled'&&(!cfg.enabled||(['flash','wings','laser','greatsword'].includes(name)&&!cfg.input))}}
+  function update(){const cfg=read();for(const [name,input] of switches){input.checked=cfg[name];input.disabled=name!=='enabled'&&(!cfg.enabled||(['flash','wings','greatsword'].includes(name)&&!cfg.input))}}
   root.append(field);update();return update;
  }
  function isAemeath(role){return Number(role?.id)===1210||/(?:^|[\\/])role_1210(?:[_-]|$)/i.test(role?.name??'')}
@@ -115,20 +117,30 @@ const __wtAemeathMech=(()=>{
   const motion=window.matchMedia('(prefers-reduced-motion: reduce)'),held=new Set();
   let cfg=read(),host,mech,dock,sprite='__WT_AEMEATH_MECH_SPRITE__',pending,unlisten,started=false,disposed=false,demand=false;
   if(!sprite.startsWith('data:'))sprite='';
-  let holdTimer,flashTimer,orbitTimer,swordTimer,frame,layoutFrame,side=-1,lastOrbit=-8000,inputs=[],lastPath;
-  let special,specialFrame,laserTimer,lastLaser=-laserCooldown,lastGreatsword=0;
+  let holdTimer,flashTimer,orbitTimer,swordTimer,frame,layoutFrame,side=-1,lastOrbit=-8000,inputs=[],lastPath,watchdog;
+  let special,specialFrame,specialEndTimer,orbitEndTimer,swordEndTimer,laserTimer,lastLaser=-laserCooldown,lastGreatsword=0;
   try{lastGreatsword=Math.min(Date.now(),Number(localStorage.getItem(greatswordKey))||0)}catch{}
   const resize=new ResizeObserver(scheduleLayout),move=new MutationObserver(scheduleLayout);
   const tree=new MutationObserver(()=>{if(root()!==host||!mech?.isConnected)sync()});
   const eligible=()=>started&&!disposed&&cfg.enabled&&isAemeath(role());
-  const specialEnabled=kind=>cfg.input&&cfg[kind]&&!motion.matches;
-  const inputActive=()=>eligible()&&!!mech?.isConnected&&(cfg.orbit&&!motion.matches||cfg.input&&(cfg.flash||cfg.wings||specialEnabled('laser')||specialEnabled('greatsword')));
+  const specialEnabled=kind=>kind==='laser'?(cfg.laser&&!motion.matches):(cfg.input&&cfg[kind]&&!motion.matches);
+  const inputActive=()=>eligible()&&!!mech?.isConnected&&(cfg.orbit&&!motion.matches||specialEnabled('laser')||cfg.input&&(cfg.flash||cfg.wings||specialEnabled('greatsword')));
   const geometry=()=>window.dispatchEvent(new Event('pet-toast-geometry-changed'));
   function updateDemand(){const next=inputActive();if(demand!==next){demand=next;activity()}}
   function release(source){
    for(const token of held)if(!source||token.startsWith(source+':'))held.delete(token);
    if(held.size)return;
-   clearTimeout(holdTimer);clearTimeout(laserTimer);if(mech)delete mech.dataset.held;
+   clearTimeout(holdTimer);clearTimeout(laserTimer);laserTimer=null;if(mech)delete mech.dataset.held;
+  }
+  function armLaser(delay=1200){
+   if(!mech||laserTimer||!specialEnabled('laser'))return;
+   laserTimer=setTimeout(()=>{
+    laserTimer=null;
+    if(!mech||!held.size||!specialEnabled('laser'))return;
+    if(performance.now()-lastLaser<laserCooldown)return;
+    if(playSpecial('laser')){lastLaser=performance.now();return}
+    if(held.size)armLaser(250);
+   },delay);
   }
   function input(source,token,pressed){
    if(!pressed){
@@ -154,29 +166,29 @@ const __wtAemeathMech=(()=>{
     flashTimer=setTimeout(()=>{if(mech)delete mech.dataset.flash},230);
    }
    if(cfg.input&&cfg.wings&&held.size===1)holdTimer=setTimeout(()=>{if(held.size&&mech)mech.dataset.held=''},190);
-   if(held.size===1&&specialEnabled('laser'))laserTimer=setTimeout(()=>{
-    if(held.size&&performance.now()-lastLaser>=laserCooldown&&playSpecial('laser'))lastLaser=performance.now();
-   },1200);
+   armLaser();
   }
   function position(offset,y){
-   const rect=host.getBoundingClientRect(),scale=rect.width/host.offsetWidth||1,size=mech.offsetWidth;
+   const rect=host.getBoundingClientRect(),hostWidth=host.offsetWidth||rect.width,hostHeight=host.offsetHeight||rect.height,scale=rect.width/hostWidth||1,size=mech.offsetWidth;
    const width=window.innerWidth,height=window.innerHeight,pad=6;
    const clamp=(v,min,max)=>min>max?(min+max)/2:Math.max(min,Math.min(v,max));
-   const x=clamp((.5+offset)*host.offsetWidth,(pad-rect.left)/scale+size/2,(width-pad-rect.left)/scale-size/2);
-   const top=clamp(y*host.offsetHeight,(pad-rect.top)/scale+size/2,(height-pad-rect.top)/scale-size/2);
+   const x=clamp((.5+offset)*hostWidth,(pad-rect.left)/scale+size/2,(width-pad-rect.left)/scale-size/2);
+   const top=clamp(y*hostHeight,(pad-rect.top)/scale+size/2,(height-pad-rect.top)/scale-size/2);
    mech.style.left=x+'px';mech.style.top=top+'px';
    if(mech.style.getPropertyValue('--wt-mech-size')!==size+'px')mech.style.setProperty('--wt-mech-size',size+'px');
-   mech.dataset.facing=x<host.offsetWidth/2?'right':x>host.offsetWidth/2?'left':offset<0?'right':'left';
+   mech.dataset.facing=x<hostWidth/2?'right':x>hostWidth/2?'left':offset<0?'right':'left';
   }
   function park(){
-   if(!mech||!host.offsetWidth)return;
-   const rect=host.getBoundingClientRect(),size=mech.getBoundingClientRect().width;
+   if(!mech||!host)return;
+   const rect=host.getBoundingClientRect(),hostWidth=host.offsetWidth||rect.width;
+   if(!hostWidth)return;
+   const size=mech.getBoundingClientRect().width;
    const edge=Math.max(0,size/2-rect.width*.02)+6;
    if(side<0&&rect.left<edge&&window.innerWidth-rect.right>rect.left)side=1;
    else if(side>0&&window.innerWidth-rect.right<edge&&rect.left>window.innerWidth-rect.right)side=-1;
-   const occupied=[...(dock?.querySelectorAll('.reward-anchor,.emotion-menu,.wt-snowfluff:not([hidden])')??[])];
+   const occupied=[...(dock?.querySelectorAll('.reward-anchor,.emotion-menu')??[])];
    const overlaps=(offset,y)=>{
-    const x=rect.left+(.5+offset)*rect.width,cy=rect.top+y*rect.height;
+    const x=rect.left+(.5+offset)*hostWidth,cy=rect.top+y*rect.height;
     return occupied.some(node=>{
      const b=node.getBoundingClientRect(),r=size*.46;
      return b.width&&b.height&&x+r>b.left&&x-r<b.right&&cy+r>b.top&&cy-r<b.bottom;
@@ -184,7 +196,7 @@ const __wtAemeathMech=(()=>{
    };
    const choices=[[side*.5,.33],[side*.5,.22],[-side*.5,.33],[-side*.5,.22]];
    const [offset,y]=choices.find(([x,y])=>{
-    const center=rect.left+(.5+x)*rect.width;
+    const center=rect.left+(.5+x)*hostWidth;
     return center>=size/2&&center<=window.innerWidth-size/2&&!overlaps(x,y);
    })??choices[0];
    side=Math.sign(offset);position(offset,y);
@@ -205,6 +217,7 @@ const __wtAemeathMech=(()=>{
    swordTimer=setTimeout(()=>{
     if(frame===undefined&&!held.size&&host.getClientRects().length){
      mech.dataset.sword=random()<.5?'sweep':'spin';
+     clearTimeout(swordEndTimer);swordEndTimer=setTimeout(()=>{if(mech)delete mech.dataset.sword},2600);
     }
     planSword();
    },6500+random()*5000);
@@ -233,9 +246,11 @@ const __wtAemeathMech=(()=>{
     else{frame=undefined;delete mech.dataset.orbit;park();planOrbit()}
    }
    frame=requestAnimationFrame(step);
+   clearTimeout(orbitEndTimer);orbitEndTimer=setTimeout(()=>{if(frame!==undefined)cancelOrbit()},(route==='zigzag'?2400:2050)+900);
   }
   function cancelOrbit(){
    if(frame===undefined)return;
+   clearTimeout(orbitEndTimer);orbitEndTimer=null;
    cancelAnimationFrame(frame);frame=undefined;
    if(mech){delete mech.dataset.orbit;park();planOrbit()}
   }
@@ -244,6 +259,7 @@ const __wtAemeathMech=(()=>{
   }
   function endSpecial(resume=true){
    if(!special)return;
+   clearTimeout(specialEndTimer);specialEndTimer=null;
    cancelAnimationFrame(specialFrame);specialFrame=undefined;
    special.node.remove();special=null;
    delete mech.dataset.special;delete mech.dataset.held;
@@ -319,10 +335,11 @@ const __wtAemeathMech=(()=>{
     }
     specialFrame=requestAnimationFrame(animate);
    }
+   specialEndTimer=setTimeout(()=>endSpecial(),duration+700);
    animate(startedAt);return true;
   }
   function clear(){
-   endSpecial(false);cancelOrbit();clearTimeout(orbitTimer);clearTimeout(swordTimer);clearTimeout(flashTimer);release();inputs=[];
+   endSpecial(false);cancelOrbit();clearTimeout(orbitTimer);clearTimeout(swordTimer);clearTimeout(flashTimer);clearTimeout(swordEndTimer);swordEndTimer=null;release();inputs=[];
    if(layoutFrame!==undefined)cancelAnimationFrame(layoutFrame);
    layoutFrame=undefined;resize.disconnect();move.disconnect();
    if(mech){mech.remove();geometry()}mech=null;host=null;dock=null;updateDemand();
@@ -342,6 +359,7 @@ const __wtAemeathMech=(()=>{
    const sword=grip.firstElementChild;
    sword.addEventListener('animationend',()=>{if(mech)delete mech.dataset.sword});
    mech.append(body);host.append(mech);geometry();
+   requestAnimationFrame(()=>{if(mech&&host)park()});
    resize.observe(host);move.observe(dock,{attributes:true,attributeFilter:['style','class']});
   }
   function sync(){
@@ -363,7 +381,7 @@ const __wtAemeathMech=(()=>{
    else{clearTimeout(flashTimer);delete mech.dataset.core;delete mech.dataset.flash}
    if(!cfg.orbit||motion.matches)cancelOrbit();
    if(special&&!specialEnabled(special.kind))endSpecial();
-   if(!specialEnabled('laser'))clearTimeout(laserTimer);
+   if(!specialEnabled('laser')){clearTimeout(laserTimer);laserTimer=null}
    if(!inputActive())release();
    if(!cfg.sword||motion.matches)delete mech.dataset.sword;
    if(frame===undefined&&!special){park();planOrbit();planSword()}
@@ -378,8 +396,14 @@ const __wtAemeathMech=(()=>{
    document.addEventListener('visibilitychange',pageVisibility);motion.addEventListener('change',sync);
    if(typeof listen==='function')Promise.resolve().then(()=>listen(eventName,reload)).then(stop=>{if(disposed)stop();else unlisten=stop}).catch(()=>{});
    sync();
+   watchdog=setInterval(()=>{
+    if(!mech)return;
+    if(!held.size&&mech.hasAttribute('data-held'))delete mech.dataset.held;
+    if(!special&&mech.dataset.special)delete mech.dataset.special;
+    if(frame===undefined&&mech.dataset.orbit)delete mech.dataset.orbit;
+   },1000);
   },dispose(){
-   disposed=true;tree.disconnect();clear();unlisten?.();
+   disposed=true;clearInterval(watchdog);tree.disconnect();clear();unlisten?.();
    window.removeEventListener('storage',storage);window.removeEventListener('resize',scheduleLayout);
    document.removeEventListener('visibilitychange',pageVisibility);motion.removeEventListener('change',sync);
   }};

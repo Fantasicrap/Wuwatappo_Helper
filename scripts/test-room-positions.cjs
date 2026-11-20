@@ -1,4 +1,4 @@
-const {fixturePath}=require('./upstream-fixtures.cjs');
+const {fixturePath,v105}=require('./upstream-fixtures.cjs');
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const {babelParse,traverse}=require('playwright/lib/transform/babelBundle');
 const memory=new Map();let writes=0;
@@ -16,10 +16,10 @@ assert.equal(api.create(storage).get(1,'room',2,1000,800).left,345,'New session 
 const broken=api.create({getItem:()=>'{',setItem:()=>{throw Error('quota')}});assert.equal(broken.get(1,'room',2,1000,800),null);assert.equal(broken.put(1,'room',2,1,2,1000,800),false);
 const bounded=new Map(),b=api.create({getItem:k=>bounded.get(k),setItem:(k,v)=>bounded.set(k,v)});for(let id=2;id<1004;id++)b.put(1,'room',id,id,2,2000,1000);assert.equal(JSON.parse(bounded.get(api.key)).length,1000);
 const source=fs.readFileSync(fixturePath('dist/migration-1.0.3.4/index-pp8VWaUF.js'),'utf8'),fn={};
-traverse(babelParse(source,'main.mjs',true),{FunctionDeclaration(p){const name=p.node.id.name;if(['Li','en','vt','Bi','Fd','_a','gl','tc','Nl','__wtSetRoomMode','__wtSaveRoomPosition','__wtRestoreRoomPosition'].includes(name))fn[name]=source.slice(p.node.start,p.node.end)}});
+traverse(babelParse(source,'main.mjs',true),{FunctionDeclaration(p){const name=p.node.id.name;if(['Li',v105?'__wu105_139537':'en','vt','Bi','Fd','_a','gl','tc','Nl','__wtSetRoomMode','__wtSaveRoomPosition','__wtRestoreRoomPosition'].includes(name))fn[name]=source.slice(p.node.start,p.node.end)}});
 assert.equal(Object.keys(fn).length,12);
 function fixture(account=1,room='room'){
- const c={__wtRoomMode:'custom',__wtRoomPositions:api,__wtSavedRoomPositions:api.create(storage),localStorage:storage,R:{isLoggedIn:true,userInfo:{id:account}},Vo:{value:room},ut:new Set(),Mt:new Set(),Di:new Map(),nv:value=>({value}),Lt:{value:true},Pt:{value:null},window:{innerWidth:1000,innerHeight:800},ft:200,
+ const c={__wtRoomMode:'custom',__wtRoomPositions:api,__wtSavedRoomPositions:api.create(storage),localStorage:storage,R:{isLoggedIn:true,userInfo:{id:account}},Vo:{value:room},ut:new Set(),Mt:new Set(),Di:new Map(),nv:value=>({value}),Lt:{value:true},Pt:{value:null},window:{innerWidth:1000,innerHeight:800},ft:200,__wu105_129613:200,
  ce:{value:{querySelector:()=>({getBoundingClientRect:()=>({left:50,top:40,width:200})})}},Mr:(x,y)=>({left:Math.max(0,Math.min(x,800)),top:Math.max(0,Math.min(y,589))}),Hl:()=>({left:12,top:34}),wa:()=>({left:12,top:34}),Pc:()=>({left:12,top:34}),tn:()=>true,ht:{value:[]}};
  vm.createContext(c);vm.runInContext(Object.values(fn).join(';'),c);return c;
 }

@@ -19,7 +19,7 @@ const {catalog,atlas}=require('./fixtures/wardrobe-catalog.json'),items=[atlas.d
  ${selectHandler}
  const _t=ref([]);let Pd=0;const ih=id=>sentIds.push(id),Mm=()=>{},Hf=()=>({offsetX:0,offsetY:0}),mn=()=>{};
  const Ap=(()=>{const J=()=>null;${sendFunction};return Ap})();
- const __wtTrial=__wtLocalWardrobe.settings(ref,m=>messages.push(m)),Ke=value=>String(value).replace(/_atlas$/,''),t={get selectedEmoteAssetIds(){return Ac.value}},u=item=>__wtLocalWardrobe.canEmote(item,Ac.value),B=(name,item)=>{if(name==='select-appearance')lh(item)};
+ const __wtTrial=__wtLocalWardrobe.settings(ref,m=>messages.push(m)),Ke=value=>String(value).replace(/_atlas$/,''),t={get selectedEmoteAssetIds(){return Ac.value}},__wu105_46509=t,u=item=>__wtLocalWardrobe.canEmote(item,Ac.value),B=(name,item)=>{if(name==='select-appearance')lh(item)};
  ${functions.join('\n')}
  window.state={slots:La,selected:Ac,local:__wtLocalEmotes,shown,userInfo,logged,wardrobe:__wtWardrobe,trial:__wtTrial,bubbles:_t};
  createApp({render:()=>h('div',null,[__wtLocalWardrobe.renderSettings(h,__wtTrial),h('div',{class:'cards'},items.map(item=>h('button',{type:'button',disabled:!l(item),onClick:()=>x(item)},item.label))),h('h2',null,'本地六槽表情栏'),h('div',{class:'slots'},Array.from({length:6},(_,i)=>h('button',{type:'button',disabled:!La.value[i],onClick:()=>{const item=La.value[i];if(item)Ap({id:item.id,src:'emote/'+item.name})}},'槽位 '+(i+1)+(La.value[i]?' · '+La.value[i].id:' · 空')))),h('div',{class:'state'},['本地角色：'+shown.value.character,h('br'),'本地配件：'+shown.value.accessory,h('br'),'云端表情槽数：'+userInfo.value.emote.length+'；装备请求：'+cloudRequests.length,h('br'),'本地播放次数：'+_t.value.length+'；发送入口调用：'+sentIds.length])])}).mount('#app');

@@ -9,6 +9,23 @@ static class MouseCapture {
  static IntPtr keyboardHook;static volatile bool active,captureEnabled;static long requestedAt=-10000;static Control dispatcher;static HookProc keyCallback=OnKey;static readonly bool[] held=new bool[256];
  [DllImport("user32")] static extern short GetAsyncKeyState(int key);
  [DllImport("user32")] static extern bool GetPhysicalCursorPos(out Point point);
+ public class ScrollEdge { public long seq; public int x,y,delta; }
+ static readonly Queue<ScrollEdge> scrollEdges=new Queue<ScrollEdge>();
+ static long scrollSequence,scrollRequestedAt=-10000;
+ static void RecordScroll(MouseData data){
+  if(!DemandActive(clock.ElapsedMilliseconds,Interlocked.Read(ref scrollRequestedAt)))return;
+  lock(gate){
+   scrollEdges.Enqueue(new ScrollEdge{seq=++scrollSequence,x=data.point.x,y=data.point.y,delta=(short)(data.data>>16)});
+   while(scrollEdges.Count>128)scrollEdges.Dequeue();
+  }
+ }
+ public static object ScrollSnapshot(long after){
+  Interlocked.Exchange(ref scrollRequestedAt,clock.ElapsedMilliseconds);
+  Interlocked.Exchange(ref requestedAt,clock.ElapsedMilliseconds);
+  if(active&&!captureEnabled){try{var target=dispatcher;if(target!=null)target.BeginInvoke((Action)UpdateDemand);}catch(InvalidOperationException){}}
+  lock(gate){return new {available=active&&hook!=IntPtr.Zero,seq=scrollSequence,
+   events=Array.FindAll(scrollEdges.ToArray(),e=>e.seq>after)};}
+ }
  static readonly string[] keyNames=BuildKeyNames();
  static string[] BuildKeyNames(){
   var names=new string[256];
@@ -55,7 +72,9 @@ static class MouseCapture {
  [DllImport("user32")] static extern bool PostThreadMessage(uint id,uint msg,IntPtr w,IntPtr l);
  [DllImport("kernel32")] static extern uint GetCurrentThreadId();
  [DllImport("kernel32",CharSet=CharSet.Unicode)] static extern IntPtr GetModuleHandle(string name);
- static IntPtr OnMouse(int code,IntPtr w,IntPtr l){if(captureEnabled&&code>=0){int message=w.ToInt32();if(message==0x201||message==0x202||message==0x204||message==0x205||message==0x207||message==0x208||message==0x20B||message==0x20C){var data=(MouseData)Marshal.PtrToStructure(l,typeof(MouseData));int key=message==0x201||message==0x202?1:message==0x204||message==0x205?2:message==0x207||message==0x208?4:((data.data>>16)&0xffff)==1?5:6;Record(key,message==0x201||message==0x204||message==0x207||message==0x20B,MouseName(key),data.point.x,data.point.y);}}return CallNextHookEx(hook,code,w,l);}
+ static IntPtr OnMouse(int code,IntPtr w,IntPtr l){if(captureEnabled&&code>=0){int message=w.ToInt32();
+ if(message==0x20A)RecordScroll((MouseData)Marshal.PtrToStructure(l,typeof(MouseData)));
+ if(message==0x201||message==0x202||message==0x204||message==0x205||message==0x207||message==0x208||message==0x20B||message==0x20C){var data=(MouseData)Marshal.PtrToStructure(l,typeof(MouseData));int key=message==0x201||message==0x202?1:message==0x204||message==0x205?2:message==0x207||message==0x208?4:((data.data>>16)&0xffff)==1?5:6;Record(key,message==0x201||message==0x204||message==0x207||message==0x20B,MouseName(key),data.point.x,data.point.y);}}return CallNextHookEx(hook,code,w,l);}
  public static void Start(){thread=new Thread(()=>{threadId=GetCurrentThreadId();using(var control=new Control())using(var timer=new System.Windows.Forms.Timer()){var handle=control.Handle;dispatcher=control;timer.Interval=250;timer.Tick+=(s,e)=>{UpdateDemand();Poll();timer.Interval=captureEnabled?16:250;};active=true;timer.Start();try{Application.Run();}finally{active=false;dispatcher=null;timer.Stop();captureEnabled=false;if(hook!=IntPtr.Zero)UnhookWindowsHookEx(hook);if(keyboardHook!=IntPtr.Zero)UnhookWindowsHookEx(keyboardHook);hook=keyboardHook=IntPtr.Zero;}}});thread.IsBackground=true;thread.SetApartmentState(ApartmentState.STA);thread.Start();}
  public static void Stop(){if(threadId!=0)PostThreadMessage(threadId,0x12,IntPtr.Zero,IntPtr.Zero);if(thread!=null)thread.Join(1500);}
  public static object Snapshot(long after){Interlocked.Exchange(ref requestedAt,clock.ElapsedMilliseconds);if(active&&!captureEnabled){try{var target=dispatcher;if(target!=null)target.BeginInvoke((Action)UpdateDemand);}catch(InvalidOperationException){}}lock(gate){return new {seq=sequence,available=active,keyboardAvailable=active,gap=edges.Count>0&&after>0&&after<edges.Peek().seq-1,events=after>=sequence?emptyEdges:Array.FindAll(edges.ToArray(),e=>e.seq>after)};}}

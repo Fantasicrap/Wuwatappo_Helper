@@ -108,6 +108,12 @@ static class HelperHost {
  }
  static void Reply(TcpClient client){using(client){client.ReceiveTimeout=2000;client.SendTimeout=2000;try{var stream=client.GetStream();var reader=new StreamReader(stream,Encoding.ASCII,false,1024,true);string first=reader.ReadLine();if(first==null||first.Length>2048)return;var parts=first.Split(' ');if(parts.Length<2)return;string origin="",range="",line;bool updateHeader=false;int len=0;while(!string.IsNullOrEmpty(line=reader.ReadLine())){len+=line.Length;if(len>16000)return;if(line.StartsWith("Origin:",StringComparison.OrdinalIgnoreCase))origin=line.Substring(7).Trim();if(line.StartsWith("Range:",StringComparison.OrdinalIgnoreCase))range=line.Substring(6).Trim();if(line.StartsWith("X-Wuwa-Update:",StringComparison.OrdinalIgnoreCase))updateHeader=line.Substring(14).Trim()=="1";}int status=200;string type="application/json; charset=utf-8",body;
  if(!OriginAllowed(origin)){status=403;body="{}";}else if(parts[0]=="OPTIONS")body="{}";
+ else if(parts[0]=="GET"&&parts[1].StartsWith("/player-scroll?after=",StringComparison.Ordinal)){
+  long after;
+  if(!UpdateOrigin(origin)){status=403;body="{}";}
+  else if(!long.TryParse(parts[1].Substring("/player-scroll?after=".Length),out after)||after<0){status=400;body="{}";}
+  else body=Serializer().Serialize(MouseCapture.ScrollSnapshot(after));
+ }
  else if(parts[0]=="GET"&&parts[1].StartsWith("/music/",StringComparison.Ordinal)){if(ServeMusic(stream,parts[1],origin,range))return;status=404;body="{}";}
  else if(parts[1].StartsWith("/update/",StringComparison.Ordinal)){
  if(!UpdateOrigin(origin)){status=403;body="{}";}

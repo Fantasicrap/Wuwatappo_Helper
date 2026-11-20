@@ -2,19 +2,22 @@ param([Parameter(Mandatory=$true)][string]$SourceExe,[Parameter(Mandatory=$true)
 $ErrorActionPreference='Stop'
 $repoRoot=Split-Path -Parent $PSScriptRoot
 $version=(Get-Content -LiteralPath (Join-Path $repoRoot 'package.json') -Raw|ConvertFrom-Json).releaseVersion
+$upstream=([version]$version).ToString(3)
+$migrationFlag=switch($upstream){'1.0.4'{'--v104'} '1.0.5'{'--v105'} default{throw "Unsupported upstream $upstream"}}
+$env:WUWA_SOURCE_EXE=(Resolve-Path -LiteralPath $SourceExe).Path
 $out=if($OutputDirectory){[IO.Path]::GetFullPath($OutputDirectory)}else{Join-Path $repoRoot "dist/local-$version"}
 $migration=Join-Path $repoRoot "dist/migration-$version"
 $payload=Join-Path $migration 'payload.exe'
-& node (Join-Path $PSScriptRoot 'inspect-upstream.cjs') $SourceExe (Join-Path $repoRoot 'dist/upstream-1.0.4')
+& node (Join-Path $PSScriptRoot 'inspect-upstream.cjs') $env:WUWA_SOURCE_EXE (Join-Path $repoRoot "dist/upstream-$upstream")
 if($LASTEXITCODE -ne 0){throw 'Extraction failed'}
 # Optional theme pictures. The script reports what it skipped and never blocks the build.
 & node (Join-Path $PSScriptRoot 'build-theme-assets.cjs')
-& node (Join-Path $repoRoot 'patches/v103/build-preview.cjs') --v104
-if($LASTEXITCODE -ne 0){throw '1.0.4 resource migration failed'}
+& node (Join-Path $repoRoot 'patches/v103/build-preview.cjs') $migrationFlag
+if($LASTEXITCODE -ne 0){throw "$upstream resource migration failed"}
 & node (Join-Path $PSScriptRoot 'test-v103-suite.cjs')
-if($LASTEXITCODE -ne 0){throw '1.0.4 migration verification failed'}
+if($LASTEXITCODE -ne 0){throw "$upstream migration verification failed"}
 & (Join-Path $PSScriptRoot 'build-controller-host.ps1') -OutputDirectory $out -PayloadPath $payload
-& node (Join-Path $repoRoot 'patches/v103/build-preview.cjs') --v104 --lite
+& node (Join-Path $repoRoot 'patches/v103/build-preview.cjs') $migrationFlag --lite
 if($LASTEXITCODE -ne 0){throw 'Lite resource migration failed'}
 & node (Join-Path $PSScriptRoot 'test-v103-preview.cjs') --lite
 if($LASTEXITCODE -ne 0){throw 'Lite migration verification failed'}
