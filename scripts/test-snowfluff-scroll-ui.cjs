@@ -9,7 +9,7 @@ const {chromium}=require('playwright');
   await page.addScriptTag({content:fs.readFileSync('patches/snowfluff-player.js','utf8').replace('export {__wtPlayerHit};','')});
   const regions=fs.readFileSync('patches/theme.js','utf8').split('const __wtTheme=')[0];
   await page.addScriptTag({content:regions});
-  await page.evaluate(()=>__wtSnowfluffPlayer.create(document.body,()=>{},async()=>({helperSongs:Array.from({length:20},(_,i)=>({name:'Track '+i,url:'song.mp3'}))})));
+  await page.evaluate(()=>__wtSnowfluffPlayer.create(document.body,()=>{},async()=>({loadThemePacks:async()=>({aemeath:{songs:Array.from({length:20},(_,i)=>({name:'Track '+i,url:'song.mp3'}))}})})));
   await page.locator('.wt-snowfluff-star').click();
   assert.deepEqual(await page.evaluate(()=>{
    const dock=document.querySelector('.pet-dock'),panel=dock.querySelector('.wt-snowfluff'),identify=el=>el===panel?'player':el.className;

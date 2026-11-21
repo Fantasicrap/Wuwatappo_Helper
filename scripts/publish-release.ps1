@@ -26,6 +26,9 @@ if ($release.tag_name -ne $tag -or $release.target_commitish -ne $Commit) {
 
 $prefix = "Wuwatappo_Helper-$version"
 $packages = @("$prefix.exe", "$prefix-Lite.exe", "$prefix-Setup.exe", "$prefix-Portable.zip")
+if ([version]$version -ge [version]'1.0.5.2') {
+    $packages += @('aemeath.wttheme', 'denia.wttheme', 'phrolova.wttheme')
+}
 $manifestName = 'SHA256SUMS.txt'
 $names = $packages + $manifestName
 $assets = @{}

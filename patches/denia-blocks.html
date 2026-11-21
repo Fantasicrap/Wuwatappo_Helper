@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none';style-src 'unsafe-inline';script-src 'unsafe-inline';form-action 'none';base-uri 'none'">
+<title>拉海洛方块 · Wuwatappo Helper</title>
+<style>
+:root{color-scheme:light;font:14px/1.5 "Microsoft YaHei UI","Microsoft YaHei",sans-serif;color:#35254e;background:#ede8f5}
+*{box-sizing:border-box}
+body{min-height:100vh;margin:0;padding:18px;background:radial-gradient(ellipse at 90% 5%,#dee8fc,transparent 55%),radial-gradient(ellipse at 6% 88%,#dfc9ec,transparent 60%),#f3edf8}
+main{max-width:680px;margin:auto;padding:17px;border:1px solid #cbbcdf;border-radius:23px;background:#fdfaffcc;box-shadow:0 11px 34px #654b8a24}
+[hidden]{display:none!important}
+h1,h2,p{margin:0}
+h1{font-size:27px;line-height:1.2;letter-spacing:.025em}
+.lead{margin-top:5px;color:#655575}
+button,select{font:inherit;color:#50376b;border:1px solid #c9b6db;background:#fbf6ff;border-radius:10px}
+button{cursor:pointer;padding:7px 10px}
+button:not(:disabled):hover{background:#eee1f8}
+button:disabled{cursor:default;opacity:.55}
+:is(canvas,button,select):focus-visible{outline:2px solid #7953ac;outline-offset:2px}
+select{padding:5px 9px}
+.choices{margin-top:16px}
+.settings{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+.settings label{display:flex;align-items:center;gap:6px}
+.editions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.editions button{text-align:left;background:#f5ebfc;min-height:86px;padding:12px 10px}
+.falling-entry{display:block;margin-bottom:12px;padding:10px;color:#50376b;background:#f5ebfc;border:1px solid #c9b6db;border-radius:10px;text-decoration:none}
+.falling-entry:hover{background:#eee1f8}
+.falling-entry:focus-visible{outline:2px solid #7953ac;outline-offset:2px}
+:is(.editions,.falling-entry) :is(strong,small){display:block}
+:is(.editions,.falling-entry) strong{font-size:15px}
+:is(.editions,.falling-entry) small{color:#675478;margin-top:5px}
+.fundamentals{margin-top:13px;padding:12px;border-radius:12px;background:#eee5f6;color:#584766;font-size:13px}
+.fundamentals p+p{margin-top:4px}
+.challenge{margin-top:12px}
+.hud{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;margin-bottom:10px}
+.goal{min-width:0;font-size:12px;color:#665475}
+.goal strong{font-size:18px;font-weight:750;color:#523775;white-space:nowrap;font-variant-numeric:tabular-nums}
+.goal label{display:inline-flex;gap:6px;align-items:baseline}
+progress{display:block;width:100%;max-width:320px;height:8px;margin-top:3px;accent-color:#8f66b5}
+.best{display:block;margin-top:2px}
+.dialog-actions{display:flex;gap:6px}
+.dialog-actions button{font-size:12px;padding:5px 7px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(108px,.42fr);align-items:start;gap:12px}
+.board{position:relative;min-width:0;border-radius:13px;border:1px solid #77638e;overflow:hidden;background:#282039}
+canvas{display:block;width:100%;height:auto}
+#well,#tray{touch-action:none}
+.status{position:absolute;inset:0;display:grid;align-content:center;text-align:center;padding:14px;background:#2c223bed;color:#fff;font-size:19px;font-weight:700;pointer-events:none}
+.aside{display:grid;gap:7px;min-width:0}
+.aside h2{font-size:13px}
+#tray{display:grid;gap:6px}
+.slot{display:grid;place-items:center;position:relative;padding:0 15px;height:62px;min-width:0;background:#f8f1fd;cursor:grab;user-select:none}
+.slot[aria-pressed=true]{border-color:#9066bb;background:#eadef5;box-shadow:inset 0 0 0 1px #9066bb}
+.slot:not(:disabled):active{cursor:grabbing}
+.slot::before{content:attr(data-number);position:absolute;top:3px;left:6px;font-size:10px;color:#634e79}
+.slot canvas{width:min(100%,56px);height:56px;object-fit:contain;pointer-events:none}
+.slot[disabled]{border-style:dashed}
+.bubble{display:grid;gap:2px}
+.bubble button{width:100%;font-size:12px;padding:6px 3px}
+.bubble small,.hint,.keys{font-size:11.5px;color:#614f73;overflow-wrap:anywhere}
+.bubble small{line-height:1.4}
+.board-help{display:grid;gap:6px;margin-top:7px}
+.hint{min-height:17px;font-weight:650}
+.keys{display:flex;gap:3px 7px;flex-wrap:wrap}
+.keys span{white-space:nowrap}
+kbd{padding:0 3px;border-radius:4px;background:#eee3f5;color:#563a75;font:inherit;font-weight:700}
+@media (max-width:410px){
+ body{padding:8px}main{padding:11px}h1{font-size:22px}
+ .layout{gap:7px}.slot{height:49px}.slot canvas{height:45px}.aside{gap:4px}
+}
+@media (min-height:610px){.slot{height:69px}}
+</style>
+</head>
+<body>
+<main>
+ <header><h1 id="title">拉海洛方块</h1><p class="lead" id="lead">选择一种玩法开始挑战。</p></header>
+ <section id="choices" class="choices" aria-label="选择玩法">
+  <a class="falling-entry" href="/denia-blocks/falling"><strong>经典下落</strong><small>方块自动下落，凑满一行即可消除。</small></a>
+  <div class="settings">
+   <label>目标 <select id="objective"><option value="points">积分挑战</option><option value="medals">奖章挑战</option></select></label>
+   <label>难度 <select id="difficulty"><option value="normal">标准</option><option value="hard">进阶</option></select></label>
+  </div>
+  <div class="editions">
+   <button type="button" data-edition="classic"><strong>拉海洛方块</strong><small>固定朝向。挑选方块，组合横行和竖列。</small></button>
+   <button type="button" data-edition="turnabout"><strong>拉海洛方块・逆转</strong><small>可用 R 旋转，拖动方块时也能改变朝向。</small></button>
+  </div>
+  <div class="fundamentals">
+   <p>一组方块全用完后，才会补充下一组。一次消除多条线可获得额外积分。</p>
+   <p>每消除 3 条线充满一次泡泡。吹泡泡只清除棋盘最底一排。</p>
+  </div>
+ </section>
+ <section id="challenge" class="challenge" aria-label="正在挑战" hidden>
+  <div class="hud">
+   <div class="goal"><label for="progress" id="goal-label"><span id="goal-name"></span><strong id="goal-value"></strong></label><progress id="progress" aria-labelledby="goal-label"></progress><span class="best" id="best"></span></div>
+   <div class="dialog-actions"><button type="button" id="play">暂停</button><button type="button" id="restart">重开</button><button type="button" id="back">选玩法</button></div>
+  </div>
+  <div class="layout">
+   <div>
+    <div class="board"><canvas id="well" width="384" height="384" tabindex="0" aria-label="方块摆放棋盘"></canvas><div id="status" class="status" role="status" hidden></div></div>
+    <div class="board-help">
+     <p class="hint" id="hint" aria-live="polite"></p>
+     <div class="keys"><span><kbd>1–3</kbd> 选块</span><span><kbd>方向键</kbd> / <kbd>WASD</kbd> 移动</span><span id="rotate-key"><kbd>R</kbd> 旋转</span><span><kbd>空格</kbd> 放置</span><span><kbd>P</kbd> 暂停</span></div>
+    </div>
+   </div>
+   <aside class="aside">
+    <h2>待放方块 &nbsp;<span id="remaining"></span></h2>
+    <div id="tray" aria-label="待放方块">
+     <button type="button" class="slot" data-slot="0" data-number="1"><canvas width="72" height="72"></canvas></button>
+     <button type="button" class="slot" data-slot="1" data-number="2"><canvas width="72" height="72"></canvas></button>
+     <button type="button" class="slot" data-slot="2" data-number="3"><canvas width="72" height="72"></canvas></button>
+    </div>
+    <button type="button" id="rotate" aria-keyshortcuts="R">旋转 · R</button>
+    <div class="bubble"><button type="button" id="bubble" aria-describedby="bubble-help" aria-keyshortcuts="B">吹泡泡 · 0/3</button><small id="bubble-help">充满后按 B，清除最底一排。</small></div>
+   </aside>
+  </div>
+ </section>
+</main>
+<script>
+const size=8, unit=48, chargeTarget=3;
+const rules={
+ classic:{name:'拉海洛方块',rotates:false},
+ turnabout:{name:'拉海洛方块・逆转',rotates:true}
+};
+const shapes=[
+ [[0,0]],[[0,0],[1,0]],[[0,0],[0,1]],[[0,0],[1,0],[2,0]],[[0,0],[0,1],[0,2]],
+ [[0,0],[0,1],[1,1]],[[1,0],[0,1],[1,1]],[[0,0],[1,0],[0,1],[1,1]],[[0,0],[1,0],[2,0],[3,0]],
+ [[0,0],[1,0],[1,1],[2,1]],[[0,0],[1,0],[2,0],[1,1]],[[0,0],[0,1],[0,2],[1,2]]
+];
+const colors=[['#e8dafc','#a789d1'],['#f9dcf0','#bb7ca9'],['#d8ebff','#779bcf'],['#d9f2e9','#70ada7'],['#e4defe','#9387ce']];
+const get=id=>document.getElementById(id);
+const board=get('well'), ctx=board.getContext('2d'), tray=get('tray');
+const slots=[...tray.querySelectorAll('button')];
+const objective=get('objective'), difficulty=get('difficulty');
+const controls={play:get('play'),restart:get('restart'),back:get('back'),bubble:get('bubble'),rotate:get('rotate')};
+const blank=()=>Array.from({length:size},()=>Array(size).fill(null));
+let grid=blank(),group=[],bag=[],selected=-1,selection={x:0,y:0},edition='classic';
+let score=0,medals=0,charge=0,streak=0,batches=0,goal=0,mode='ready',best=0,bestKey='';
+let message='',drag=null,flash=[],flashTimer=0;
+
+function dimensions(cells){
+ return {w:Math.max(...cells.map(cell=>cell.x))+1,h:Math.max(...cells.map(cell=>cell.y))+1};
+}
+function turned(cells){
+ const {h}=dimensions(cells);
+ return cells.map(cell=>({...cell,x:h-1-cell.y,y:cell.x}));
+}
+function fits(cells,x,y){
+ return cells.every(cell=>x+cell.x>=0&&x+cell.x<size&&y+cell.y>=0&&y+cell.y<size&&!grid[y+cell.y][x+cell.x]);
+}
+function findPlacement(cells){
+ const {w,h}=dimensions(cells);
+ for(let y=0;y<=size-h;y++)for(let x=0;x<=size-w;x++)if(fits(cells,x,y))return {x,y};
+ return null;
+}
+function canFit(piece){
+ let cells=piece.cells;
+ for(let i=0;i<(rules[edition].rotates?4:1);i++){
+  if(findPlacement(cells))return true;
+  cells=turned(cells);
+ }
+ return false;
+}
+function drawFromBag(){
+ if(!bag.length){
+  bag=shapes.map((_,index)=>index);
+  for(let i=bag.length-1;i>0;i--){
+   const j=Math.floor(Math.random()*(i+1));
+   [bag[i],bag[j]]=[bag[j],bag[i]];
+  }
+ }
+ return bag.pop();
+}
+function refill(){
+ const medalSlot=batches++%3;
+ group=Array.from({length:3},(_,slot)=>{
+  const kind=drawFromBag();
+  return {kind,cells:shapes[kind].map(([x,y],i)=>({x,y,medal:objective.value==='medals'&&slot===medalSlot&&i===0}))};
+ });
+}
+function choose(index){
+ if(mode!=='playing'||!group[index])return;
+ selected=index;
+ const {w,h}=dimensions(group[index].cells);
+ selection={x:Math.floor((size-w)/2),y:Math.floor((size-h)/2)};
+ message='';
+}
+function point(x,y){
+ const piece=group[selected];
+ if(!piece)return;
+ const {w,h}=dimensions(piece.cells);
+ selection={x:Math.max(0,Math.min(size-w,x)),y:Math.max(0,Math.min(size-h,y))};
+}
+function rotate(){
+ if(mode!=='playing'||!rules[edition].rotates||!group[selected])return;
+ group[selected].cells=turned(group[selected].cells);
+ if(!drag)point(selection.x,selection.y);
+ render();
+}
+function useEffect(cells){
+ clearTimeout(flashTimer);
+ flash=cells;
+ flashTimer=setTimeout(()=>{flash=[];drawBoard()},280);
+}
+function fullLines(){
+ const rows=grid.flatMap((row,y)=>row.every(Boolean)?[y]:[]);
+ const columns=grid[0].flatMap((_,x)=>grid.every(row=>row[x])?[x]:[]);
+ const cleared=[];
+ for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+  if(!rows.includes(y)&&!columns.includes(x))continue;
+  if(grid[y][x].medal)medals++;
+  grid[y][x]=null;cleared.push({x,y});
+ }
+ return {count:rows.length+columns.length,cleared};
+}
+function canBlow(){return mode==='playing'&&charge===chargeTarget&&grid.at(-1).some(Boolean)}
+function outcome(){
+ if((objective.value==='points'?score:medals)>=goal){mode='won';return}
+ if(group.some(piece=>piece&&canFit(piece)))return;
+ if(canBlow())message='暂时摆不下。可以吹泡泡腾出底行。';
+ else mode='ended';
+}
+function place(){
+ if(mode!=='playing'||!group[selected])return;
+ const piece=group[selected],{x,y}=selection;
+ if(!fits(piece.cells,x,y)){message='这里放不下。换个位置或选另一块。';render();return}
+ for(const cell of piece.cells)grid[y+cell.y][x+cell.x]={kind:piece.kind,medal:cell.medal};
+ const {count,cleared}=fullLines();
+ score+=piece.cells.length*5;
+ streak=count?streak+1:0;
+ message='';
+ if(count){
+  const points=100*count+50*count*(count-1)+20*(streak-1);
+  score+=points;charge=Math.min(chargeTarget,charge+count);useEffect(cleared);
+  message='消除 '+count+' 条线 · +'+points+' 分'+(streak>1?' · 连续消除 ×'+streak:'');
+ }
+ if(score>best){
+  best=score;
+  try{localStorage.setItem(bestKey,String(best))}catch{}
+ }
+ group[selected]=null;
+ if(group.every(piece=>!piece))refill();
+ const feedback=message;
+ choose(group.findIndex(Boolean));message=feedback;
+ outcome();render();
+}
+function blow(){
+ if(!canBlow())return;
+ const bottom=grid.at(-1);
+ const removed=bottom.flatMap((cell,x)=>{
+  if(cell?.medal)medals++;
+  return cell?[{x,y:size-1}]:[];
+ });
+ bottom.fill(null);charge=0;useEffect(removed);
+ message='泡泡清除了最底一排。';
+ outcome();render();
+}
+function seedBoard(hard){
+ const opening=hard?[{x:1,y:2},{x:1,y:3},{x:4,y:3},{x:5,y:3},{x:5,y:4},{x:2,y:5},{x:3,y:6},{x:6,y:6}]:[];
+ for(const [index,{x,y}] of opening.entries())grid[y][x]={kind:index%colors.length,medal:false};
+}
+function start(id){
+ edition=id;
+ stopDrag();
+ clearTimeout(flashTimer);flash=[];grid=blank();bag=[];
+ score=medals=charge=streak=batches=0;
+ const hard=difficulty.value==='hard';
+ bestKey='wuwatappo-blocks-best-v2-'+edition+'-'+objective.value+'-'+difficulty.value;
+ try{best=Number(localStorage.getItem(bestKey))||0}catch{best=0}
+ goal=objective.value==='points'?(hard?1650:1000):(hard?7:4);
+ seedBoard(hard);refill();mode='playing';choose(0);
+ render();board.focus({preventScroll:true});
+}
+function pause(){
+ if(mode!=='playing'&&mode!=='paused')return;
+ stopDrag();mode=mode==='playing'?'paused':'playing';render();
+}
+function back(){
+ stopDrag();clearTimeout(flashTimer);flash=[];mode='ready';render();
+ document.querySelector('[data-edition="'+edition+'"]').focus({preventScroll:true});
+}
+function renderCell(context,x,y,cellSize,kind,medal,preview){
+ const [light,dark]=colors[kind%colors.length];
+ const inset=Math.max(1,cellSize*.053);
+ context.beginPath();
+ context.roundRect(x+inset,y+inset,cellSize-2*inset,cellSize-2*inset,cellSize*.17);
+ const gradient=context.createLinearGradient(x,y,x+cellSize,y+cellSize);
+ gradient.addColorStop(0,light);gradient.addColorStop(1,dark);
+ context.fillStyle=preview==='valid'?'#e0cffa65':preview==='blocked'?'#f28c9d54':gradient;
+ context.strokeStyle=preview==='valid'?'#efe1ff':preview==='blocked'?'#f4a0ae':light;
+ context.lineWidth=preview?2:1;
+ context.fill();context.stroke();
+ if(preview)return;
+ if(medal){
+  context.beginPath();
+  context.arc(x+cellSize/2,y+cellSize/2,cellSize*.24,0,Math.PI*2);
+  context.fillStyle='#f8e9b1';context.fill();context.strokeStyle='#72503d';context.stroke();
+  context.fillStyle='#78572e';context.font='bold '+Math.round(cellSize*.29)+'px sans-serif';
+  context.textAlign='center';context.textBaseline='middle';context.fillText('✦',x+cellSize/2,y+cellSize/2);
+ }
+}
+function drawBoard(){
+ ctx.fillStyle='#302342';ctx.fillRect(0,0,board.width,board.height);
+ for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+  ctx.fillStyle=(x+y)%2?'#342849':'#392b4f';
+  ctx.fillRect(x*unit+1,y*unit+1,unit-2,unit-2);
+  const cell=grid[y][x];
+  if(cell)renderCell(ctx,x*unit,y*unit,unit,cell.kind,cell.medal);
+ }
+ if(flash.length){
+  ctx.fillStyle='#dbc4f287';
+  for(const {x,y} of flash)ctx.fillRect(x*unit+1,y*unit+1,unit-2,unit-2);
+ }
+ const piece=group[selected];
+ if(mode!=='playing'||!piece||(drag&&!drag.over))return;
+ const style=fits(piece.cells,selection.x,selection.y)?'valid':'blocked';
+ for(const {x,y} of piece.cells)renderCell(ctx,(selection.x+x)*unit,(selection.y+y)*unit,unit,piece.kind,false,style);
+}
+function drawSlots(){
+ for(const [index,button] of slots.entries()){
+  const canvas=button.firstElementChild,view=canvas.getContext('2d'),piece=group[index];
+  view.clearRect(0,0,canvas.width,canvas.height);
+  button.disabled=!piece||mode!=='playing';
+  button.setAttribute('aria-pressed',String(!!piece&&index===selected));
+  button.setAttribute('aria-label','方块 '+(index+1)+(piece?'，'+piece.cells.length+' 格'+(piece.cells.some(cell=>cell.medal)?'，含奖章':''):'，已用'));
+  if(!piece)continue;
+  const {w,h}=dimensions(piece.cells);
+  const cellSize=Math.min(20,Math.floor(64/Math.max(w,h)));
+  const left=(canvas.width-w*cellSize)/2, top=(canvas.height-h*cellSize)/2;
+  for(const cell of piece.cells)renderCell(view,left+cell.x*cellSize,top+cell.y*cellSize,cellSize,piece.kind,cell.medal);
+ }
+}
+function render(){
+ const ready=mode==='ready',value=objective.value==='points'?score:medals;
+ get('choices').hidden=!ready;get('challenge').hidden=ready;
+ get('title').textContent=ready?'拉海洛方块':rules[edition].name;
+ get('lead').textContent=ready?'选择一种玩法开始挑战。':
+  (objective.value==='points'?'积分挑战':'奖章挑战')+'　·　'+(difficulty.value==='hard'?'进阶':'标准');
+ if(ready)return;
+ get('goal-name').textContent=objective.value==='points'?'积分':'奖章';
+ get('goal-value').textContent=value+' / '+goal;
+ get('progress').max=goal;get('progress').value=value;
+ get('best').textContent='最高 '+best+' 分';
+ get('remaining').textContent=group.filter(Boolean).length+'/3';
+ get('hint').textContent=message||(objective.value==='medals'?'消除带星标的方块即可获得奖章。':'拖动方块，或选中后按空格放置。');
+ const status=get('status');
+ status.hidden=mode==='playing';
+ status.textContent={paused:'已暂停',ended:'没有可摆放的位置',won:'挑战完成'}[mode]||'';
+ controls.play.disabled=mode==='won'||mode==='ended';
+ controls.play.textContent=mode==='paused'?'继续':'暂停';
+ controls.rotate.hidden=!rules[edition].rotates;
+ get('rotate-key').hidden=!rules[edition].rotates;
+ controls.rotate.disabled=mode!=='playing'||!group[selected];
+ controls.bubble.disabled=!canBlow();
+ controls.bubble.textContent='吹泡泡 · '+charge+'/'+chargeTarget;
+ drawBoard();drawSlots();
+}
+function boardCell(event){
+ const rect=board.getBoundingClientRect();
+ const x=Math.floor((event.clientX-rect.left)*size/rect.width),y=Math.floor((event.clientY-rect.top)*size/rect.height);
+ return x>=0&&y>=0&&x<size&&y<size?{x,y}:null;
+}
+function stopDrag(){
+ if(!drag)return;
+ const {id}=drag;drag=null;
+ if(tray.hasPointerCapture(id))tray.releasePointerCapture(id);
+}
+for(const button of document.querySelectorAll('[data-edition]'))button.onclick=()=>start(button.dataset.edition);
+controls.play.onclick=pause;
+controls.back.onclick=back;
+controls.restart.onclick=()=>start(edition);
+controls.rotate.onclick=()=>{rotate();board.focus({preventScroll:true})};
+controls.bubble.onclick=()=>{blow();board.focus({preventScroll:true})};
+for(const [index,button] of slots.entries())button.onclick=()=>{
+ if(selected!==index){choose(index);render()}
+ board.focus({preventScroll:true});
+};
+tray.addEventListener('pointerdown',event=>{
+ const button=event.target.closest('[data-slot]');
+ if(!button||button.disabled||event.button!==0||!event.isPrimary)return;
+ event.preventDefault();choose(Number(button.dataset.slot));
+ drag={id:event.pointerId,over:false};
+ tray.setPointerCapture(event.pointerId);board.focus({preventScroll:true});render();
+});
+tray.addEventListener('pointermove',event=>{
+ if(drag?.id!==event.pointerId)return;
+ const next=boardCell(event);drag.over=!!next;
+ if(next)selection=next;
+ drawBoard();
+});
+tray.addEventListener('pointerup',event=>{
+ if(drag?.id!==event.pointerId)return;
+ const next=boardCell(event);
+ stopDrag();
+ if(next){selection=next;place()}else{point(selection.x,selection.y);drawBoard()}
+});
+tray.addEventListener('lostpointercapture',()=>{if(drag){stopDrag();point(selection.x,selection.y);drawBoard()}});
+board.addEventListener('pointermove',event=>{
+ if(drag||mode!=='playing')return;
+ const next=boardCell(event);
+ if(next){selection=next;drawBoard()}
+});
+board.addEventListener('click',event=>{
+ if(mode!=='playing')return;
+ const next=boardCell(event);
+ if(next){selection=next;place()}
+});
+const moves={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1],KeyA:[-1,0],KeyD:[1,0],KeyW:[0,-1],KeyS:[0,1]};
+const numbers={Digit1:0,Digit2:1,Digit3:2,Numpad1:0,Numpad2:1,Numpad3:2};
+window.addEventListener('keydown',event=>{
+ if(event.ctrlKey||event.altKey||event.metaKey||event.target?.matches?.('select,input,textarea,[contenteditable]'))return;
+ const fallback={r:'KeyR',p:'KeyP',b:'KeyB',a:'KeyA',d:'KeyD',w:'KeyW',s:'KeyS',' ':'Space','1':'Digit1','2':'Digit2','3':'Digit3'};
+ const key=event.code||fallback[event.key?.toLowerCase()]||event.key;
+ if(key==='KeyP'&&(mode==='playing'||mode==='paused')){
+  event.preventDefault();if(!event.repeat)pause();return;
+ }
+ if(mode!=='playing')return;
+ const offset=moves[key];
+ if(offset&&!drag){
+  event.preventDefault();point(selection.x+offset[0],selection.y+offset[1]);drawBoard();
+ }else if(Object.hasOwn(numbers,key)&&!drag){
+  event.preventDefault();if(!event.repeat){choose(numbers[key]);render()}
+ }else if(key==='KeyR'&&rules[edition].rotates){
+  event.preventDefault();if(!event.repeat)rotate();
+ }else if(key==='KeyB'&&!drag){
+  event.preventDefault();if(!event.repeat)blow();
+ }else if(key==='Space'&&!drag){
+  event.preventDefault();if(!event.repeat)place();
+ }
+},true);
+window.addEventListener('blur',()=>{if(drag){stopDrag();point(selection.x,selection.y);drawBoard()}});
+render();
+</script>
+</body>
+</html>

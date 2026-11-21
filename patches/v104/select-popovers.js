@@ -17,7 +17,7 @@ function __wtMountSelectPopovers(root){
 .select-item .select-option[data-wt-select-popup] .select-option-list{min-height:0;max-height:240px;overscroll-behavior:contain}
 .select-item .select-option[data-wt-select-popup] .select-option-item{padding-inline:5px}
 .select-item .select-option[data-wt-select-popup] .select-option-item-text{min-width:0;white-space:normal;overflow-wrap:anywhere}
-.select-item .select-option[data-wt-select-popup] .select-option-item:hover{background:#9d587317;border-radius:6px}
+.select-item .select-option[data-wt-select-popup] .select-option-item:is(:hover,:focus-visible){background:var(--wt-ui-hover,#f8e8d0);border-radius:6px}
 .select-item .select-option[data-wt-select-popup]::-webkit-scrollbar{width:5px}
 .select-item .select-option[data-wt-select-popup]::-webkit-scrollbar-thumb{background:var(--wt-ui-border,#e7b77c);border-radius:3px}
 `;

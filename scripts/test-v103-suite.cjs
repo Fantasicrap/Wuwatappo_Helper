@@ -9,6 +9,7 @@ const root=path.resolve(__dirname,'..'),tests=[
 ];
 if(v104)tests.push('scripts/test-v104-protocol-races.cjs','scripts/test-helper-update-ui.cjs');
 if(process.argv.includes('--ui'))tests.push('scripts/test-v103-settings-ui.cjs','scripts/test-monitor-settings-ui.cjs','scripts/test-idle-input-ui.cjs','scripts/test-room-render-cycle.cjs','scripts/test-startup-notice.cjs','scripts/test-auto-emotes-ui.cjs','scripts/test-pet-fun-ui.cjs','scripts/test-halo-occlusion-ui.cjs','scripts/test-pet-fun-scaling-ui.cjs','scripts/test-local-wardrobe-ui.cjs','scripts/test-synthesis-reminder-ui.cjs');
+if(v104&&process.argv.includes('--ui'))tests.push('scripts/test-denia-theme-ui.cjs');
 const out=path.resolve(process.env.WUWA_TEST_DISTRIBUTION_DIR||path.join(root,'dist/local-'+target));fs.mkdirSync(out,{recursive:true});
 const failed=[];
 for(const file of tests){

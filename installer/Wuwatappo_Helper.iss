@@ -59,7 +59,7 @@ Source: "..\docs\HE动画方案.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\联机位置记忆.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\按需运行优化说明.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "..\docs\内存优化测试说明.md"; DestDir: "{app}\docs"; Flags: ignoreversion
-Source: "..\docs\*"; DestDir: "{app}\docs"; Excludes: "按需运行优化说明.md,内存优化测试说明.md"; Flags: ignoreversion
+Source: "..\docs\*"; DestDir: "{app}\docs"; Excludes: "按需运行优化说明.md,内存优化测试说明.md,播放器滚动与鼠标路由交接.md"; Flags: ignoreversion
 Source: "..\licenses\SDL3-LICENSE.txt"; DestDir: "{app}\licenses"; Flags: ignoreversion
 
 [Icons]

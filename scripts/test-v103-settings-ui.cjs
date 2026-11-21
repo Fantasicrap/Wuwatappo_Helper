@@ -7,7 +7,7 @@ const runtime=require('./vue-runtime-fixture.cjs')(common,['createBaseVNode','re
 const modules=new Map(),prefix=[],sections=new Map(),controls=[];
 let room,monitor,roomRestore,settingsPanel,settingsRows,historyButtons=0;
 const slice=(text,node)=>text.slice(node.start,node.end);
-const names=['__wtPanelLayout','__wtAemeathMech','__wtTheme','__wtKeyboardUi','__wtHotkeys','__wtLongRun','__wtSynthesis','__wtRoomPositions'];
+const names=['__wtPanelLayout','__wtAemeathMech','__wtTheme','__wtKeyboardUi','__wtHotkeys','__wtLongRun','__wtSynthesis','__wtRoomPositions','__wtPetFun','__wtPetDialogue','__wtControllerCore'];
 traverse(babelParse(common,'common.mjs',true),{VariableDeclaration(p){
  for(const {id} of p.node.declarations)if(names.includes(id.name))modules.set(id.name,slice(common,p.node));
 }});
@@ -15,6 +15,7 @@ traverse(babelParse(source,'settings.mjs',true),{
  VariableDeclaration(p){
   const ids=p.node.declarations.map(d=>d.id.name);
   if(ids.some(id=>['__wtKeys','__wtBoostUntil','__wtSynthSettings'].includes(id)))prefix.push(slice(source,p.node));
+  if(ids.includes('__wtPetSettings')||ids.includes('__wtPhrolova'))prefix.push(slice(source,p.node));
   if(ids.includes('__wtRestoreRoom'))roomRestore=slice(source,p.node);
  },
  FunctionDeclaration(p){if(['__wtBoost','__wtToggle'].includes(p.node.id.name))prefix.push(slice(source,p.node));},
@@ -39,6 +40,7 @@ if(v104)assert.deepEqual([...sections.keys()],['basic','account','input','deskto
 const sectionIds=v104?[...sections.keys()]:['basic','input','desktop','maintenance'];
 const render=sectionIds.map(id=>{
  if(v104&&['basic','input'].includes(id))return sections.get(id);
+ if(v104&&id==='interaction')return sections.get(id).replace('__wtAutoEmotes.renderSettings(e,__wtEmoteMode)','null');
  let children='';
  if(!v104&&id==='basic')children=controls.filter(text=>text.includes('__wtPanelLayout.basic')||text.includes('renderBasicSettings')).join(',');
  if(!v104&&id==='input')children=controls.filter(text=>text.includes('__wtKeyboardUi')||text.includes('__wtHotkeys')).join(',');
@@ -53,10 +55,23 @@ const renderPanel=v104
  : "e('div',{class:'panel-content'},["+render.join(',')+"])";
 const roomProps=room.match(/null,40,([\w$]+)\)/)[1];
 (async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});try{const context=await browser.newContext({viewport:{width:440,height:1000},deviceScaleFactor:2}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await context.route('http://tauri.localhost/',r=>r.fulfill({contentType:'text/html; charset=utf-8',body:'<meta charset="utf-8"><style>body{background:#f7f3ed;font:14px "Microsoft YaHei",sans-serif;margin:0;color:#694832}#root,#room{width:min(400px,calc(100vw - 24px));margin:12px auto;padding:12px;box-sizing:border-box;background:#fff8e9;border-radius:16px}</style><div id="root"></div><div id="room"></div>'}));await page.goto('http://tauri.localhost/');
+if(v104){
+ const packagedUi=path.join(out,'host-build/controller-ui.js');
+ const moduleCode=fs.existsSync(packagedUi)?fs.readFileSync(packagedUi,'utf8'):fs.readFileSync('patches/theme-assets.js','utf8');
+ const headers={'Access-Control-Allow-Origin':'http://tauri.localhost','Access-Control-Allow-Private-Network':'true'};
+ await context.route('http://127.0.0.1:48642/theme-packs',route=>route.fulfill({headers,json:{
+  aemeath:{revision:'test',effects:['mech'],background:'/theme-assets/aemeath/background.jpg',mech:'/theme-assets/aemeath/mech.gif'},
+  denia:{revision:'test',effects:[]},
+  phrolova:{revision:'test',effects:['phrolova']}
+ }}));
+ await context.route('http://127.0.0.1:48642/theme-assets/aemeath/background.jpg',route=>route.fulfill({headers,status:204}));
+ await context.route('http://127.0.0.1:48642/theme-assets/aemeath/mech.gif',route=>route.fulfill({headers,contentType:'image/gif',body:Buffer.from('R0lGODlhAQABAAAAACw=','base64')}));
+ await context.route('http://127.0.0.1:48642/ui.js',route=>route.fulfill({contentType:'text/javascript',headers,body:moduleCode}));
+}
 await page.addScriptTag({content:'(()=>{'+runtime+'})()'});
 await page.addScriptTag({content:`window.calls=[];window.emit=async()=>{};
 const {createApp,createBaseVNode:e,createTextVNode:Tt,ref:y,openBlock:i,createElementBlock:m}=__vue;
-const Oe=()=>{},ps=async()=>({}),__wtCheckShortcutConflict=()=>{};
+const Oe=()=>{},ft=()=>{},ps=async()=>({}),__wtCheckShortcutConflict=()=>{};
 const o=[],R=handler=>handler;
 async function ue(event){calls.push(event)}
 ${[...modules.values()].join('\n')}
@@ -98,29 +113,63 @@ if(v104){
  await interaction.locator(':scope > summary').click();
  const theme=interaction.locator('.wt-aemeath-options');
  await theme.locator(':scope > summary').click();
- assert.equal(await theme.locator('.wt-mech-settings').count(),1);
  const warm=theme.getByRole('button',{name:/原版暖色/}),pink=theme.getByRole('button',{name:/爱弥斯/});
- const packagedUi=path.join(out,'host-build/controller-ui.js');
- const moduleCode=fs.existsSync(packagedUi)?fs.readFileSync(packagedUi,'utf8'):'';
- if(moduleCode)await context.route('http://127.0.0.1:48642/ui.js',route=>route.fulfill({
-  contentType:'text/javascript',headers:{'Access-Control-Allow-Origin':'http://tauri.localhost','Access-Control-Allow-Private-Network':'true'},body:moduleCode
- }));
+ const denia=theme.locator('[data-wt-theme-option=denia]'),phrolova=theme.locator('[data-wt-theme-option=phrolova]');
+ const effects=theme.locator('.wt-phrolova-settings'),mechSettings=theme.locator('.wt-aemeath-mech-options');
+ const assertEffects=async id=>{
+  assert.equal(await mechSettings.count(),Number(id==='aemeath'));
+  assert.equal(await effects.count(),Number(id==='phrolova'));
+ };
+ await assertEffects('default');
+ await pink.click();await assertEffects('aemeath');
+ await mechSettings.locator('summary').click();
+ const mechMaster=mechSettings.getByLabel('常驻伴飞（总开关）',{exact:true});
+ await mechMaster.check();
+ await mechSettings.screenshot({path:path.join(out,'aemeath-mech-settings-preview.png')});
+ await phrolova.click();await effects.waitFor();
+ await assertEffects('phrolova');
+ await effects.locator('summary').click();
+ const master=effects.getByLabel('启用 i弗TV',{exact:true});
+ await master.check();
+ await warm.click();await effects.waitFor({state:'detached'});
+ await assertEffects('default');
+ await phrolova.click();await effects.waitFor();await effects.locator('summary').click();
+ assert(await master.isChecked());
+ await effects.screenshot({path:path.join(out,'phrolova-settings-preview.png')});
+ await denia.click();await effects.waitFor({state:'detached'});
+ await assertEffects('denia');
+ await pink.click();await assertEffects('aemeath');
+ await mechSettings.locator('summary').click();assert(await mechMaster.isChecked());
+ await warm.click();await assertEffects('default');
  const basic=page.locator('[data-wt-section="basic"]');
  const original=await basic.evaluate(card=>getComputedStyle(card).backgroundColor);
  const other=await page.context().newPage();
  await other.goto('http://tauri.localhost/');
- await other.addScriptTag({content:`${modules.get('__wtPanelLayout')}\n${modules.get('__wtTheme')}`});
+ await other.addScriptTag({content:`
+ ${modules.get('__wtPanelLayout')}
+ ${modules.get('__wtAemeathMech')}
+ ${modules.get('__wtTheme')}
+ document.querySelector('#root').innerHTML='<div class="cat-stack" style="position:relative;width:180px;height:180px"></div>';
+ const companion=__wtAemeathMech.create({root:()=>document.querySelector('.cat-stack'),role:()=>({id:1210}),activity:()=>{},subscribeTheme:__wtTheme.onMech});
+ companion.start();
+ `});
+ const companion=other.locator('.wt-aemeath-mech');
+ assert.equal(await companion.count(),0);
  await page.evaluate(()=>document.querySelector('#root').insertAdjacentHTML('beforeend',
   '<div class="wt-pad-board"><svg><linearGradient id="wt-pad-body"><stop stop-color="#fff2d8"/><stop stop-color="#ebcda0"/></linearGradient></svg></div>'));
  const stop=page.locator('#wt-pad-body stop').first();
  await pink.click();
  await other.waitForFunction(()=>document.documentElement.dataset.wtTheme==='aemeath');
+ await companion.waitFor();
+ await phrolova.click();
+ await companion.waitFor({state:'detached'});
+ assert.equal(await other.evaluate(()=>companion.inputActive()),false);
+ await pink.click();
+ await companion.waitFor();
  assert.equal(await pink.getAttribute('aria-pressed'),'true');
  assert.notEqual(await basic.evaluate(card=>getComputedStyle(card).backgroundColor),original);
  assert.equal(await stop.evaluate(node=>getComputedStyle(node).stopColor),'rgb(255, 242, 248)');
- if(moduleCode.includes('data:image/jpeg;base64,')){
-  await page.waitForFunction(()=>getComputedStyle(document.documentElement).getPropertyValue('--wt-theme-bg').includes('data:image/jpeg;base64,'));
- }
+ await page.waitForFunction(()=>getComputedStyle(document.documentElement).getPropertyValue('--wt-theme-bg').includes('/theme-assets/aemeath/background.jpg'));
  const file=theme.locator('input[type=file]'),reset=theme.getByRole('button',{name:'恢复默认',exact:true});
  assert.equal(await reset.isDisabled(),true);
  const png=await page.evaluate(()=>{

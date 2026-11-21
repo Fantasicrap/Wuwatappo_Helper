@@ -1,6 +1,7 @@
 function __wtRegions(root,mode,rect){
  const reward=mode==='input'&&document.documentElement.hasAttribute('data-wt-tides')?'.reward-btn':'.reward-anchor';
- const query='.wt-snowfluff:not([hidden]),.wt-snowfluff-star,.wt-oath-core-lane,.wt-synthesis-reminder,#wt-input-keyboard,'+reward;
+ const companion=mode==='visual'?'.wt-denia-cake,.wt-denia-line,.wt-denia-messenger':'.wt-denia-cake:enabled';
+ const query='.wt-snowfluff:not([hidden]),.wt-snowfluff-star,.wt-denia-star,.wt-oath-core-lane,.wt-synthesis-reminder,#wt-input-keyboard,'+companion+','+reward;
  const regions=Array.from(root.querySelectorAll(query),rect).filter(Boolean);
  const mech=root.querySelector('.wt-aemeath-mech');
  if(mode==='visual'&&mech){
@@ -11,20 +12,29 @@ function __wtRegions(root,mode,rect){
 }
 const __wtTheme=(()=>{
  const key='wuwatappo-theme-v1',updated='wt-theme-updated',attr='data-wt-theme',mark='data-wt-theme-sheet';
- const backgroundKey='wuwatappo-aemeath-background-v1',backgroundUpdated='wt-theme-background-updated';
- const themes={default:['原版暖色','WuwaTappo 原本的奶油色与棕色'],aemeath:['爱弥斯','小爱粉配色、背景与按键气泡']};
+ const backgroundKeys={aemeath:'wuwatappo-aemeath-background-v1',denia:'wuwatappo-denia-background-v1',phrolova:'wuwatappo-phrolova-background-v1'};
+ const backgroundUpdated='wt-theme-background-updated',deniaUpdated='wt-denia-effects-updated';
+ const packsUpdated='wt-theme-packs-updated',packsKey='wuwatappo-theme-packs-v1',moduleUrl='http://127.0.0.1:48642/ui.js';
+ const themes={default:['原版暖色','奶油色与棕色'],aemeath:['爱弥斯','小爱粉与星光气泡'],denia:['达妮娅','珍珠雾紫与拟态泡泡'],phrolova:['弗洛洛','彼岸绯红与 i弗TV']};
+ const dialogue=typeof __wtPetDialogue==='undefined'?null:__wtPetDialogue;
  const scope=':root['+attr+'="aemeath"]';
- // The picker previews both palettes, so its sheet is never recolored.
+ // Theme swatches always show their original colors.
  const pickerCss=`
 .wt-theme-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .wt-theme-option{position:relative;display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;border:1.5px solid #e3c9aa;border-radius:12px;background:#fffdf7;color:#694832;font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
 .wt-theme-option:hover{transform:translateY(-1px)}
+.wt-theme-option:disabled{cursor:default;opacity:.68;transform:none}
+.wt-theme-import{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wt-theme-import[hidden]{display:none}
+.wt-theme-import output{font-size:12px;color:var(--wt-ui-muted,#775e4b)}
 .wt-theme-option[aria-pressed=true]{border-color:#c98d55;box-shadow:0 0 0 3px #f6d49d99}
 .wt-theme-option:focus-visible{outline:2px solid #976137;outline-offset:2px}
 .wt-theme-swatch{flex:none;display:flex;width:38px;height:38px;border-radius:50%;overflow:hidden;border:2px solid #fff;box-shadow:0 0 0 1px #0000002b;transform:rotate(-35deg)}
 .wt-theme-swatch i{flex:1}
 [data-wt-theme-option=default] i:nth-child(1){background:#fff3dd}[data-wt-theme-option=default] i:nth-child(2){background:#fed291}[data-wt-theme-option=default] i:nth-child(3){background:#995e3f}
 [data-wt-theme-option=aemeath] i:nth-child(1){background:#ffe7f0}[data-wt-theme-option=aemeath] i:nth-child(2){background:#f7a5c3}[data-wt-theme-option=aemeath] i:nth-child(3){background:#7fdcea}
+[data-wt-theme-option=denia] i:nth-child(1){background:#f9f3ff}[data-wt-theme-option=denia] i:nth-child(2){background:#ac91d6}[data-wt-theme-option=denia] i:nth-child(3){background:#b4c8ed}
+[data-wt-theme-option=phrolova] i:nth-child(1){background:#f7e6ec}[data-wt-theme-option=phrolova] i:nth-child(2){background:#a33f62}[data-wt-theme-option=phrolova] i:nth-child(3){background:#3f263d}
 .wt-theme-text{display:flex;flex-direction:column;min-width:0}
 .wt-theme-text b{font-size:14px;line-height:1.35}
 .wt-theme-text small{font-size:12px;line-height:1.4;opacity:.82}
@@ -32,11 +42,15 @@ const __wtTheme=(()=>{
 .wt-aemeath-options{margin:12px 0 0;border-top:1px solid var(--wt-ui-divider,#ead7bf);padding-top:8px}
 .wt-aemeath-options>summary{cursor:pointer;color:var(--wt-ui-text,#694832);font-weight:600;padding:4px 0}
 .wt-aemeath-options .wt-theme-picker{margin-top:8px}
-.wt-theme-background,.wt-theme-picker>.wt-mech-settings{grid-column:1/-1}
+.wt-theme-background,.wt-theme-picker>.wt-denia-settings,.wt-theme-picker>.wt-theme-effect{grid-column:1/-1}
 .wt-theme-background{margin:0;min-width:0;padding:8px 10px;border:1px solid var(--wt-ui-border,#e3c9aa);border-radius:12px;background:var(--wt-ui-card-fill,#fff9ed)}
 .wt-theme-background legend{padding:0 5px;font-weight:600}
 .wt-theme-background-actions{display:flex;gap:6px;flex-wrap:wrap}
 .wt-theme-background output{display:block;margin-top:5px;color:var(--wt-ui-muted,#775e4b);font-size:12px;overflow-wrap:anywhere}
+.wt-theme-credit{margin:7px 0 0;padding-top:7px;border-top:1px solid var(--wt-ui-divider,#ead7bf);color:var(--wt-ui-text,#694832);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.wt-theme-credit strong{margin-inline-end:.7em}
+.wt-aemeath-options .wt-theme-effect{margin:10px 0 0;border-color:var(--wt-ui-divider,#e9d6bd)}
+.wt-aemeath-options .wt-theme-picker>.wt-theme-effect{margin-top:0}
 .wt-theme-background input[hidden]{display:none}
 § .wt-theme-option{border-color:#f3bfd4;background:rgba(255,250,252,.7);color:#8f3566}
 § .wt-theme-option[aria-pressed=true]{border-color:#ea7aa8;box-shadow:0 0 0 3px #f7a5c380}
@@ -51,12 +65,19 @@ const __wtTheme=(()=>{
  --wt-ui-divider:#ecc3d6;
  --wt-ui-field:#fff0f6;
  --wt-ui-card-fill:rgba(255,240,247,.82);
+ --wt-ui-surface:#fff5fa;
+ --wt-ui-hover:#fce0ed;
+ --wt-ui-accent:#df639c;
+ --wt-ui-accent-fill:#fac1da;
+ --wt-ui-focus:#aa4075;
+ --wt-ui-rail:#efacc8;
+ --wt-ui-decor:#e7a1c0;
  --wt-mech-check:#df639c;
  --wt-synthesis-border:#e68db5;
  --wt-synthesis-bubble:linear-gradient(145deg,#fff5fa,#ffdceb);
  --wt-synthesis-text:#873359;
  --wt-synthesis-shadow:#a43a692b;
- --wt-raster-pink:grayscale(1) sepia(.24) hue-rotate(287deg) saturate(2.7);
+ --wt-ui-raster:grayscale(1) brightness(.96) sepia(.35) saturate(3) hue-rotate(282deg);
 }
 § .module-panel{background-color:#efacc8;border-color:#d889aa;box-shadow:0 4px #d889aa}
 § .tab-btn__label{color:#71324f}
@@ -79,55 +100,8 @@ const __wtTheme=(()=>{
 § .reward-countdown__text{color:#9b3668}
 § .reward-countdown__bar{stroke:#f8aacd}
 § .reward-countdown .reward-countdown__progress{filter:drop-shadow(0 0 1px #f29ac1) drop-shadow(0 0 1px #f29ac1cc)}
-§ .reward-countdown__svg:not(.reward-countdown__progress)>image,
-§ .pet-toolbar,§ .reward-btn:not(.reward-btn--loading),§ .synthesis-add,
-§ .preset-preview-emote-img:after,§ .preset-preview-emote-remove,§ .preset-remove,
-§ .panel-close,§ .popup-close,§ .about-close,§ .oss-notice-close,
-§ .select-item .select-input:after,§ .select-item .select-option:before,
-§ .room-info .room-number-copy,§ .room-members .room-visible-btn,
-§ .login-dialog-button--passport,§ .login-dialog-button--uid,§ .uid-cont .btn-send{
- filter:var(--wt-raster-pink);
-}
-§ .pet-toolbar{__WT_AEMEATH_TOOLBAR__}
-§[data-wt-tides] .reward-anchor{--wt-tide-position:left center;pointer-events:none}
-§[data-wt-tides] .reward-anchor--right{--wt-tide-position:right center}
-§[data-wt-tides] .reward-countdown{width:100%;height:100%;aspect-ratio:auto}
-§[data-wt-tides] .reward-countdown__svg{visibility:hidden}
-§[data-wt-tides] .reward-countdown::before,
-§[data-wt-tides] .reward-anchor .reward-btn::before{
- content:"";position:absolute;inset:0;margin:auto;width:48px;height:48px;
- background:var(--wt-theme-tides) var(--wt-tide-position) / 200% 100% no-repeat;
- pointer-events:none;
-}
-§[data-wt-tides] .reward-countdown::before{top:-12px;transform:scale(.90)}
-§[data-wt-tides] .reward-countdown__text{
- inset:auto 0 -2px;height:auto;margin-inline:auto;width:max-content;transform:none;
- padding:0 5px;border-radius:8px;background:#fff0f6;color:#793050;
- box-shadow:0 1px 3px #7a3b4b22;font-size:11px;line-height:15px;
-}
-§[data-wt-tides] .reward-anchor .reward-btn{
- position:absolute;inset:0;margin:auto;width:34px;height:36px;padding:0;border:0;background:none;filter:none;pointer-events:auto;
-}
-§[data-wt-tides] .reward-anchor .reward-btn:before{
- inset:50% auto auto 50%;transform:translate(-50%,-50%);margin:0;filter:drop-shadow(0 2px 1px #783b4b55);
-}
-§[data-wt-tides] .reward-anchor .reward-btn:after{display:none}
-§[data-wt-tides] .reward-anchor .reward-btn--open{animation:none}
-§[data-wt-tides] .reward-anchor .reward-btn--open:before{animation:wt-tide-disappear .5s ease-out both}
-.wt-tide-spark{position:fixed;width:6px;height:6px;pointer-events:none;z-index:20;clip-path:polygon(50% 0,62% 36%,100% 50%,62% 64%,50% 100%,38% 64%,0 50%,38% 36%);background:#ffdb8a}
-@keyframes wt-tide-disappear{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.12);filter:brightness(1.35)}100%{opacity:0;transform:translate(-50%,-50%) scale(.74);filter:brightness(1.9)}}
-@media(prefers-reduced-motion:reduce){§[data-wt-tides] .reward-anchor .reward-btn--open::before{animation:none;opacity:0}}
-§ .my-preset .preset-item,§ .preset-preview .preset-preview-main,
-§ .preset-preview .preset-preview-emote-img,§ .synthesis-list .synthesis-item{
- background-image:none!important;
-}
-§ .my-preset .preset-item:before,§ .preset-preview .preset-preview-main:before,
-§ .preset-preview .preset-preview-emote-img:before,§ .synthesis-list .synthesis-item:before{
- content:"";position:absolute;inset:0;pointer-events:none;
- background:var(--wt-raster-image,none) center / 100% 100% no-repeat;
- filter:var(--wt-raster-pink);
-}
-§ .synthesis-list .synthesis-add{position:relative}
+§ .pet-toolbar{filter:var(--wt-ui-raster)}
+§[data-wt-aemeath-toolbar] .pet-toolbar{background-image:var(--wt-aemeath-toolbar);filter:none}
 § .preset-preview .preset-preview-emote--drop-target .preset-preview-emote-img{filter:drop-shadow(0 2px 0 #dfa5c0) drop-shadow(0 0 6px #f8aacc)}
 § .about-root,§ .oss-notice-root,§ .app-update-overlay__panel,§ .role-switch-emote-overlay__panel{
  background-image:linear-gradient(140deg,#fff5fa,#f8d9e7);
@@ -151,12 +125,132 @@ const __wtTheme=(()=>{
 @keyframes wt-aemeath-twinkle{0%{opacity:0;transform:scale(.2) rotate(-45deg)}50%{opacity:1;transform:scale(1.2) rotate(10deg)}100%{opacity:.95;transform:scale(.9) rotate(0)}}
 @media (prefers-reduced-motion:reduce){§ .wt-input-bubble,§ .wt-input-bubble:before{animation:none}}
 `.split('§').join(scope);
+ const themedSurfaces=`
+§ .tab-bar{background-color:var(--wt-ui-rail)}
+§ .wt-ui-button:not(.wt-ui-button--primary,[aria-pressed=true]),
+§ select:is(.setting-input,.setting-select,.room-layout-select),
+§ .wt-ui-card select,§ .wt-ui-room-tools select,§ .wt-ui-actions select,
+§ .select-item :is(.select-input,.select-option),§ .atlas-item :is(.atlas-qty,.atlas-type-icon){
+ background-color:var(--wt-ui-surface);border-color:var(--wt-ui-border);color:var(--wt-ui-text);
+}
+§ .wt-ui-card :is(input[type=text],input[type=number],textarea),
+§ .wt-ui-feature :is(input[type=text],input[type=number],textarea){
+ color:var(--wt-ui-text);background-color:var(--wt-ui-field);border-color:var(--wt-ui-border);
+}
+§ .wt-input-ui kbd.wt-key-on,§ .wt-pad .wt-pad-board kbd.wt-key-on{
+ background:var(--wt-ui-accent-fill);color:var(--wt-ui-text);border-color:var(--wt-ui-accent);box-shadow:0 0 0 2px var(--wt-ui-hover);
+}
+§ .wt-ui-button:not(.wt-ui-button--primary,[aria-pressed=true],:disabled):hover,
+§ .select-item .select-input:hover{background-color:var(--wt-ui-hover)}
+§ .select-item .select-option-item{border-color:var(--wt-ui-divider)}
+§ .select-item .select-option-item:is(:hover,.select-option-item--active)::after{
+ background:var(--wt-ui-accent);border-color:var(--wt-ui-focus);box-shadow:none;
+}
+§ .select-item .select-option-list::-webkit-scrollbar-thumb,§ .my-preset .my-preset-list::-webkit-scrollbar-thumb{background:var(--wt-ui-decor)}
+§ .select-item .select-option-list::-webkit-scrollbar-track,§ .my-preset .my-preset-list::-webkit-scrollbar-track{background-color:var(--wt-ui-divider)}
+§ .room-members li{background-color:var(--wt-ui-surface)}
+§ .room-members li.room-owner{background-color:var(--wt-ui-hover)}
+§ .emotion-dot{background-color:var(--wt-ui-card-fill)}
+§ .emotion-dot:is(:hover,.is-hover){background-color:var(--wt-ui-hover)}
+§ .reward-countdown__svg:not(.reward-countdown__progress)>image,
+§ .reward-btn:not(.reward-btn--loading),§ .preset-preview-emote-img::after,
+§ :is(.preset-preview-emote-remove,.preset-remove,.panel-close,.popup-close,.about-close,.oss-notice-close){filter:var(--wt-ui-raster)}
+§ .select-item .select-input::after,§ .select-item .select-option::before,
+§ .login-dialog-background::before,§ :is(.panel-title,.synthesis-tip)::before,§ :is(.panel-title,.synthesis-tip)::after,
+§ .atlas-type::after,§ .atlas-item::after,§ .atlas-item :is(.atlas-type-icon,.atlas-remove),
+§ .emotion-dot::before,§ .emotion-dot::after,§ .room-info .room-number-copy,
+§ .room-members :is(.room-visible-btn,.room-kick-btn),
+§ :is(.login-dialog-button--passport,.login-dialog-button--uid),§ .uid-cont .btn-send{filter:var(--wt-ui-raster)}
+§ .atlas-item::before{filter:var(--wt-ui-raster) drop-shadow(0 2px 0 var(--wt-ui-decor))}
+§ .atlas-item--active::before{
+ filter:var(--wt-ui-raster) drop-shadow(0 -2px 0 var(--wt-ui-decor)) drop-shadow(2px 0 0 var(--wt-ui-accent)) drop-shadow(0 3px 0 var(--wt-ui-accent)) drop-shadow(-2px 0 0 var(--wt-ui-accent));
+}
+§ .my-preset .preset-item,§ .preset-preview :is(.preset-preview-main,.preset-preview-emote-img),§ .synthesis-list .synthesis-item{
+ background-image:none!important;
+}
+§ .my-preset .preset-item::before,§ .preset-preview :is(.preset-preview-main,.preset-preview-emote-img)::before,
+§ .synthesis-list .synthesis-item::before{
+ content:'';position:absolute;inset:0;pointer-events:none;
+ background:var(--wt-raster-image,none) center / 100% 100% no-repeat var(--wt-slot-color,var(--wt-ui-decor));
+ background-blend-mode:luminosity;
+ mask:var(--wt-raster-image,linear-gradient(transparent,transparent)) center / 100% 100% no-repeat;
+}
+§ .my-preset .preset-item--active{--wt-slot-color:var(--wt-ui-accent)}
+§ .synthesis-list .synthesis-add{
+ position:relative;background:linear-gradient(var(--wt-ui-decor),var(--wt-ui-decor)) center / 48% 9% no-repeat,
+ linear-gradient(var(--wt-ui-decor),var(--wt-ui-decor)) center / 9% 48% no-repeat;
+}
+`.split('§').join(':root:is([data-wt-theme="aemeath"],[data-wt-theme="denia"],[data-wt-theme="phrolova"])');
+ const tidesCss=`
+:root[data-wt-tides] .reward-anchor{pointer-events:none}
+:root[data-wt-tides] .reward-anchor--right{--wt-tide-position:right center}
+:root[data-wt-tides] .reward-anchor .reward-countdown{width:100%;height:100%;aspect-ratio:auto}
+:root[data-wt-tides] .reward-anchor .reward-countdown__svg{visibility:hidden}
+:root[data-wt-tides] .reward-anchor .reward-countdown::before,
+:root[data-wt-tides] .reward-anchor .reward-btn::before{
+ content:"";position:absolute;inset:0;margin:auto;width:48px;height:48px;
+ background:var(--wt-theme-tides) var(--wt-tide-position,left center) / 200% 100% no-repeat;
+ pointer-events:none;
+}
+:root[data-wt-tides] .reward-anchor .reward-countdown::before{top:-12px;transform:scale(.90)}
+:root[data-wt-tides] .reward-anchor .reward-countdown__text{
+ inset:auto 0 -2px;height:auto;margin-inline:auto;width:max-content;transform:none;
+ padding:0 5px;border-radius:8px;background:var(--wt-tide-count-bg,#fff0f6);color:var(--wt-tide-count-text,#793050);
+ box-shadow:0 1px 3px #7a3b4b22;font-size:11px;line-height:15px;
+}
+:root[data-wt-tides] .reward-anchor .reward-btn{
+ position:absolute;inset:0;margin:auto;width:34px;height:36px;padding:0;border:0;background:none;filter:none;pointer-events:auto;
+}
+:root[data-wt-tides] .reward-anchor .reward-btn:before{
+ inset:50% auto auto 50%;transform:translate(-50%,-50%);margin:0;filter:drop-shadow(0 2px 1px #783b4b55);
+}
+:root[data-wt-tides] .reward-anchor .reward-btn:after{display:none}
+:root[data-wt-tides] .reward-anchor .reward-btn--open{animation:none}
+:root[data-wt-tides] .reward-anchor .reward-btn--open:before{animation:wt-tide-disappear .5s ease-out both}
+.wt-tide-spark{position:fixed;width:6px;height:6px;pointer-events:none;z-index:20;clip-path:polygon(50% 0,62% 36%,100% 50%,62% 64%,50% 100%,38% 64%,0 50%,38% 36%);background:var(--wt-tide-spark,#ffdb8a)}
+.wt-tide-spark--light{background:var(--wt-tide-spark-light,#fff8de)}
+@keyframes wt-tide-disappear{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.12);filter:brightness(1.35)}100%{opacity:0;transform:translate(-50%,-50%) scale(.74);filter:brightness(1.9)}}
+@media(prefers-reduced-motion:reduce){:root[data-wt-tides] .reward-anchor .reward-btn--open::before{animation:none;opacity:0}}
+`;
  const textProperty=/^(color|fill|stroke|caret-color|-webkit-text-fill-color|-webkit-text-stroke-color|text-decoration-color)$|^--.*(text|title|label)/;
  const sheetSelector='style:not(['+mark+']),link[rel="stylesheet"]';
  const nodes={};
- let current='default',observer=null,timer=0,assets=null,pickers=[],undo=[],rewardObserver=null,disposePlayer=null;
+ const deniaClients=new Set();
+ const phrolovaClients=new Set(),mechClients=new Set();
+ let current='default',observer=null,timer=0,assets=null,pickers=[],undo=[],rewardObserver=null,disposePlayer=null,denia=null;
+ let packs={},packEpoch=0,phrolovaAvailable=false,mechSprite='';
+ function onMech(callback){
+  mechClients.add(callback);
+  callback(mechSprite);
+  return ()=>mechClients.delete(callback);
+ }
+ function onPhrolova(callback){
+  phrolovaClients.add(callback);
+  callback(phrolovaAvailable);
+  return ()=>phrolovaClients.delete(callback);
+ }
+ function bindPhrolova(ref,onUnmount){
+  const enabled=ref(phrolovaAvailable);
+  onUnmount(onPhrolova(value=>{enabled.value=value}));
+  return enabled;
+ }
+ function syncPhrolova(){
+  const next=current==='phrolova'&&packs.phrolova?.effects?.includes('phrolova')===true;
+  if(next===phrolovaAvailable)return;
+  phrolovaAvailable=next;
+  for(const callback of phrolovaClients)callback(next);
+ }
  const valid=value=>Object.hasOwn(themes,value)?value:'default';
  function read(){try{return valid(localStorage.getItem(key))}catch{return 'default'}}
+ async function refreshPacks(force=false){
+  const epoch=++packEpoch,module=await import(moduleUrl),catalog=await module.loadThemePacks(force);
+  if(epoch!==packEpoch)return;
+  const prior=packs[current]?.revision;
+  packs=catalog;
+  if(current!=='default'&&prior!==packs[current]?.revision){stop();current='default';document.documentElement.removeAttribute(attr)}
+  apply(read());sync();
+  window.dispatchEvent(new Event('wt-theme-packs-changed'));
+ }
  function parse(token){
   if(token[0]==='#'){
    let hex=token.slice(1);
@@ -172,7 +266,7 @@ const __wtTheme=(()=>{
  }
  // Warm cream, orange and brown become pink; the yellow-green accent becomes Aemeath's cyan.
  // Greys, reds, greens, blues and rarity colors stay as they are.
- function remap(r,g,b,text){
+ function remap(r,g,b,text,theme=current){
   const max=Math.max(r,g,b),min=Math.min(r,g,b),delta=max-min,l=(max+min)/510;
   if(!delta||l<.05||l>.985)return null;
   const s=delta/(255-Math.abs(max+min-255));
@@ -187,8 +281,15 @@ const __wtTheme=(()=>{
    else if(l>=.6){sat=s*.85;light=l+(1-l)*.12}
    else{sat=Math.min(1,s*1.2);light=l+(.62-l)*.5*Math.min(1,Math.max(0,(l-.2)/.2))}
   }else return null;
+  if(theme==='denia'){
+   hue=h>58?223:(text?267:263)+(h-35)*.23;
+   sat=Math.min(.58,sat*.68);
+  }else if(theme==='phrolova'){
+   hue=h>58?334:(text?326:340)+(h-35)*.23;
+   sat=Math.min(.65,sat*.79);
+  }
   const c=(1-Math.abs(2*light-1))*sat,x=c*(1-Math.abs(hue/60%2-1)),m=light-c/2;
-  return (hue<240?[0,x,c]:[c,0,x]).map(n=>Math.round((n+m)*255));
+  return (hue<240?[0,x,c]:hue<300?[x,0,c]:[c,0,x]).map(n=>Math.round((n+m)*255));
  }
  function convert(value,text){
   let changed=false;
@@ -208,6 +309,7 @@ const __wtTheme=(()=>{
  // outside the warm range, so a second pass over the same rule changes nothing.
  // A shorthand that contains var() exposes no longhand values, so it is read as a whole.
  const shorthands=['background','border','border-top','border-right','border-bottom','border-left','border-color','outline'];
+ const raritySelector=/(?:rarity|quality)[-_]|--(?:common|uncommon|rare|epic)\b/i;
  // Move decorative bitmaps onto their own layer, leaving the character and item art untinted.
  const rasterBackground=/(?:^|\s)(?:\.preset-item(?:--active|--add)?|\.preset-preview-main|\.preset-preview-emote-img|\.synthesis-item)$/;
  function recolor(style){
@@ -224,7 +326,7 @@ const __wtTheme=(()=>{
  function walk(rules){
   for(const rule of rules){
    if(rule.style){
-    recolor(rule.style);
+    if(!raritySelector.test(rule.selectorText||''))recolor(rule.style);
     if(rasterBackground.test(rule.selectorText||'')){
      const image=rule.style.getPropertyValue('background-image');
      if(image.startsWith('url(')&&!rule.style.getPropertyValue('--wt-raster-image')){
@@ -251,11 +353,11 @@ const __wtTheme=(()=>{
    try{walk(item.cssRules)}catch{}
   }
   const base=sheet('base');
-  if(!base.textContent)base.textContent=aemeathCss;
+  if(!base.textContent)base.textContent=current==='aemeath'?aemeathCss+themedSurfaces:themedSurfaces;
   if(!base.isConnected)document.head.append(base);
  }
  function schedule(){if(current!=='default'&&!timer)timer=setTimeout(rebuild,60)}
- function loaded(){schedule();if(current==='aemeath')loadAssets()}
+ function loaded(){schedule();if(current!=='default')loadAssets()}
  function linkLoaded(event){if(event.target?.nodeName==='LINK')schedule()}
  function changed(records){
   for(const record of records){
@@ -266,24 +368,38 @@ const __wtTheme=(()=>{
  function loadAssets(){
   if(assets)return;
   const main=window.__TAURI_INTERNALS__?.metadata?.currentWindow?.label==='main';
-  if(main&&!disposePlayer&&typeof __wtSnowfluffPlayer!=='undefined'){
-   if(!document.body)return;
+  if(main&&!document.body)return;
+  const selected=current;
+  const art=packs[selected];
+  if(!art)return;
+  const effects=art.effects??[];
+  if(selected==='aemeath'&&effects.includes('player')&&main&&!disposePlayer&&typeof __wtSnowfluffPlayer!=='undefined'){
    disposePlayer=__wtSnowfluffPlayer.create();
   }
-  const pending=import('http://127.0.0.1:48642/ui.js');
+  const pending=import(moduleUrl);
   assets=pending;
   pending.then(module=>{
-   if(assets!==pending||current!=='aemeath')return;
-   const art=module.helperThemeAssets?.aemeath;
-   const image=main?'':art?.background,tides=main?art?.tides:'';
-   if(!image&&!tides)return;
+   if(assets!==pending||current!==selected)return;
+   if(selected==='denia'){
+    const style=module.helperDenia;
+    denia=effects.includes('denia')?style:null;
+    if(style)sheet('base').textContent=style.css+themedSurfaces;
+    if(style&&effects.includes('blocks')&&main&&document.body)disposePlayer=style.mountGame(module.openDeniaBlocks);
+    syncDenia();
+   }
+   if(selected==='phrolova'&&module.helperPhrolovaCss)sheet('base').textContent=module.helperPhrolovaCss+themedSurfaces;
+   const image=main?'':art.background,tides=main&&effects.includes('tides')?art.tides:'',toolbar=main?art.toolbar:'';
+   if(!image&&!tides&&!toolbar)return;
    const node=sheet('assets');
-   node.textContent=scope+'{'+(image?'--wt-theme-bg:url("'+image+'")':'--wt-theme-tides:url("'+tides+'")')+'}';
+   const declaration=([name,value])=>value?'--wt-'+name+':url("'+value+'");':'';
+   node.textContent=':root['+attr+'="'+selected+'"]{'+[['theme-bg',image],['theme-tides',tides],[selected+'-toolbar',toolbar]].map(declaration).join('')+'}';
    document.head.prepend(node);
    if(tides)watchRewards();
+   if(toolbar)document.documentElement.setAttribute('data-wt-'+selected+'-toolbar','');
   }).catch(()=>{if(assets===pending)assets=null});
  }
  function watchRewards(){
+  const node=sheet('tides');node.textContent=tidesCss;document.head.append(node);
   document.documentElement.setAttribute('data-wt-tides','');
   window.dispatchEvent(new Event('pet-toast-geometry-changed'));
   rewardObserver=new MutationObserver(records=>{
@@ -298,7 +414,7 @@ const __wtTheme=(()=>{
      const angle=i*Math.PI/5,radius=17+(i%3)*7;
      const spark=document.createElement('i');spark.className='wt-tide-spark';
      spark.style.left=x+width/2-3+'px';spark.style.top=y+height/2-3+'px';
-     if(i%3===0)spark.style.background='#fff8de';
+     if(i%3===0)spark.classList.add('wt-tide-spark--light');
      document.body.append(spark);
      const animation=spark.animate([{opacity:0,transform:'scale(.55)'},{opacity:1,offset:.24},{opacity:0,transform:'translate('+Math.cos(angle)*radius+'px,'+(Math.sin(angle)*radius-8)+'px) scale(.25) rotate(45deg)'}],{duration:510+i%3*60,easing:'ease-out',fill:'both'});
      animation.finished.then(()=>spark.remove(),()=>spark.remove());
@@ -321,29 +437,85 @@ const __wtTheme=(()=>{
   rewardObserver?.disconnect();rewardObserver=null;
   disposePlayer?.();disposePlayer=null;
   document.documentElement.removeAttribute('data-wt-tides');
+  document.documentElement.removeAttribute('data-wt-denia-bubble');
+  document.documentElement.removeAttribute('data-wt-denia-toolbar');
+  document.documentElement.removeAttribute('data-wt-aemeath-toolbar');
+  document.documentElement.removeAttribute('data-wt-phrolova-toolbar');
   window.dispatchEvent(new Event('pet-toast-geometry-changed'));
   for(const spark of document.querySelectorAll('.wt-tide-spark'))spark.remove();
   document.removeEventListener('load',linkLoaded,true);
   if(timer){clearTimeout(timer);timer=0}
   for(const [style,name,value,priority] of undo.reverse())try{style.setProperty(name,value,priority)}catch{}
   undo=[];
-  for(const name of ['base','assets']){nodes[name]?.remove();delete nodes[name]}
+  for(const name of ['base','assets','tides']){nodes[name]?.remove();delete nodes[name]}
   assets=null;
+  if(denia){denia=null;syncDenia()}
  }
  function sync(){
+  syncPhrolova();
+  const nextSprite=current==='aemeath'&&packs.aemeath?.effects?.includes('mech')?packs.aemeath.mech||'':'';
+  if(nextSprite!==mechSprite){
+   mechSprite=nextSprite;
+   for(const callback of mechClients)callback(mechSprite);
+  }
   pickers=pickers.filter(root=>root.isConnected);
-  for(const root of pickers)for(const option of root.querySelectorAll('[data-wt-theme-option]'))option.setAttribute('aria-pressed',String(option.dataset.wtThemeOption===current));
+  for(const root of pickers){
+   for(const option of root.querySelectorAll('[data-wt-theme-option]')){
+    const id=option.dataset.wtThemeOption;
+    option.disabled=id!=='default'&&!packs[id];
+    option.setAttribute('aria-pressed',String(id===current));
+    option.querySelector('small').textContent=option.disabled?'需导入主题包':themes[id][1];
+   }
+   const mech=root.querySelector('.wt-aemeath-mech-options');
+   if(!mechSprite)mech?.remove();
+   else if(!mech&&typeof __wtAemeathMech!=='undefined'){
+    const field=document.createElement('details'),summary=document.createElement('summary');
+    field.className='wt-aemeath-mech-options wt-theme-effect wt-ui-optional';
+    summary.textContent='爱弥斯 · 隧者兵装';
+    field.append(summary);__wtAemeathMech.mount(field);root.append(field);
+   }
+   const credit=root.querySelector('.wt-theme-credit'),text=credit.querySelector('[data-wt-pack-credit]');
+   text.textContent=packs[current]?.credit||'';credit.hidden=!text.textContent;
+  }
+  syncDenia(false);
  }
- function customBackground(){
+ function syncDenia(refresh=true){
+  if(denia)denia.sync();
+  for(const root of pickers){
+   const field=root.querySelector('.wt-denia-settings');
+   if(field){field.hidden=!denia;if(!denia)field.replaceChildren()}
+   if(denia&&field&&!field.firstChild)denia.mount(field,()=>{
+    syncDenia();
+    if(typeof emit==='function')Promise.resolve().then(()=>emit(deniaUpdated)).catch(()=>{});
+   },dialogue);
+   if(denia&&field)denia.refresh(field);
+  }
+  if(refresh)for(const update of deniaClients)update();
+ }
+ function createDenia(options){
+  let effect=null;
+  function update(){
+   if(denia){effect??=denia.create({...options,dialogue});effect.sync()}
+   else{effect?.dispose();effect=null}
+   options.activity();
+  }
+  return {
+   start(){deniaClients.add(update);update()},input:(...args)=>effect?.input(...args),release:source=>effect?.release(source),
+   sync:()=>effect?.sync(),inputActive:()=>effect?.active(),moved:()=>effect?.moved(),
+   dispose(){deniaClients.delete(update);effect?.dispose();effect=null}
+  };
+ }
+ function customBackground(theme=current){
+  const key=backgroundKeys[theme];
   try{
-   const data=localStorage.getItem(backgroundKey);
+   const data=key&&localStorage.getItem(key);
    return /^data:image\/(?:webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(data??'')?data:'';
   }catch{return ''}
  }
  function syncBackground(){
   const data=customBackground(),root=document.documentElement;
   const main=window.__TAURI_INTERNALS__?.metadata?.currentWindow?.label==='main';
-  if(!main&&data&&current==='aemeath'){
+  if(!main&&data){
    root.style.setProperty('--wt-custom-background','url("'+data+'")');
    root.setAttribute('data-wt-custom-background','');
   }else{
@@ -351,8 +523,14 @@ const __wtTheme=(()=>{
    root.removeAttribute('data-wt-custom-background');
   }
   for(const picker of pickers){
-   const reset=picker.querySelector('[data-wt-reset-background]');
-   if(reset)reset.disabled=!data;
+   const field=picker.querySelector('.wt-theme-background');
+   if(!field)continue;
+   field.hidden=!backgroundKeys[current];
+   field.querySelector('[data-wt-reset-background]').disabled=!data;
+   if(field.dataset.theme!==current){
+    field.dataset.theme=current;
+    field.querySelector('output').textContent=backgroundKeys[current]?'仅用于'+themes[current][0]+'主题。图片保存在本机。':'';
+   }
   }
  }
  async function encodeBackground(file){
@@ -374,7 +552,7 @@ const __wtTheme=(()=>{
  function mountBackground(root){
   const field=document.createElement('fieldset');
   field.className='wt-theme-background';
-  field.innerHTML='<legend>面板背景</legend><div class="wt-theme-background-actions"><button class="wt-ui-button" type="button" data-wt-choose-background>选择图片</button><button class="wt-ui-button" type="button" data-wt-reset-background>恢复默认</button></div><input type="file" accept=".png,.jpg,.jpeg,.webp,.bmp,.gif" hidden><output role="status">仅在爱弥斯主题显示。图片保存在本机。</output>';
+  field.innerHTML='<legend>面板背景</legend><div class="wt-theme-background-actions"><button class="wt-ui-button" type="button" data-wt-choose-background>选择图片</button><button class="wt-ui-button" type="button" data-wt-reset-background>恢复默认</button></div><input type="file" accept=".png,.jpg,.jpeg,.webp,.bmp,.gif" hidden><output role="status"></output><p class="wt-theme-credit" hidden><strong>素材署名</strong><span data-wt-pack-credit></span></p>';
   const input=field.querySelector('input'),output=field.querySelector('output'),choose=field.querySelector('[data-wt-choose-background]'),reset=field.querySelector('[data-wt-reset-background]');
   function changed(){
    syncBackground();
@@ -382,41 +560,65 @@ const __wtTheme=(()=>{
   }
   choose.addEventListener('click',()=>input.click());
   input.addEventListener('change',async()=>{
-   const file=input.files?.[0];input.value='';if(!file)return;
+   const theme=current,key=backgroundKeys[theme],file=input.files?.[0];input.value='';if(!file||!key)return;
    choose.disabled=reset.disabled=true;
    try{
     const data=await encodeBackground(file);
-    try{localStorage.setItem(backgroundKey,data)}catch{throw Error('无法写入本机存储，原背景已保留。')}
-    output.textContent='已保存自定义背景。';
-   }catch(error){output.textContent=error.message||'背景保存失败。'}
+    try{localStorage.setItem(key,data)}catch{throw Error('无法写入本机存储，原背景已保留。')}
+    if(current===theme)output.textContent='已保存自定义背景。';
+   }catch(error){if(current===theme)output.textContent=error.message||'背景保存失败。'}
    finally{choose.disabled=false;changed()}
   });
   reset.addEventListener('click',()=>{
-   try{localStorage.removeItem(backgroundKey);output.textContent='已恢复默认背景。';changed()}
+   const key=backgroundKeys[current];if(!key)return;
+   try{localStorage.removeItem(key);output.textContent='已恢复默认背景。';changed()}
    catch{output.textContent='无法恢复默认背景。'}
   });
   root.append(field);
  }
  function apply(value){
-  const next=valid(value);
+  const next=packs[value]?valid(value):'default';
   // The window that changes the theme also receives its own broadcast.
   if(next===current&&(next==='default'||observer)){sync();return}
+  if(current!=='default')stop();
   current=next;
-  if(current==='default'){document.documentElement.removeAttribute(attr);stop()}
+  if(current==='default')document.documentElement.removeAttribute(attr);
   else{document.documentElement.setAttribute(attr,current);start()}
   sync();syncBackground();
  }
  function set(value){
   const theme=valid(value);
+  if(theme!=='default'&&!packs[theme])return;
   try{localStorage.setItem(key,theme)}catch{}
   apply(theme);
   if(typeof emit==='function')Promise.resolve().then(()=>emit(updated,{theme})).catch(()=>{});
+ }
+ function mountImport(root){
+  const field=document.createElement('div');
+  field.className='wt-theme-import';
+  field.innerHTML='<button class="wt-ui-button" type="button">导入主题包</button><output role="status">支持 .wttheme 文件</output>';
+  const button=field.querySelector('button'),status=field.querySelector('output');
+  button.addEventListener('click',async()=>{
+   button.disabled=true;
+   try{
+    const module=await import(moduleUrl),result=await module.importThemePack();
+    if(result.cancelled)return;
+    if(!result.id)throw Error(result.error||'主题包导入失败。');
+    await refreshPacks(true);
+    try{localStorage.setItem(packsKey,String(Date.now()))}catch{}
+    if(typeof emit==='function')await Promise.resolve(emit(packsUpdated)).catch(()=>{});
+    set(result.id);status.textContent='已导入'+themes[result.id][0]+'主题包。';
+   }catch(error){status.textContent=error.message||'主题包导入失败。'}
+   finally{button.disabled=false}
+  });
+  root.append(field);
  }
  function mount(root){
   if(!root||root.firstChild)return;
   if(!document.getElementById('wt-theme-picker-css')){
    const style=document.createElement('style');style.id='wt-theme-picker-css';style.setAttribute(mark,'picker');style.textContent=pickerCss;document.head.append(style);
   }
+  mountImport(root);
   for(const id of Object.keys(themes)){
    const option=document.createElement('button');
    option.type='button';option.className='wt-theme-option';option.dataset.wtThemeOption=id;
@@ -427,28 +629,36 @@ const __wtTheme=(()=>{
    root.append(option);
   }
   mountBackground(root);
-  if(typeof __wtAemeathMech!=='undefined')__wtAemeathMech.mount(root);
+  const effects=document.createElement('section');effects.className='wt-denia-settings';effects.hidden=true;root.append(effects);
   pickers.push(root);sync();syncBackground();
  }
- function render(h){
-  return h('details',{class:'wt-aemeath-options'},[
-   h('summary',null,'爱弥斯主题与外观'),
+ function render(h,renderPhrolova){
+  const children=[
+   h('summary',null,'外观主题'),
    h('div',{id:'wt-theme-settings',class:'wt-theme-picker',role:'group','aria-label':'外观主题',onVnodeMounted:vnode=>{try{mount(vnode.el)}catch{}}})
-  ]);
+  ];
+  const settings=renderPhrolova?.();
+  if(settings)children.push(h('details',{class:'wt-phrolova-settings wt-theme-effect wt-ui-optional'},[h('summary',null,'i弗TV'),settings]));
+  const node=h('details',{class:'wt-aemeath-options'},children,512);
+  node.patchFlag=-2;return node;
  }
  // This module is evaluated with the shared chunk in every window. A theme
  // failure must never stop the application from starting.
  if(typeof document!=='undefined')try{
-  __wtPanelLayout.extend('interaction','互动与表情','i弗TV、按键自动表情和爱弥斯主题',render);
+  __wtPanelLayout.extend('interaction','互动与表情','按键自动表情与外观主题',render);
   window.addEventListener('storage',event=>{
    if(event.key===key||event.key===null)apply(read());
-   if(event.key===backgroundKey||event.key===null)syncBackground();
+   if(event.key===packsKey||event.key===null)refreshPacks(true).catch(()=>{});
+   if(Object.values(backgroundKeys).includes(event.key)||event.key===null)syncBackground();
+   if(event.key===denia?.key||event.key===denia?.dialogueKey||event.key===null)syncDenia();
   });
   window.addEventListener('load',loaded);
   if(typeof listen==='function')Promise.resolve().then(()=>listen(updated,event=>apply(event.payload?.theme))).catch(()=>{});
   if(typeof listen==='function')Promise.resolve().then(()=>listen(backgroundUpdated,syncBackground)).catch(()=>{});
-  apply(read());
+  if(typeof listen==='function')Promise.resolve().then(()=>listen(deniaUpdated,syncDenia)).catch(()=>{});
+  if(typeof listen==='function')Promise.resolve().then(()=>listen(packsUpdated,()=>refreshPacks(true).catch(()=>{}))).catch(()=>{});
+  refreshPacks().catch(()=>{});
  }catch{}
- return {key,themes,read,set,apply,mount,render,remap,get current(){return current}};
+ return {key,themes,read,set,apply,mount,render,remap,createDenia,onMech,onPhrolova,bindPhrolova,get phrolovaEnabled(){return phrolovaAvailable},get current(){return current}};
 })();
 export {__wtTheme,__wtRegions};

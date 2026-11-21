@@ -7,7 +7,8 @@
 
 - 手柄采集随发布 EXE 内嵌 [SDL3 3.4.18](https://github.com/libsdl-org/SDL/releases/tag/release-3.4.18) x64 运行库，版权归 Sam Lantinga 等作者所有，按 zlib 许可证分发，完整文本见 [SDL3-LICENSE.txt](licenses/SDL3-LICENSE.txt)。运行时释放原始 DLL，未修改 SDL 二进制。
 - 手柄外形为本项目的 SVG 矢量界面，按钮使用设备布局名称，不包含厂商商标图。
-- 「爱弥斯」主题的背景图和 EXE 图标来自构建者本机的素材目录，是《鸣潮》同人作品，权利归各自作者和库洛游戏所有。它们不在本仓库内，只在本机构建时写入 EXE。默认背景为 Sanyue Qiushi 的插画，默认图标为粉丝站公开头像，再分发授权均未确认；公开发布前需取得许可或换用有授权的图片。见 [主题说明](docs/主题.md#授权提醒)。
+- 「拉海洛方块」窗口使用 Microsoft Edge WebView2 SDK 1.0.3595.46（Copyright Microsoft Corporation）。SDK 的 LICENSE 和 NOTICE 随 Helper 内嵌分发。
+- 爱弥斯、达妮娅的背景图属于《鸣潮》同人作品，权利归各自画师和库洛游戏所有。素材放在本地生成的主题包中，署名见 [主题说明](docs/主题.md)。
 
 仅供娱乐使用，创作者概不负责。
 

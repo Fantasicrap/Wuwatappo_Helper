@@ -18,6 +18,8 @@ const backgroundSource=path.resolve(process.env.WUWA_THEME_BACKGROUND||path.join
 const iconSource=path.resolve(process.env.WUWA_THEME_ICON||path.join(materials,'04_Logo与图标候选','粉丝站-爱弥斯头像.png'));
 const mechSource=path.resolve(process.env.WUWA_THEME_MECH||path.join(materials,'机兵概念','隧者兵装-Q版草图.png'));
 const mechFile=path.join(out,'aemeath-mech.webp'),toolbarFile=path.join(out,'aemeath-toolbar.png');
+const deniaToolbarFile=path.join(out,'denia-toolbar.png');
+const phrolovaToolbarFile=path.join(out,'phrolova-toolbar.png');
 const tidesSource=path.join(materials,'机兵概念','波纹-Q版图标.png'),tidesFile=path.join(out,'aemeath-tides.webp');
 const backgroundFile=path.join(out,'aemeath-background.jpg'),iconFile=path.join(out,'aemeath.ico');
 const iconSizes=[16,24,32,48,64,256];
@@ -58,17 +60,23 @@ async function tides({createCanvas,loadImage}){
  return {file:tidesFile,width,height,bytes:bytes.length};
 }
 
-async function toolbar({createCanvas,loadImage}){
- const source=fs.readFileSync(path.join(root,'dist/upstream-1.0.4/index-BbF1ZWW_.css'),'utf8');
+const toolbarColors=[
+ [[255,249,241],[253,249,237],[254,210,145],[142,94,67]],
+ [[255,240,246],[255,240,246],[248,172,207],[155,54,104]],
+ [[249,243,255],[249,243,255],[218,197,243],[87,60,118]],
+ [[250,232,239],[250,232,239],[216,141,169],[122,35,73]]
+];
+async function toolbar({createCanvas,loadImage},target,colors){
+ const cssFile=['1.0.5/index-DMZxgGaC.css','1.0.4/index-BbF1ZWW_.css']
+  .map(file=>path.join(root,'dist/upstream-'+file)).find(file=>fs.existsSync(file));
+ if(!cssFile)throw Error('Extracted upstream toolbar styles are missing');
+ const source=fs.readFileSync(cssFile,'utf8');
  const data=source.match(/\.pet-toolbar\{[^}]+background:url\((data:image\/png;base64,[^)]+)\)/)?.[1];
  if(!data)throw Error('Toolbar bitmap not found');
  const image=await loadImage(data),canvas=createCanvas(image.width,image.height),ctx=canvas.getContext('2d');
  ctx.drawImage(image,0,0);
  const pixels=ctx.getImageData(0,0,image.width,image.height);
- const palette=[
-  [[255,249,241],[255,240,246]],[[253,249,237],[255,240,246]],
-  [[254,210,145],[248,172,207]],[[142,94,67],[155,54,104]]
- ];
+ const palette=toolbarColors[0].map((original,i)=>[original,colors[i]]);
  const distance=(a,b)=>a.reduce((sum,value,index)=>sum+(value-b[index])**2,0);
  for(let at=0;at<pixels.data.length;at+=4){
   if(!pixels.data[at+3])continue;
@@ -77,8 +85,8 @@ async function toolbar({createCanvas,loadImage}){
   pixels.data.set(color,at);
  }
  ctx.putImageData(pixels,0,0);
- const bytes=canvas.toBuffer('image/png');fs.writeFileSync(toolbarFile,bytes);
- return {file:toolbarFile,bytes:bytes.length};
+ const bytes=canvas.toBuffer('image/png');fs.writeFileSync(target,bytes);
+ return {file:target,bytes:bytes.length};
 }
 
 // 32-bit icon frame: BITMAPINFOHEADER, bottom-up BGRA pixels, then the 1-bit mask.
@@ -132,11 +140,17 @@ async function icon(canvasApi){
 }
 
 (async()=>{
- const report={materials,background:null,icon:null,mech:null,toolbar:null,tides:null,skipped:[]};
+ const report={materials,background:null,icon:null,mech:null,toolbar:null,deniaToolbar:null,phrolovaToolbar:null,tides:null,skipped:[]};
  let canvasApi;
  try{canvasApi=require('@napi-rs/canvas')}catch(error){report.skipped.push('@napi-rs/canvas unavailable: '+error.message)}
  fs.mkdirSync(out,{recursive:true});
- for(const [name,source,target,build] of [['background',backgroundSource,backgroundFile,background],['icon',iconSource,iconFile,icon],['mech',mechSource,mechFile,mech],['toolbar',null,toolbarFile,toolbar],['tides',tidesSource,tidesFile,tides]]){
+ for(const [name,source,target,build] of [
+  ['background',backgroundSource,backgroundFile,background],['icon',iconSource,iconFile,icon],['mech',mechSource,mechFile,mech],
+  ['toolbar',null,toolbarFile,api=>toolbar(api,toolbarFile,toolbarColors[1])],
+  ['deniaToolbar',null,deniaToolbarFile,api=>toolbar(api,deniaToolbarFile,toolbarColors[2])],
+  ['phrolovaToolbar',null,phrolovaToolbarFile,api=>toolbar(api,phrolovaToolbarFile,toolbarColors[3])],
+  ['tides',tidesSource,tidesFile,tides]
+ ]){
   // A build without pictures must not silently reuse an earlier run's assets.
   fs.rmSync(target,{force:true});
   if(!canvasApi)continue;

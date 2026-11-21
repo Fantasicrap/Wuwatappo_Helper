@@ -3,8 +3,7 @@ const __wtAemeathMech=(()=>{
  const defaults={enabled:false,idle:true,sword:true,orbit:true,input:true,flash:true,wings:true,laser:true,greatsword:true};
  const greatswordCooldown=600000,laserCooldown=20000,greatswordKey='wuwatappo-aemeath-greatsword-at';
  const css=`
-.wt-mech-settings{margin:12px 0 0;padding:10px 12px;border:1px solid var(--wt-ui-border,#e3c9aa);border-radius:12px;background:var(--wt-ui-card-fill,#fff9ed);color:var(--wt-ui-text,#694832)}
-.wt-mech-settings legend{padding:0 6px;font-weight:700}
+.wt-mech-settings{margin:4px 0 0;padding:10px 12px;border:1px solid var(--wt-ui-border,#e3c9aa);border-radius:12px;background:var(--wt-ui-card-fill,#fff9ed);color:var(--wt-ui-text,#694832)}
 .wt-mech-settings p{margin:0 0 8px;color:var(--wt-ui-muted,#775e4b);font-size:12px;line-height:1.5}
 .wt-mech-settings label{display:flex;align-items:center;gap:8px;margin:4px 0;cursor:pointer}
 .wt-mech-settings label:has(:disabled){opacity:.65;cursor:default}
@@ -93,8 +92,7 @@ const __wtAemeathMech=(()=>{
  }
  function mount(root){
   styles();
-  const field=document.createElement('fieldset');field.className='wt-mech-settings';
-  const legend=document.createElement('legend');legend.textContent='爱弥斯 · 隧者兵装';field.append(legend);
+  const field=document.createElement('div');field.className='wt-mech-settings';
   const hint=document.createElement('p');hint.textContent='仅在装备爱弥斯时可用。若装备后仍未生效，请重新装备一次。';field.append(hint);
   const switches=new Map();
   for(const [name,text] of [['enabled','常驻伴飞（总开关）'],['idle','待机悬浮'],['sword','待机挥剑'],['orbit','自动环绕'],['input','输入联动'],['flash','按下时核心亮起'],['wings','长按时展开机翼'],['laser','长按升空发射激光'],['greatsword','敲击时召唤隧者大剑']]){
@@ -113,16 +111,15 @@ const __wtAemeathMech=(()=>{
   root.append(field);update();return update;
  }
  function isAemeath(role){return Number(role?.id)===1210||/(?:^|[\\/])role_1210(?:[_-]|$)/i.test(role?.name??'')}
- function create({root,role,activity,load=()=>import('http://127.0.0.1:48642/ui.js'),random=Math.random}){
+ function create({root,role,activity,subscribeTheme,random=Math.random}){
   const motion=window.matchMedia('(prefers-reduced-motion: reduce)'),held=new Set();
-  let cfg=read(),host,mech,dock,sprite='__WT_AEMEATH_MECH_SPRITE__',pending,unlisten,started=false,disposed=false,demand=false;
-  if(!sprite.startsWith('data:'))sprite='';
+  let cfg=read(),host,mech,dock,sprite='',unlisten,stopTheme,started=false,disposed=false,demand=false;
   let holdTimer,flashTimer,orbitTimer,swordTimer,frame,layoutFrame,side=-1,lastOrbit=-8000,inputs=[],lastPath,watchdog;
   let special,specialFrame,specialEndTimer,orbitEndTimer,swordEndTimer,laserTimer,lastLaser=-laserCooldown,lastGreatsword=0;
   try{lastGreatsword=Math.min(Date.now(),Number(localStorage.getItem(greatswordKey))||0)}catch{}
   const resize=new ResizeObserver(scheduleLayout),move=new MutationObserver(scheduleLayout);
   const tree=new MutationObserver(()=>{if(root()!==host||!mech?.isConnected)sync()});
-  const eligible=()=>started&&!disposed&&cfg.enabled&&isAemeath(role());
+  const eligible=()=>started&&!disposed&&!!sprite&&cfg.enabled&&isAemeath(role());
   const specialEnabled=kind=>kind==='laser'?(cfg.laser&&!motion.matches):(cfg.input&&cfg[kind]&&!motion.matches);
   const inputActive=()=>eligible()&&!!mech?.isConnected&&(cfg.orbit&&!motion.matches||specialEnabled('laser')||cfg.input&&(cfg.flash||cfg.wings||specialEnabled('greatsword')));
   const geometry=()=>window.dispatchEvent(new Event('pet-toast-geometry-changed'));
@@ -364,13 +361,6 @@ const __wtAemeathMech=(()=>{
   }
   function sync(){
    if(!eligible()){tree.disconnect();clear();return}
-   if(!sprite){
-    if(!pending)pending=load().then(module=>{
-     sprite=module.helperThemeAssets?.aemeath?.mech??'';
-     if(sprite)sync();
-    }).catch(()=>{pending=null});
-    return;
-   }
    tree.observe(document.body,{childList:true,subtree:true});
    const target=root();
    if(!target?.isConnected){clear();return}
@@ -389,21 +379,27 @@ const __wtAemeathMech=(()=>{
   }
   function reload(){cfg=read();sync()}
   const storage=event=>{if(event.key===key||event.key===null)reload()};
+  function updateSprite(value){
+   if(sprite===value)return;
+   sprite=value;
+   clear();sync();
+   clearInterval(watchdog);
+   if(sprite)watchdog=setInterval(()=>{
+    if(!mech)return;
+    if(!held.size&&mech.hasAttribute('data-held'))delete mech.dataset.held;
+    if(!special&&mech.dataset.special)delete mech.dataset.special;
+    if(frame===undefined&&mech.dataset.orbit)delete mech.dataset.orbit;
+   },1000);
+  }
   const pageVisibility=()=>{if(document.hidden){release();endSpecial(false);cancelOrbit()}else sync()};
   return {inputActive,input,release,sync,start(){
    started=true;
    window.addEventListener('storage',storage);window.addEventListener('resize',scheduleLayout);
    document.addEventListener('visibilitychange',pageVisibility);motion.addEventListener('change',sync);
    if(typeof listen==='function')Promise.resolve().then(()=>listen(eventName,reload)).then(stop=>{if(disposed)stop();else unlisten=stop}).catch(()=>{});
-   sync();
-   watchdog=setInterval(()=>{
-    if(!mech)return;
-    if(!held.size&&mech.hasAttribute('data-held'))delete mech.dataset.held;
-    if(!special&&mech.dataset.special)delete mech.dataset.special;
-    if(frame===undefined&&mech.dataset.orbit)delete mech.dataset.orbit;
-   },1000);
+   stopTheme=subscribeTheme(updateSprite);
   },dispose(){
-   disposed=true;clearInterval(watchdog);tree.disconnect();clear();unlisten?.();
+   disposed=true;stopTheme?.();clearInterval(watchdog);tree.disconnect();clear();unlisten?.();
    window.removeEventListener('storage',storage);window.removeEventListener('resize',scheduleLayout);
    document.removeEventListener('visibilitychange',pageVisibility);motion.removeEventListener('change',sync);
   }};

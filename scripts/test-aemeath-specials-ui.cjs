@@ -13,7 +13,8 @@ const {chromium}=require('playwright');
   await page.evaluate(()=>{
    window.settingsKey='wuwatappo-aemeath-mech-v1';window.calls=0;window.roll=.01;window.role={id:1210};
    localStorage.setItem(settingsKey,JSON.stringify({enabled:true,orbit:false,sword:false,laser:false,flash:false,wings:false}));
-   window.make=()=>{window.mech=api.create({root:()=>document.querySelector('.cat-stack'),role:()=>role,activity:()=>{},random:()=>{calls++;return roll},load:async()=>({helperThemeAssets:{aemeath:{mech:'data:image/gif;base64,R0lGODlhAQABAAAAACw='}}})});mech.start()};
+   window.mechSprite='data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+   window.make=()=>{window.mech=api.create({root:()=>document.querySelector('.cat-stack'),role:()=>role,activity:()=>{},random:()=>{calls++;return roll},subscribeTheme:update=>{window.selectMech=update;update(mechSprite);return()=>{delete window.selectMech}}});mech.start()};
    window.tap=(token='keyboard:Q')=>{mech.input(token.split(':')[0],token,true);mech.input(token.split(':')[0],token,false)};
    window.update=changes=>{localStorage.setItem(settingsKey,JSON.stringify({...JSON.parse(localStorage.getItem(settingsKey)),...changes}));window.dispatchEvent(new StorageEvent('storage',{key:settingsKey}))};
    api.mount(document.querySelector('#settings'));make();
@@ -105,6 +106,14 @@ const {chromium}=require('playwright');
   });
   await page.evaluate(()=>{role={id:1608};mech.sync()});assert.equal(await sprite.count(),0);
   await page.clock.runFor(21000);assert.equal(await page.locator('.wt-mech-special').count(),0);
+  await page.evaluate(()=>{role={id:1210};mech.sync();mech.input('keyboard','keyboard:Q',true)});
+  await page.clock.runFor(1200);assert.equal(await kind(),'laser');
+  await page.evaluate(()=>selectMech(''));
+  assert.equal(await sprite.count(),0);
+  assert.equal(await page.locator('.wt-mech-special').count(),0);
+  assert.equal(await page.evaluate(()=>mech.inputActive()),false);
+  await page.evaluate(()=>selectMech(mechSprite));await sprite.waitFor();
+  await page.clock.runFor(1200);assert.equal(await kind(),null,'Theme switch clears held input');
   assert.deepEqual(errors,[]);
   console.log('PASS: special animation triggers, 1% boundary, cooldown persistence and expiry, hold/release, settings and role changes');
  }finally{await browser.close()}

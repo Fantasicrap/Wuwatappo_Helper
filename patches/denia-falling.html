@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none';style-src 'unsafe-inline';script-src 'unsafe-inline';form-action 'none';base-uri 'none'">
+<title>经典下落 · 拉海洛方块</title>
+<style>
+:root{color-scheme:light;font:15px/1.5 "Microsoft YaHei UI","Microsoft YaHei",sans-serif;color:#38254f;background:#eee7f5}
+*{box-sizing:border-box}
+body{min-height:100vh;margin:0;padding:28px 14px;background:radial-gradient(ellipse at 74% 6%,#e1ebff,transparent 50%),radial-gradient(ellipse at 9% 88%,#d9bce9,transparent 58%),#f2ebf7}
+main{max-width:555px;margin:auto;padding:22px;border:1px solid #cbbbdf;border-radius:22px;background:#fcf8ffc9;box-shadow:0 18px 48px #462d6b22}
+header{padding:0 0 15px}
+.venue{display:block;color:#695581;font-size:12px;font-weight:650;margin-bottom:3px}
+.head-row{display:flex;gap:10px;justify-content:space-between;align-items:center}
+.back{color:#533777;border:1px solid #bba9d0;border-radius:8px;padding:5px 8px;text-decoration:none;white-space:nowrap}
+.back:hover{background:#eee2f5}
+h1{margin:0;font-size:30px;line-height:1.2;letter-spacing:.03em}
+header p{margin:5px 0 0;color:#625372}
+.layout{display:grid;grid-template-columns:minmax(150px,1fr) minmax(126px,.67fr);align-items:start;gap:16px}
+.board{position:relative;overflow:hidden;border:1px solid #5c4a77;border-radius:13px;background:#21182e}
+canvas{display:block;width:100%;height:auto}
+canvas:focus-visible,button:focus-visible{outline:3px solid #8d6abe;outline-offset:2px}
+.stats{display:grid;gap:9px}
+.card{padding:10px;border:1px solid #d6c8e5;border-radius:11px;background:#fcf9ff}
+.score{font-size:23px;font-weight:760;font-variant-numeric:tabular-nums;color:#4e3474}
+.sub{display:flex;justify-content:space-between;gap:6px;color:#645472;font-size:12px;margin-top:4px}
+.next{display:grid;align-items:center;grid-template-columns:auto 48px;gap:2px;color:#5f4b7b;font-size:13px}
+.next canvas{background:#ede4f6;border-radius:7px}
+button{font:inherit;padding:6px;border:1px solid #bba9d0;border-radius:8px;background:#f7f0fb;color:#4b326b;cursor:pointer}
+button:disabled{opacity:.48;cursor:default}
+button[data-action=play]{background:#6a4a94;border-color:#6a4a94;color:white;font-weight:700}
+.controls{display:grid;gap:5px}
+.controls .arrows{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.arrows button{height:34px;line-height:1;font-size:16px}
+.controls small{color:#655376;font-size:11px;margin-top:2px}
+.bid{font-size:12px}
+.status{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:14px;background:#21192f9c;color:#fff;font-size:17px;font-weight:700;pointer-events:none}
+.status[hidden]{display:none}
+@media(max-width:390px){main{padding:12px}.layout{gap:8px}.controls .arrows{gap:2px}.arrows button{padding:3px}}
+</style>
+</head>
+<body>
+<main>
+ <header><span class="venue">拉海洛方块</span><div class="head-row"><h1>经典下落</h1><a class="back" href="/denia-blocks">选玩法</a></div><p>拼满一行就会消除。每消三行，攒出一颗泡泡。</p></header>
+ <div class="layout">
+  <div class="board"><canvas id="well" width="216" height="384" tabindex="0" aria-label="落块棋盘"></canvas><div id="status" class="status" role="status">开始一局</div></div>
+  <section class="stats" aria-label="分数与控制">
+   <div class="card"><div class="score" id="score">0</div><div class="sub"><span>行数 <b id="lines">0</b></span><span>最高 <b id="best">0</b></span></div></div>
+   <div class="card next">下一块<canvas id="next" width="64" height="64" aria-label="下一块"></canvas></div>
+   <div class="controls">
+    <button type="button" data-action="play">开始</button>
+    <button type="button" data-action="restart" disabled>重开</button>
+    <div class="arrows">
+     <button type="button" data-action="left" aria-label="左移">←</button><button type="button" data-action="rotate" aria-label="旋转">↻</button>
+     <button type="button" data-action="right" aria-label="右移">→</button><button type="button" data-action="down" aria-label="下移">↓</button>
+    </div>
+    <button type="button" data-action="drop" class="bid">落到底 · 空格</button>
+    <button type="button" data-action="bubble" class="bid" aria-describedby="falling-bubble-help" disabled>泡泡 · 0 / 3</button>
+    <small id="falling-bubble-help">按 B 吹泡泡，清除最底一排。</small>
+    <small>A/D 或 ←/→ 移动　R 或 ↑ 旋转<br>↓ 下移　P 暂停　空格落到底</small>
+   </div>
+  </section>
+ </div>
+</main>
+<script>
+const cols=9,rows=16,size=24,shapes=[
+ {color:['#d7d4ff','#8c76c5'],cells:[[0,0],[1,0]]},
+ {color:['#ffe3ee','#be7fa5'],cells:[[0,0],[0,1],[1,1]]},
+ {color:['#d9eeff','#6d9ccc'],cells:[[0,0],[1,0],[2,0]]},
+ {color:['#d9f0ed','#6caaa3'],cells:[[0,0],[1,0],[0,1],[1,1]]},
+ {color:['#f1e3ff','#9b78c6'],cells:[[0,0],[1,0],[2,0],[1,1],[1,2]]},
+ {color:['#ffebd4','#cc9967'],cells:[[0,0],[0,1],[1,1],[1,2]]}
+];
+const board=document.getElementById('well'),nextBoard=document.getElementById('next');
+const ctx=board.getContext('2d'),preview=nextBoard.getContext('2d');
+const status=document.getElementById('status'),scoreLabel=document.getElementById('score'),linesLabel=document.getElementById('lines'),bestLabel=document.getElementById('best');
+const controls=Object.fromEntries([...document.querySelectorAll('[data-action]')].map(button=>[button.dataset.action,button]));
+const bestKey='wuwatappo-denia-blocks-best-v1';
+let best=0;
+try{best=Number(localStorage.getItem(bestKey))||0}catch{}
+const blank=()=>Array(cols).fill(0);
+let grid=Array.from({length:rows},blank),bag=[],next=0,piece=null,score=0,lines=0,charge=0,used=0,timer=0,mode='ready';
+function randomShape(){
+ if(!bag.length){
+  bag=shapes.map((_,i)=>i);
+  for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]]}
+ }
+ return bag.pop();
+}
+function fits(cells,x,y){return cells.every(([dx,dy])=>x+dx>=0&&x+dx<cols&&y+dy>=0&&y+dy<rows&&!grid[y+dy][x+dx])}
+function spawn(){
+ const kind=next;next=randomShape();
+ const cells=shapes[kind].cells,width=1+Math.max(...cells.map(([x])=>x));
+ piece={kind,cells,x:Math.floor((cols-width)/2),y:0};
+ if(!fits(cells,piece.x,0)){piece=null;mode='ended';clearInterval(timer)}
+}
+function move(dx,dy){
+ if(!piece||!fits(piece.cells,piece.x+dx,piece.y+dy))return false;
+ piece.x+=dx;piece.y+=dy;return true;
+}
+function canBlow(){
+ return mode==='running'&&charge===3&&grid.at(-1).some(Boolean)&&piece?.cells.every(([x,y])=>piece.y+y===0||!grid[piece.y+y-1][piece.x+x]);
+}
+function rotate(){
+ const spun=piece.cells.map(([x,y])=>[-y,x]),min=Math.min(...spun.map(([x])=>x));
+ const cells=spun.map(([x,y])=>[x-min,y]);
+ for(const [dx,dy] of [[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1]]){
+  if(fits(cells,piece.x+dx,piece.y+dy)){piece.cells=cells;piece.x+=dx;piece.y+=dy;return}
+ }
+}
+function lock(){
+ if(!piece)return;
+ for(const [x,y] of piece.cells)grid[y+piece.y][x+piece.x]=piece.kind+1;
+ const rest=grid.filter(row=>row.includes(0)),removed=rows-rest.length;
+ if(removed){
+  grid=[...Array.from({length:removed},blank),...rest];
+  lines+=removed;charge=Math.min(3,charge+removed);score+=removed*removed*60;
+ }
+ score+=5;save();
+ spawn();if(mode==='running')schedule();
+}
+function save(){
+ if(score<=best)return;
+ best=score;try{localStorage.setItem(bestKey,String(best))}catch{}
+}
+function renderCell(context,x,y,unit,kind,ghost=false){
+ const [light,dark]=shapes[kind].color;
+ context.beginPath();context.roundRect(x+1,y+1,unit-2,unit-2,5);
+ if(ghost){context.strokeStyle='#bcb0d58c';context.stroke();return}
+ const gradient=context.createLinearGradient(x,y,x+unit,y+unit);
+ gradient.addColorStop(0,light);gradient.addColorStop(1,dark);
+ context.fillStyle=gradient;context.fill();context.strokeStyle=light;context.stroke();
+ context.fillStyle='#fff7';context.fillRect(x+4,y+4,unit*.34,2);
+}
+function draw(){
+ ctx.fillStyle='#251c35';ctx.fillRect(0,0,board.width,board.height);
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+  if(grid[y][x])renderCell(ctx,x*size,y*size,size,grid[y][x]-1);
+  else{ctx.fillStyle=(x+y)%2?'#2a203a':'#2e233e';ctx.fillRect(x*size+1,y*size+1,size-2,size-2)}
+ }
+ if(piece){
+  let landing=piece.y;while(fits(piece.cells,piece.x,landing+1))landing++;
+  for(const [x,y] of piece.cells)renderCell(ctx,(piece.x+x)*size,(landing+y)*size,size,piece.kind,true);
+  for(const [x,y] of piece.cells)renderCell(ctx,(piece.x+x)*size,(piece.y+y)*size,size,piece.kind);
+ }
+ preview.clearRect(0,0,nextBoard.width,nextBoard.height);
+ if(mode!=='ready'){
+  const shape=shapes[next],units=15,offset=(cells,axis)=>(nextBoard.width-(Math.max(...cells.map(cell=>cell[axis]))+1)*units)/2;
+  for(const [x,y] of shape.cells)renderCell(preview,offset(shape.cells,0)+x*units,offset(shape.cells,1)+y*units,units,next);
+ }
+ scoreLabel.textContent=score;linesLabel.textContent=lines;bestLabel.textContent=best;
+ status.textContent={ready:'开始一局',paused:'已暂停',ended:'本局结束'}[mode]||'';
+ status.hidden=mode==='running';controls.play.textContent={ready:'开始',running:'暂停',paused:'继续',ended:'再来一局'}[mode];
+ controls.restart.disabled=mode==='ready';
+ for(const name of ['left','right','rotate','down','drop'])controls[name].disabled=mode!=='running';
+ controls.bubble.disabled=!canBlow();
+ controls.bubble.textContent=charge===3?'吹泡泡 · B':'泡泡 · '+charge+' / 3';
+}
+function schedule(){
+ clearInterval(timer);
+ if(mode==='running')timer=setInterval(()=>{if(!move(0,1))lock();draw()},Math.max(185,850-50*Math.floor(lines/3)-45*used));
+}
+function start(){
+ grid=Array.from({length:rows},blank);bag=[];next=randomShape();score=lines=charge=used=0;mode='running';spawn();schedule();
+}
+function action(name){
+ if(name==='play'){
+  if(mode==='ready'||mode==='ended')start();
+  else{mode=mode==='running'?'paused':'running';schedule()}
+ }else if(name==='restart')start();
+ else if(mode==='running'&&piece){
+  if(name==='left')move(-1,0);
+  if(name==='right')move(1,0);
+  if(name==='rotate')rotate();
+  if(name==='down'&&!move(0,1))lock();
+  if(name==='drop'){while(move(0,1))score++;lock()}
+  if(name==='bubble'&&canBlow()){
+   grid.pop();grid.unshift(blank());charge=0;used++;score+=40;save();schedule();
+  }
+ }
+ draw();
+}
+for(const [name,button] of Object.entries(controls)){
+ button.addEventListener('click',()=>{action(name);board.focus({preventScroll:true})});
+}
+const keys={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'rotate',ArrowDown:'down',Space:'drop',KeyA:'left',KeyD:'right',KeyR:'rotate',KeyP:'play',KeyB:'bubble'};
+const keyFallback={a:'left',d:'right',r:'rotate',p:'play',b:'bubble',' ':'drop'};
+window.addEventListener('keydown',event=>{
+ const name=keys[event.code]??keys[event.key]??keyFallback[event.key?.toLowerCase()];
+ if(!name||event.altKey||event.ctrlKey||event.metaKey||event.target?.matches?.('input,textarea,[contenteditable]'))return;
+ if(name!=='play'&&mode!=='running')return;
+ event.preventDefault();
+ if(!event.repeat||['left','right','down'].includes(name))action(name);
+},true);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode==='running'){mode='paused';schedule();draw()}});
+draw();
+</script>
+</body>
+</html>

@@ -254,9 +254,9 @@ const __wtSnowfluffPlayer=(()=>{
   const observer=new MutationObserver(attach);observer.observe(root,{childList:true,subtree:true});
   resize.observe(panel);window.addEventListener('resize',schedule);
   populate();attach();
-  Promise.resolve().then(load).then(module=>{
-   if(disposed||!Array.isArray(module.helperSongs))return;
-   defaults=module.helperSongs.map(({name,artist,url})=>({name,artist,src:url}));
+  Promise.resolve().then(load).then(module=>module.loadThemePacks()).then(packs=>{
+   if(disposed)return;
+   defaults=(packs.aemeath?.songs??[]).map(({name,artist,url})=>({name,artist,src:url}));
    const selected=options[selectedIndex],playing=options[playingIndex];
    populate();
    if(playing){playingIndex=options.findIndex(item=>item.file===playing.file&&item.name===playing.name)}

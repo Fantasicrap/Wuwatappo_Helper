@@ -16,11 +16,14 @@ Copy-Item -LiteralPath (Join-Path $distDir $exeName) -Destination $portableDir -
 foreach ($name in @('README.md','DISCLAIMER.txt','THIRD_PARTY_NOTICES.md')) { Copy-Item -LiteralPath (Join-Path $repoRoot $name) -Destination $portableDir -Force }
 foreach ($doc in @('使用说明.md','手柄使用说明.md','库存稀有度.md','i弗TV.md','图鉴试装.md','HE动画方案.md','联机位置记忆.md')) { Copy-Item -LiteralPath (Join-Path $repoRoot ('docs/'+$doc)) -Destination $portableDir -Force }
 New-Item -ItemType Directory -Path (Join-Path $portableDir 'docs') -Force | Out-Null
-Get-ChildItem -LiteralPath (Join-Path $repoRoot 'docs') -File | Copy-Item -Destination (Join-Path $portableDir 'docs') -Force
+Get-ChildItem -LiteralPath (Join-Path $repoRoot 'docs') -File -Exclude '播放器滚动与鼠标路由交接.md' | Copy-Item -Destination (Join-Path $portableDir 'docs') -Force
 New-Item -ItemType Directory -Path (Join-Path $portableDir 'licenses') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repoRoot 'licenses/SDL3-LICENSE.txt') -Destination (Join-Path $portableDir 'licenses') -Force
 Compress-Archive -LiteralPath $portableDir -DestinationPath (Join-Path $distDir "Wuwatappo_Helper-$helperVersion-Portable.zip") -Force
 $releaseNames = @($exeName,"Wuwatappo_Helper-$helperVersion-Lite.exe","Wuwatappo_Helper-$helperVersion-Setup.exe","Wuwatappo_Helper-$helperVersion-Portable.zip")
+if ([version]$helperVersion -ge [version]'1.0.5.2') {
+    $releaseNames += @('aemeath.wttheme','denia.wttheme','phrolova.wttheme')
+}
 $checksums = foreach ($name in $releaseNames) { $digest = (Get-FileHash -LiteralPath (Join-Path $distDir $name) -Algorithm SHA256).Hash.ToLower(); "$digest  $name" }
 Set-Content -LiteralPath (Join-Path $distDir 'SHA256SUMS.txt') -Value $checksums -Encoding utf8NoBOM
 Write-Output "Release artifacts: $distDir"

@@ -13,7 +13,7 @@ assert(!lite||v104,'Lite requires WuwaTappo 1.0.4');
 assert(!alpha||(v104&&!lite),'Alpha requires the full WuwaTappo 1.0.4 build');
 const base=v105?'1.0.5':v104?'1.0.4':'1.0.3';
 const configuredTarget=require('../../package.json').releaseVersion;
-const target=configuredTarget.startsWith(base+'.')?configuredTarget:v105?'1.0.5.1':v104?'1.0.4.7':'1.0.3.4';
+const target=configuredTarget.startsWith(base+'.')?configuredTarget:v105?'1.0.5.2':v104?'1.0.4.7':'1.0.3.4';
 const edition=lite?'lite':alpha?'alpha':'full';
 const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-'+base),out=path.join(root,'dist/migration-'+target+(edition==='full'?'':'-'+edition));fs.mkdirSync(out,{recursive:true});
 const original=fs.readFileSync(input),hash=b=>crypto.createHash('sha256').update(b).digest('hex'),manifest=JSON.parse(fs.readFileSync(path.join(stage,'extraction-manifest.json'),'utf8'));
@@ -129,12 +129,8 @@ panel=once(panel,'function Ul(e){A.value=Bl(e),nn&&clearTimeout(nn),nn=setTimeou
 panel=once(panel,'const t=qr.delete(e),o=va.delete(e);!t&&!o||Ie()','const t=qr.delete(e),o=va.delete(e);if(t&&!qr.size&&!nn)A.value=1;!t&&!o||Ie()');
 }
 const helperFiles=lite?['startup-notice.js','synthesis-reminder.js','panel-layout.js']:['hotkeys-core.js','inventory-share.js','input-edge-merge.js','input-recorder.js','keyboard-ui.js','room-positions-core.js','startup-notice.js','auto-emotes.js','accessory-thrust.js','phrolova-reaction.js','happy-ending.js','oath-core.js','pet-fun-dialogue.js','pet-fun.js','local-wardrobe.js','synthesis-reminder.js','panel-layout.js','aemeath-mech.js','snowfluff-player.js','theme.js'];
-const toolbarFile=path.join(root,'dist/theme-assets/aemeath-toolbar.png');
 if(v104)helperFiles.push('v104/select-popovers.js');
-const toolbarCss=fs.existsSync(toolbarFile)?'background-image:url("data:image/png;base64,'+fs.readFileSync(toolbarFile).toString('base64')+'");filter:none':'filter:grayscale(1) sepia(.44) hue-rotate(288deg) saturate(2.8)';
-const mechFile=path.join(root,'dist/theme-assets/aemeath-mech.webp');
-const mechSprite=fs.existsSync(mechFile)?'data:image/webp;base64,'+fs.readFileSync(mechFile).toString('base64'):'';
-const helpers=helperFiles.map(n=>n==='aemeath-mech.js'?read(n).replace('__WT_AEMEATH_MECH_SPRITE__',mechSprite):n==='hotkeys-core.js'?read(n).replace(' const defaults=',' actions.splice(0,3);\n const defaults='):n==='startup-notice.js'?read(n).replace('__WT_DISCLAIMER_TEXT__',JSON.stringify(fs.readFileSync(path.join(root,'DISCLAIMER.txt'),'utf8').replace(/^\uFEFF/,''))):n==='pet-fun.js'?read(n).replace('__WT_OATH_CORE_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/oath-core.png')).toString('base64'))):n==='happy-ending.js'?read(n).replace('__WT_WILTED_ECHO_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/wilted-echo.png')).toString('base64'))):n==='theme.js'?read(n).replace('__WT_AEMEATH_TOOLBAR__',toolbarCss):read(n)).join('\n');common+='\n'+helpers;
+const helpers=helperFiles.map(n=>n==='hotkeys-core.js'?read(n).replace(' const defaults=',' actions.splice(0,3);\n const defaults='):n==='startup-notice.js'?read(n).replace('__WT_DISCLAIMER_TEXT__',JSON.stringify(fs.readFileSync(path.join(root,'DISCLAIMER.txt'),'utf8').replace(/^\uFEFF/,''))):n==='pet-fun.js'?read(n).replace('__WT_OATH_CORE_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/oath-core.png')).toString('base64'))):n==='happy-ending.js'?read(n).replace('__WT_WILTED_ECHO_ICON__',JSON.stringify('data:image/png;base64,'+fs.readFileSync(path.join(root,'patches/assets/wilted-echo.png')).toString('base64'))):read(n)).join('\n');common+='\n'+helpers;
 common+='\n'+read('long-run.js')+'\nexport {__wtLongRun,renewTokenIfNeeded as __wtRenewSession};\n';
 common=editFunction(common,'renewTokenIfNeeded',()=>{
  const runtime=read('session-renewal-runtime.js');
@@ -179,7 +175,7 @@ panel=once(panel,'K=(async()=>{E.value=!0','K=(async()=>{const __wtAccount=R.use
 const bagCommit='const __wtItems=Gm(yt(await Ym()));if(__wtAccount===R.userInfo?.id){C.value=__wtItems;__wtAutoEmote.inventory(C.value,__wtAccount);return C.value}';
 panel=v104?once(panel,'C.value=Gm(yt(await Ym())),I.value=!1',bagCommit.replace('C.value=__wtItems;','C.value=__wtItems;I.value=!1;')):once(panel,'C.value=Gm(yt(await Ym()))',bagCommit);
 panel=editFunction(panel,'Vc',s=>s.replace('{','{__wtHotkeys.nativeUp(e);__wtKey(e,false);'));
-panel=once(panel,'const Ue=W(ai),xn=pe(()=>{','const Ue=W(ai),__wtWardrobe=__wtLocalWardrobe.create({ref:W,account:()=>R.isLoggedIn?R.userInfo?.id:0,user:()=>R.isLoggedIn?R.userInfo:null,getShown:()=>({character:P.value,accessory:Ue.value}),setCharacter:name=>P.value=name,setAccessory:name=>Ue.value=name,cloudEmotes:()=>R.isLoggedIn?rr(R.userInfo):V.value,setEmotes:items=>__wtLocalEmotes.value=items,toast:mt,changed:()=>{it();Fe(Me)}}),__wtFun=__wtPetFun.create({ref:W,role:()=>__wtWardrobe.role({id:R.userInfo?.role_id,name:P.value}),root:()=>ce.value?.querySelector(".cat-stack"),part:()=>Ue.value,account:()=>R.isLoggedIn?R.userInfo?.id:0,normalize:__wtHotkeys.normalizeKey,blocked:()=>Ie()||__wtHelperCapture.size>0,overUi:()=>!!document.elementFromPoint(oe.value,fe.value)?.closest(".wt-oath-core-drop,.wt-pet-fun-settings,.wt-synthesis-reminder"),down:key=>__wtThrust.down(key),up:key=>__wtThrust.up(key),pulse:()=>__wtThrust.pulse(),resetMotion:()=>__wtThrust.reset(),changed:()=>Fe(Me),activity:()=>__wtSyncMouseFeed(),controllerDisplay:()=>__wtKeyboard.bubbleActive,controllerDown:label=>__wtKeyboard.controllerInput(label)}),__wtThrust=__wtAccessoryThrust.create({ref:W,part:()=>Ue.value,blocked:()=>Ie()||__wtHelperCapture.size>0,onThrust:()=>__wtFun.visual(),enabled:()=>__wtFun.active()&&__wtFun.eligible(),visual:()=>__wtFun.config.weapon&&__wtFun.eligible()}),xn=pe(()=>{');
+panel=once(panel,'const Ue=W(ai),xn=pe(()=>{','const Ue=W(ai),__wtWardrobe=__wtLocalWardrobe.create({ref:W,account:()=>R.isLoggedIn?R.userInfo?.id:0,user:()=>R.isLoggedIn?R.userInfo:null,getShown:()=>({character:P.value,accessory:Ue.value}),setCharacter:name=>P.value=name,setAccessory:name=>Ue.value=name,cloudEmotes:()=>R.isLoggedIn?rr(R.userInfo):V.value,setEmotes:items=>__wtLocalEmotes.value=items,toast:mt,changed:()=>{it();Fe(Me)}}),__wtFun=__wtPetFun.create({ref:W,role:()=>__wtWardrobe.role({id:R.userInfo?.role_id,name:P.value}),root:()=>ce.value?.querySelector(".cat-stack"),part:()=>Ue.value,account:()=>R.isLoggedIn?R.userInfo?.id:0,normalize:__wtHotkeys.normalizeKey,blocked:()=>Ie()||__wtHelperCapture.size>0,overUi:()=>!!document.elementFromPoint(oe.value,fe.value)?.closest(".wt-oath-core-drop,.wt-pet-fun-settings,.wt-synthesis-reminder,.wt-denia-cake"),down:key=>__wtThrust.down(key),up:key=>__wtThrust.up(key),pulse:()=>__wtThrust.pulse(),resetMotion:()=>__wtThrust.reset(),changed:()=>Fe(Me),activity:()=>__wtSyncMouseFeed(),controllerDisplay:()=>__wtKeyboard.bubbleActive,controllerDown:label=>__wtKeyboard.controllerInput(label)}),__wtThrust=__wtAccessoryThrust.create({ref:W,part:()=>Ue.value,blocked:()=>Ie()||__wtHelperCapture.size>0,onThrust:()=>__wtFun.visual(),enabled:()=>__wtFun.active()&&__wtFun.eligible(),visual:()=>__wtFun.config.weapon&&__wtFun.eligible()}),xn=pe(()=>{');
 panel=once(panel,'La=pe(()=>R.isLoggedIn?rr(R.userInfo).map(e=>({id:e.id,name:e.name})):V.value)','__wtLocalEmotes=W(null),La=pe(()=>__wtLocalEmotes.value??(R.isLoggedIn?rr(R.userInfo).map(e=>({id:e.id,name:e.name})):V.value))');
 panel=once(panel,'return{transform:`translate(${e}px, ${t}px)`}','return{transform:`translate(${e}px, ${t}px)`,...__wtThrust.style(Ue.value),...__wtFun.style()}');
 panel=once(panel,'Ai(()=>__wtAutoEmote.dispose());','Ai(()=>__wtAutoEmote.dispose());Oe([Ue,P],()=>__wtFun.appearanceChanged());Oe(()=>R.isLoggedIn?R.userInfo?.id:0,()=>__wtFun.accountChanged());Ai(()=>{__wtFun.dispose();__wtThrust.dispose()});');
@@ -203,7 +199,10 @@ if(v104){
   if(call.callee.name==='tt'&&call.arguments[0]?.value==='mouse-move'){assert(!handler);handler=call.arguments[1]}
  }});
  assert(handler?.type==='ArrowFunctionExpression');
- panel=panel.slice(0,handler.start)+'__wtMove.listen('+panel.slice(handler.start,handler.end)+')'+panel.slice(handler.end);
+ const withActivity=handler.body.type==='BlockStatement'
+  ? panel.slice(handler.start,handler.body.start+1)+'__wtFun.pointerMoved();'+panel.slice(handler.body.start+1,handler.end)
+  : panel.slice(handler.start,handler.body.start)+'(__wtFun.pointerMoved(),'+panel.slice(handler.body.start,handler.end)+')';
+ panel=panel.slice(0,handler.start)+'__wtMove.listen('+withActivity+')'+panel.slice(handler.end);
  panel=once(panel,'const t=e.payload.button,o=e.payload.action;','const t=e.payload.button,o=e.payload.action;__wtMove.edge(t);');
  panel=once(panel,'await Xc(t,o,oe.value,fe.value,e.payload.memberId),Hd(),await fp(),','Hd();const p=fp();await Xc(t,o,oe.value,fe.value,e.payload.memberId),await p,');
  panel=editFunction(panel,'Xc',source=>{
@@ -248,8 +247,8 @@ settings=once(settings,'function J(h){if(!h.owned||!h.asset_id)return null;const
 settings+='\nimport{__wtLocalWardrobe}from"./index-CuzHFfJW.js";\n';
 settings=injectComponent(settings,'MainPanelBagTab',`const __wtShare=__wtInventoryShare.create(y,()=>({items:s.bagList,user:${settingsStore}.userInfo,host:s.assetsCdnHost,loggedIn:${settingsStore}.isLoggedIn,loading:s.bagListLoading}),Oe);`,'__wtInventoryShare.render(e,__wtShare)');
 
-settings=injectComponent(settings,'SettingsModule','const __wtPetSettings=__wtPetFun.settings(y,Oe);','__wtPetFun.renderSettings(e,__wtPetSettings)');
-settings+='\nimport{__wtPetFun}from"./index-CuzHFfJW.js";\n';
+settings=injectComponent(settings,'SettingsModule','let __wtPetSettings;const __wtPhrolova=__wtTheme.bindPhrolova(y,ft),__wtPhrolovaPanel=()=>__wtPhrolova.value?__wtPetFun.renderSettings(e,__wtPetSettings??=__wtPetFun.settings(y,Oe)):null;',v104?null:'__wtTheme.render(e,__wtPhrolovaPanel)');
+settings+='\nimport{__wtPetFun,__wtTheme}from"./index-CuzHFfJW.js";\n';
 settings=injectComponent(settings,'SettingsModule','const __wtEmoteMode=__wtAutoEmotes.settings(y,Oe);','__wtAutoEmotes.renderSettings(e,__wtEmoteMode)');
 panel=once(panel,'async function __wtInstallHelperActions(){','async function __wtInstallHelperActions(){__wtSynth.start();__wtHelperStops.push(await tt("wt-synthesis-reminder-updated",()=>__wtSynth.sync()));__wtWardrobe.start();__wtAutoEmote.start();__wtFun.start();__wtHelperStops.push(await tt("wt-auto-emotes-updated",()=>__wtAutoEmote.sync()));__wtHelperStops.push(await tt("wt-pet-fun-updated",()=>__wtFun.sync()));__wtHelperStops.push(await tt("wt-wardrobe-mode-updated",()=>__wtWardrobe.sync()));__wtHelperStops.push(await tt("wt-wardrobe-reset",()=>__wtWardrobe.clear()));');
 settings+='\nimport{__wtAutoEmotes}from"./index-CuzHFfJW.js";\n';
@@ -315,7 +314,7 @@ function groupSettings(source){
   available.splice(available.indexOf(matches[0]),1);
   return matches[0];
  };
- const group=(id,items)=>'__wtPanelLayout.group(e,"'+id+'",['+items.join(',')+'])';
+ const group=(id,items)=>'__wtPanelLayout.group(e,"'+id+'",['+items.join(',')+']'+(id==='interaction'?',__wtPhrolovaPanel':'')+')';
  const sections=[
   group('basic',[take('__wtPanelLayout.basic'),take('__wtSynthesis.renderBasicSettings')]),
   group('account',[take('"setting_nickname"'),take('"setting_total_click"'),take('"setting_redeem_code"'),take('"setting_view_log"')])
@@ -325,7 +324,7 @@ function groupSettings(source){
   ...['pet_scale','window_opacity','toggle_pet',...(v105?['game_mode_settings']:['game_mode','auto_game_mode_fullscreen']),'window_penetrate','hover_auto_hide','always_show_chest','screen'].map(id=>take('"setting_'+id+'"')),
   ...(!lite?[take('wt-monitor-settings')]:[])
  ]));
- if(!lite)sections.push(group('interaction',[take('__wtPetFun.renderSettings'),take('__wtAutoEmotes.renderSettings')]));
+ if(!lite)sections.push(group('interaction',[take('__wtAutoEmotes.renderSettings')]));
  sections.push(group('maintenance',[
   ...['auto_launch','show_taskbar_icon','language','version'].map(id=>take('"setting_'+id+'"')),
   ...(v104&&!lite?[take('"wt-us"')]:[])

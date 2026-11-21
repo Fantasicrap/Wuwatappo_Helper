@@ -13,14 +13,12 @@ const __wtPetDialogue=(()=>{
     source==="mouse"&&Object.hasOwn(mouse,name)||source==="controller"&&/^(?:[0-9]|1[0-9]|2[0-7])$/.test(name));
  }
  function clean(value){return typeof value==="string"?value.trim().slice(0,maxLength):""}
+ function readOne(item){
+  const lines=Object.fromEntries(Object.entries(item?.lines??{}).filter(([key,line])=>valid(key)&&clean(line)).map(([key,line])=>[key,clean(line)]));
+  return {mode:item?.mode==="mapped"?"mapped":"random",lines};
+ }
  function read(value){
-  const config={};
-  for(const branch of ["be","he"]){
-   const item=value?.[branch];
-   const lines=Object.fromEntries(Object.entries(item?.lines??{}).filter(([key,line])=>valid(key)&&clean(line)).map(([key,line])=>[key,clean(line)]));
-   config[branch]={mode:item?.mode==="mapped"?"mapped":"random",lines};
-  }
-  return config;
+  return {be:readOne(value?.be),he:readOne(value?.he)};
  }
  // undefined keeps the original dialogue; null suppresses this input's bubble.
  function line(config,branch,source,key){
@@ -29,13 +27,15 @@ const __wtPetDialogue=(()=>{
   const input=source==="controller"?key.split(":").at(-1):key;
   return item.lines[source+":"+input]??null;
  }
- function render(h,{settings,draft,update,disabled,branch}){
-  const config=settings[branch],edit=draft.value;
-  const grouped=[
+ function choices(){
+  return [
    ["键盘",keyboard.map(key=>["keyboard:"+key,key])],
    ["鼠标",Object.entries(mouse).map(([key,label])=>["mouse:"+key,label])],
    ["手柄",[...__wtControllerCore.names,"LT / L2","RT / R2"].map((label,i)=>["controller:"+i,"B"+i+" · "+label])]
   ];
+ }
+ function render(h,{settings,draft,update,disabled,branch}){
+  const config=settings[branch],edit=draft.value,grouped=choices();
   const names=new Map(grouped.flatMap(([group,items])=>items.map(([key,label])=>[key,group+" · "+label])));
   const field={minHeight:"30px",boxSizing:"border-box",padding:"3px 7px",border:"1px solid var(--wt-ui-border,#dfbd9e)",borderRadius:"8px",background:"var(--wt-ui-field,#fffaf2)",color:"var(--wt-ui-text,#74523d)",font:"inherit"};
   const select=(label,props,options)=>h("select",{"aria-label":label,style:{...field,minWidth:"0",maxWidth:"100%"},...props},options);
@@ -72,5 +72,5 @@ const __wtPetDialogue=(()=>{
    ]:[])
   ]);
  }
- return{read,line,render};
+ return{read,readOne,line,choices,render};
 })();

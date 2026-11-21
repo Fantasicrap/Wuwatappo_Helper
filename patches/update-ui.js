@@ -26,7 +26,7 @@ function mountDownloadSource(root,change){
  const title=doc.createElement('div');title.className='setting-title';title.textContent='更新下载源';
  hint.className='setting-sub';hint.textContent='仅用于下载更新文件';hint.id='wt-us-hint';hint.setAttribute('aria-live','polite');
  select.setAttribute('aria-label','更新下载源');select.setAttribute('aria-describedby',hint.id);
- Object.assign(select.style,{font:'inherit',color:'#784b35',background:'#fff7e8',border:'1px solid #d9b58c',borderRadius:'14px',padding:'5px 8px',maxWidth:'100%'});
+ Object.assign(select.style,{font:'inherit',color:'var(--wt-ui-text,#784b35)',background:'var(--wt-ui-field,#fff7e8)',border:'1px solid var(--wt-ui-border,#d9b58c)',borderRadius:'9px',padding:'5px 8px',maxWidth:'100%'});
  for(const [value,text] of [['github','GitHub（默认）'],['gh-proxy','GH-Proxy（尝试）']]){
   const option=doc.createElement('option');option.value=value;option.textContent=text;select.append(option);
  }

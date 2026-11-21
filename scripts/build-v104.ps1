@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$SourceExe,[Parameter(Mandatory=$true)][string]$IsccPath,[string]$OutputDirectory)
+param([Parameter(Mandatory=$true)][string]$SourceExe,[Parameter(Mandatory=$true)][string]$IsccPath,[string]$OutputDirectory,[string]$SongsDirectory)
 $ErrorActionPreference='Stop'
 $repoRoot=Split-Path -Parent $PSScriptRoot
 $version=(Get-Content -LiteralPath (Join-Path $repoRoot 'package.json') -Raw|ConvertFrom-Json).releaseVersion
@@ -12,6 +12,7 @@ $payload=Join-Path $migration 'payload.exe'
 if($LASTEXITCODE -ne 0){throw 'Extraction failed'}
 # Optional theme pictures. The script reports what it skipped and never blocks the build.
 & node (Join-Path $PSScriptRoot 'build-theme-assets.cjs')
+& (Join-Path $PSScriptRoot 'build-theme-packs.ps1') -OutputDirectory $out -SongsDirectory $SongsDirectory
 & node (Join-Path $repoRoot 'patches/v103/build-preview.cjs') $migrationFlag
 if($LASTEXITCODE -ne 0){throw "$upstream resource migration failed"}
 & node (Join-Path $PSScriptRoot 'test-v103-suite.cjs')
