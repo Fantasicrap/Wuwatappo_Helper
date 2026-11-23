@@ -18,7 +18,10 @@ assert.match(globalCommon,/const APP_REGION="GLOBAL"/);
 assert.match(globalCommon,/https:\/\/api-wutheringwaves-wuwatappo\.kurogames-global\.com/);
 assert.doesNotMatch(globalCommon,/https:\/\/api-mc-wuwatappo\.kurogames-global\.com/);
 assert.match(fs.readFileSync(path.join(globalDir,'useLogin-Czal3z48.js'),'utf8'),/__wtRegionUi\.signIn\(\)/);
-assert.doesNotMatch(fs.readFileSync(path.join(globalDir,'login-D7Mrat3T.js'),'utf8'),/login-dialog-button--uid/);
+const globalLogin = fs.readFileSync(path.join(globalDir,'login-D7Mrat3T.js'),'utf8');
+assert.doesNotMatch(globalLogin,/login-dialog-button--uid/);
+assert.match(globalLogin,/__wtRegionUi\.installLoginLayout\(\)/);
+assert.match(globalLogin,/class:"login-select-popup wt-global-login"/);
 
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
@@ -90,9 +93,47 @@ assert.doesNotMatch(fs.readFileSync(path.join(globalDir,'login-D7Mrat3T.js'),'ut
   await select.selectOption('global');
   await page.waitForFunction(()=>quitCalls===1);
   assert.deepEqual(requests,[{path:'/region/switch/global',method:'POST',header:'1'}]);
+  await page.addStyleTag({content:fs.readFileSync(fixturePath('dist/upstream-1.0.3/login-ByLOs4dz.css'),'utf8')});
+  await page.evaluate(()=>{
+   document.body.insertAdjacentHTML('beforeend',`
+    <div class="login-select-popup wt-global-login" data-v-77d75044>
+     <div class="login-dialog-card" data-v-77d75044>
+      <div class="login-dialog-background" data-v-77d75044></div>
+      <img class="login-dialog-logo" alt="KURO GAMES" data-v-77d75044>
+      <button class="login-dialog-close" aria-label="Close" data-v-77d75044></button>
+      <div class="login-select-content content-visible" data-v-77d75044>
+       <p class="login-select-tip" data-v-77d75044>活动需要登录参与，请选择登录方式</p>
+       <div class="login-select-actions" data-v-77d75044>
+        <div class="login-dialog-button login-dialog-button--passport" role="button" data-v-77d75044>通行证登录</div>
+        <p class="login-passport-status" data-v-77d75044>通行证登录暂不可用，请稍后再试。</p>
+       </div>
+      </div>
+     </div>
+    </div>`);
+  });
+  const signIn=page.getByRole('button',{name:'Sign in with KURO account'});
+  await signIn.waitFor();
+  assert(await signIn.evaluate(button=>button.scrollWidth>button.clientWidth),'Original English button should reproduce the overflow');
+  await page.evaluate(()=>__wtRegionUi.installLoginLayout());
+  for(const [width,height] of [[540,380],[390,350],[320,280]]){
+   await page.setViewportSize({width,height});
+   await page.locator('.login-passport-status').scrollIntoViewIfNeeded();
+   assert(await page.locator('.wt-global-login').evaluate(overlay=>{
+    const card=overlay.querySelector('.login-dialog-card').getBoundingClientRect();
+    const logo=overlay.querySelector('.login-dialog-logo').getBoundingClientRect();
+    const close=overlay.querySelector('.login-dialog-close').getBoundingClientRect();
+    const [tip,button,status]=overlay.querySelectorAll('.login-select-tip,.login-dialog-button--passport,.login-passport-status');
+    const [tipRect,buttonRect,statusRect]=[tip,button,status].map(node=>node.getBoundingClientRect());
+    return overlay.scrollWidth<=overlay.clientWidth+1 &&
+     [tip,button,status].every(node=>node.scrollWidth<=node.clientWidth+1&&node.scrollHeight<=node.clientHeight+1) &&
+     card.left>=0&&card.right<=innerWidth&&logo.right<=close.left&&
+     tipRect.bottom<=buttonRect.top&&buttonRect.bottom<=statusRect.top&&statusRect.bottom<=card.bottom;
+   }),'English login text overflowed at '+width+' × '+height);
+  }
+  await page.locator('.wt-global-login').evaluate(overlay=>overlay.remove());
   await page.evaluate(()=>setLanguage('zh'));
   await page.getByRole('heading',{name:'账号与兑换'}).waitFor();
   await page.getByText('已进入房间 123456',{exact:true}).waitFor();
-  console.log('PASS: language switching, localized attributes and dynamic labels, and confirmed Global region routing');
+  console.log('PASS: language switching, Global region routing, and English login dialog layout');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});

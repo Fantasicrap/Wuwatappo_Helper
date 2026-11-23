@@ -96,11 +96,18 @@ public class Smoke {
   using(var res=Request(port,"/denia-blocks/open","POST",origin,false,0,true))Check(res.StatusCode==HttpStatusCode.OK&&Body(res).Contains("false"),"Game opened without an installed theme or a configured host");
   if(asm.GetManifestResourceInfo("global/WuwaTappo.exe")!=null){
    const string state="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-   var parser=asm.GetType("GlobalSignInWindow").GetMethod("ParseCallback",flags);
+   var loginWindow=asm.GetType("GlobalSignInWindow");
+   var parser=loginWindow.GetMethod("ParseCallback",flags);
    var uri=new Uri("wuwa-buddy://auth/callback?state="+state+"&cuid=test&access_token=mock-only");
    Check(parser.Invoke(null,new object[]{uri,state})!=null,"Valid mock callback was rejected");
    Check(parser.Invoke(null,new object[]{uri,state.Replace('a','b')})==null,"Wrong sign-in state was accepted");
    Check(parser.Invoke(null,new object[]{new Uri("https://auth/callback?state="+state),state})==null,"Unexpected callback scheme accepted");
+   Func<string,string,bool> loginUri=(method,address)=>(bool)loginWindow.GetMethod(method,flags).Invoke(null,new object[]{new Uri(address)});
+   Check(loginUri("IsPopupSource","https://sdk-prod-cdn-aws.kurogame-service.com/pro/h5sdk/login/"),"Official SDK frame could not request a popup");
+   Check(!loginUri("IsPopupSource","https://sdk-prod-cdn-aws.kurogame-service.com.example.net/"),"An unrelated site was trusted as the SDK frame");
+   Check(loginUri("IsPopupDestination","about:blank")&&loginUri("IsPopupDestination","https://appleid.apple.com/"),"An expected login popup destination was blocked");
+   Check(!loginUri("IsPopupDestination","https://accounts.google.com/")&&loginUri("IsGoogleSignIn","https://accounts.google.com/"),"Google sign-in was allowed in the embedded WebView");
+   Check(!loginUri("IsPopupDestination","https://appleid.apple.com:8443/")&&!loginUri("IsPopupDestination","https://appleid.apple.com@example.net/"),"An unintended popup destination was allowed");
    using(var res=Request(port,"/region/switch/global","POST",null,false,0,true))Check((int)res.StatusCode==403,"Origin-less region action accepted");
    using(var res=Request(port,"/region/auth/result/"+state,"GET",origin))Check((int)res.StatusCode==403,"Sign-in result did not require the action header");
    helper.GetField("hasGlobal",flags).SetValue(null,true);

@@ -6,7 +6,13 @@
 
 WuwaTappo 1.0.5 的非官方 Windows 辅助修改版本。原程序、角色、配件、表情及界面素材的权利归各自权利人所有。
 
-当前正式版为 **Helper v1.0.5.3**，适配官方 WuwaTappo v1.0.5。
+当前正式版为 **Helper v1.0.5.4**，适配官方 WuwaTappo v1.0.5。
+
+## v1.0.5.4 更新说明
+
+- 修复国际服账号登录窗口拦截受支持的第三方登录弹窗的问题，加入页面重载和登录帮助。
+- 英文登录按钮、提示和错误信息支持换行。独立登录窗口会按当前显示器的可用高度调整。
+- 本次为可选更新，可在完整版的「程序与更新」手动检查。
 
 ## v1.0.5.3 更新说明
 
@@ -15,7 +21,6 @@ WuwaTappo 1.0.5 的非官方 Windows 辅助修改版本。原程序、角色、�
 - **中英文切换**。首次启动可选简体中文或 English，弹窗会立即切换到所选语言。确认后保存，之后在「设置 → 程序与更新 → 显示语言」可随时修改。原版界面、Helper 功能与说明、独立小游戏、库存分享图和录制 TXT 都接入语言选择。登录页的第三方内容由库洛提供。
 - **英文气泡**。达妮娅和 i弗TV 的预设台词随语言切换，自定义台词保留原文。英文长句会换行并适当延长显示，鼠标按键使用简写。
 - **开机启动**。已开启开机启动的用户手动运行新版完整版后，Helper 会把自己的旧计划任务迁移到新版 EXE。若 Windows 提示授权，确认后才会写入。未开启开机启动的用户继续保持关闭。
-- **更新方式**。v1.0.5.3 为可选更新，可在完整版的「程序与更新」手动检查，也可在下方下载。
 
 ## 已实现功能
 
@@ -35,9 +40,9 @@ WuwaTappo 1.0.5 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 ## 下载
 
-**GitHub 正式下载** · v1.0.5.3 [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.3/Wuwatappo_Helper-1.0.5.3.exe) · [Lite 单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.3/Wuwatappo_Helper-1.0.5.3-Lite.exe) · [安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.3/Wuwatappo_Helper-1.0.5.3-Setup.exe) · [免安装 ZIP](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.3/Wuwatappo_Helper-1.0.5.3-Portable.zip) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.3/SHA256SUMS.txt)
+**GitHub 正式下载** · v1.0.5.4 [完整版单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.4/Wuwatappo_Helper-1.0.5.4.exe) · [Lite 单文件 EXE](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.4/Wuwatappo_Helper-1.0.5.4-Lite.exe) · [安装包](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.4/Wuwatappo_Helper-1.0.5.4-Setup.exe) · [免安装 ZIP](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.4/Wuwatappo_Helper-1.0.5.4-Portable.zip) · [SHA-256 校验](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.4/SHA256SUMS.txt)
 
-**主题包** · [爱弥斯](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.3/aemeath.wttheme) · [达妮娅](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.3/denia.wttheme) · [弗洛洛](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.3/phrolova.wttheme)
+**主题包** · [爱弥斯](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.4/aemeath.wttheme) · [达妮娅](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.4/denia.wttheme) · [弗洛洛](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.4/phrolova.wttheme)
 
 > 启动前请从托盘完全退出旧版。主题包和播放器需要完整版。
 
@@ -45,7 +50,7 @@ WuwaTappo 1.0.5 的非官方 Windows 辅助修改版本。原程序、角色、�
 
 公开主题包默认使用各主题的背景配色。导入后可在「面板背景 → 选择图片」使用自己的图片。
 
-**中国大陆备用下载（第三方 GH-Proxy）** · v1.0.5.3 [完整版](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.3/Wuwatappo_Helper-1.0.5.3.exe) · [Lite](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.3/Wuwatappo_Helper-1.0.5.3-Lite.exe)
+**中国大陆备用下载（第三方 GH-Proxy）** · v1.0.5.4 [完整版](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.4/Wuwatappo_Helper-1.0.5.4.exe) · [Lite](https://gh-proxy.com/https://github.com/Fantasicrap/Wuwatappo_Helper/releases/download/v1.0.5.4/Wuwatappo_Helper-1.0.5.4-Lite.exe)
 
 [上一版 v1.0.5.2](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/v1.0.5.2) · [旧版完整包 v1.0.4.5](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/v1.0.4.5) · [更新记录](CHANGELOG.md)
 
@@ -130,7 +135,7 @@ Ctrl+Alt+1～6 发送表情菜单中对应槽位当前装备的表情，无需�
 ## 安装与使用
 
 1. 退出正在运行的 WuwaTappo 或旧版修改程序。
-2. 下载并运行 `Wuwatappo_Helper-1.0.5.3.exe`（完整版）或 `Wuwatappo_Helper-1.0.5.3-Lite.exe`（轻量版）。也可选用完整版安装包或免安装 ZIP。
+2. 下载并运行 `Wuwatappo_Helper-1.0.5.4.exe`（完整版）或 `Wuwatappo_Helper-1.0.5.4-Lite.exe`（轻量版）。也可选用完整版安装包或免安装 ZIP。
 3. 登录并打开库存，等库存加载结束后点击“分享库存长图”。
 4. 生成完成后点击“保存 PNG”或“复制图片”。
 
@@ -171,9 +176,9 @@ pnpm install --frozen-lockfile
 pwsh -File scripts/build.ps1 -SourceExe 'F:\WuwaTappo\WuwaTappo.exe' -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
 ```
 
-脚本会核验原件摘要，提取构建所需资源并运行检查，默认输出完整版和 Lite EXE、安装包、免安装 ZIP、三个主题包及 SHA-256 校验文件到 `dist/local-1.0.5.3/`。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
+脚本会核验原件摘要，提取构建所需资源并运行检查，默认输出完整版和 Lite EXE、安装包、免安装 ZIP、三个主题包及 SHA-256 校验文件到 `dist/local-1.0.5.4/`。迁移专项回归使用 `node scripts/test-v103-suite.cjs --ui`，需先构建。
 
-安装 Edge 后，首次视觉回归先运行 `node scripts/prepare-ui-fixtures.cjs` 获取固定的公开测试素材，再运行 `pnpm test:migration`。逻辑测试使用仓库内的最小公开目录样本，视觉测试使用六个系列人物和三件配件。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.5.3`。
+安装 Edge 后，首次视觉回归先运行 `node scripts/prepare-ui-fixtures.cjs` 获取固定的公开测试素材，再运行 `pnpm test:migration`。逻辑测试使用仓库内的最小公开目录样本，视觉测试使用六个系列人物和三件配件。测试使用独立临时配置，不读取用户真实操作。安装包文件测试入口为 `pwsh -File scripts/test-package.ps1 -DistributionDirectory ./dist/local-1.0.5.4`。
 
 ### 发布流程
 

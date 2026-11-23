@@ -444,6 +444,9 @@ if(globalRegion){
  const domestic=login.indexOf('const D=X(()=>Z.value.status,(i,h)=>'),local=login.indexOf('function w(){m()}',domestic);
  assert(domestic>0&&local>domestic,'Domestic SDK mount anchor changed');
  login=login.slice(0,domestic)+'const D=()=>{};'+login.slice(local);
+ login=once(login,'__name:"LoginSelectDialog",setup(P){','__name:"LoginSelectDialog",setup(P){__wtRegionUi.installLoginLayout();');
+ login=once(login,'class:"login-select-popup"','class:"login-select-popup wt-global-login"');
+ login+='\nimport{__wtRegionUi}from"./index-BelNnexT.js";';
  resources.push({name:'/assets/'+methodFile,text:method},{name:'/assets/'+loginFile,text:login});
 }
 if(v104)for(const resource of resources){

@@ -4,6 +4,12 @@
 
 An unofficial Windows companion patch for Wuwa Tappo 1.0.5. Free and open source. For entertainment only. The creators accept no liability for its use.
 
+## What's new in v1.0.5.4
+
+- Global sign-in can open supported provider pop-ups. The login window now includes help and a reload option.
+- English login labels and messages wrap on narrow windows. The separate login window fits the available screen height.
+- This update is optional. Check for it in the full edition under **Application and updates**, or download it from GitHub.
+
 ## What's new in v1.0.5.3
 
 - **China and Global accounts.** In the full edition, open **Settings → Account and codes → Account region**. Select **China (CN)** or **Global** and confirm the restart. Each region keeps its own local sign-in session.
@@ -11,11 +17,10 @@ An unofficial Windows companion patch for Wuwa Tappo 1.0.5. Free and open source
 - **Language.** On first launch, choose **Simplified Chinese** or **English**. The dialog switches languages immediately, and the Helper remembers the choice when you confirm. Change it anytime under **Settings → Application and updates → Language**. KURO provides the account pages and online catalog.
 - **Speech bubbles.** Built-in Denia and Phrolova TV dialogue switches with the interface language. Longer English lines wrap and stay visible longer. Mouse buttons use compact labels. Custom dialogue is shown as entered.
 - **Start with Windows.** When you run a newer full Helper, it updates its existing sign-in task to launch the new EXE. Approve the Windows permission prompt if shown. This keeps the existing startup preference.
-- **Updates.** This is an optional update. Check for it in the full edition under **Application and updates**, or download it from GitHub.
 
 ## Download and installation
 
-The v1.0.5.3 release includes the full EXE, Lite EXE, setup, portable ZIP, SHA-256 checksums and three optional theme packs. [Download v1.0.5.3 on GitHub](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/v1.0.5.3)
+The v1.0.5.4 release includes the full EXE, Lite EXE, setup, portable ZIP, SHA-256 checksums and three optional theme packs. [Download v1.0.5.4 on GitHub](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/v1.0.5.4)
 
 Exit Wuwa Tappo from the Windows system tray before running the Helper. The single-file EXE does not require installation. Keep Microsoft Edge WebView2 Runtime installed.
 
