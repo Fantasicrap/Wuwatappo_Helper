@@ -6,7 +6,7 @@ An unofficial Windows companion patch for Wuwa Tappo 1.0.5. Free and open source
 
 ## What's new in v1.0.5.4
 
-- Global sign-in can open supported provider pop-ups. The login window now includes help and a reload option.
+- Global sign-in can open provider pop-ups, including Google. The login window now includes help and a reload option.
 - English login labels and messages wrap on narrow windows. The separate login window fits the available screen height.
 - This update is optional. Check for it in the full edition under **Application and updates**, or download it from GitHub.
 

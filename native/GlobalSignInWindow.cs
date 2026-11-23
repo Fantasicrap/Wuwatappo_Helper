@@ -89,7 +89,7 @@ static class GlobalSignInWindow
         return SafeHttps(uri) && (uri.Host == LoginHost || uri.Host == SdkHost);
     }
 
-    internal static bool IsGoogleSignIn(Uri uri)
+    static bool IsGoogleSignIn(Uri uri)
     {
         return SafeHttps(uri) && uri.Host == "accounts.google.com";
     }
@@ -99,7 +99,7 @@ static class GlobalSignInWindow
         if (uri == null || !uri.IsAbsoluteUri) return false;
         if (uri.AbsoluteUri == "about:blank") return true;
         if (!SafeHttps(uri)) return false;
-        if (IsOfficialHost(uri.Host) || uri.Host == SdkHost) return true;
+        if (IsOfficialHost(uri.Host) || uri.Host == SdkHost || IsGoogleSignIn(uri)) return true;
         switch (uri.Host)
         {
             case "appleid.apple.com":
@@ -115,6 +115,12 @@ static class GlobalSignInWindow
             default:
                 return false;
         }
+    }
+
+    internal static bool IsPopupRequest(Uri source, Uri target)
+    {
+        return IsPopupDestination(target) && (IsPopupSource(source) ||
+            (IsGoogleSignIn(source) && (IsGoogleSignIn(target) || target.AbsoluteUri == "about:blank")));
     }
 
     static void Configure(CoreWebView2 core)
@@ -136,22 +142,18 @@ static class GlobalSignInWindow
     }
 
     internal static async void OpenPopup(Form owner, CoreWebView2Environment environment,
-        CoreWebView2NewWindowRequestedEventArgs args, Action showGoogleNotice)
+        CoreWebView2NewWindowRequestedEventArgs args)
     {
         args.Handled = true;
         var sourceFrame = args.OriginalSourceFrameInfo;
         Uri source, target;
         if (sourceFrame == null || !Uri.TryCreate(sourceFrame.Source, UriKind.Absolute, out source) ||
             !Uri.TryCreate(args.Uri, UriKind.Absolute, out target)) return;
-        if (IsGoogleSignIn(target) && (IsPopupSource(source) || IsGoogleSignIn(source)))
-        {
-            showGoogleNotice();
-            return;
-        }
-        if (!IsPopupSource(source) || !IsPopupDestination(target) || owner.OwnedForms.Length != 0) return;
+        if (!IsPopupRequest(source, target) || owner.OwnedForms.Length != 0) return;
 
         var deferral = args.GetDeferral();
-        var popup = new Form { Text = owner.Text, ClientSize = new Size(525, 650),
+        bool google = IsGoogleSignIn(source) || IsGoogleSignIn(target);
+        var popup = new Form { Text = owner.Text, ClientSize = google ? new Size(690, 700) : new Size(525, 650),
             AutoScaleMode = AutoScaleMode.Dpi, StartPosition = FormStartPosition.Manual,
             Location = owner.Location, ShowInTaskbar = false, Icon = owner.Icon };
         try
@@ -171,15 +173,7 @@ static class GlobalSignInWindow
                 Uri address;
                 bool parsed = Uri.TryCreate(navigation.Uri, UriKind.Absolute, out address);
                 navigation.Cancel = !parsed || !IsPopupDestination(address);
-                if (parsed && IsGoogleSignIn(address))
-                {
-                    owner.BeginInvoke((Action)(() =>
-                    {
-                        if (!popup.IsDisposed) popup.Close();
-                        showGoogleNotice();
-                    }));
-                }
-                else if (!navigation.Cancel && SafeHttps(address)) popup.Text = address.Host;
+                if (!navigation.Cancel && SafeHttps(address)) popup.Text = address.Host;
             };
             core.NewWindowRequested += (sender, request) => request.Handled = true;
             core.LaunchingExternalUriScheme += (sender, request) => request.Cancel = true;
@@ -239,10 +233,8 @@ static class GlobalSignInWindow
             form.Controls.Add(footer);
             form.Load += (sender, args) => FitWindow(form, workArea, workArea);
             string googleNotice = english
-                ? "For Google sign-in, use the official Global Wuwa Tappo client with your default browser. You can also sign in to Helper with an email linked to your KURO account."
-                : "使用 Google 登录时，请从官方国际服 Wuwa Tappo 客户端打开默认浏览器。也可以使用已绑定到库洛账号的邮箱登录 Helper。";
-            Action showGoogleNotice = () => MessageBox.Show(form, googleNotice, form.Text,
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ? "If Google rejects sign-in in this window, use an email linked to your KURO account in Helper, or sign in through the official Global client in your default browser."
+                : "如果 Google 拒绝在当前窗口登录，可以用已绑定库洛账号的邮箱登录 Helper，也可以在官方国际服客户端里通过默认浏览器登录。";
             help.Click += (sender, args) => MessageBox.Show(form,
                 (english
                     ? "If KURO shows 20003, make sure your network can reach KURO's login service, then click Sign in again.\n\n"
@@ -284,7 +276,6 @@ static class GlobalSignInWindow
                         if (Uri.TryCreate(args.Uri, UriKind.Absolute, out target) &&
                             SafeHttps(target) && IsOfficialHost(target.Host)) return;
                         args.Cancel = true;
-                        if (IsGoogleSignIn(target)) { form.BeginInvoke(showGoogleNotice); return; }
                         accept(args.Uri);
                     };
                     core.NewWindowRequested += (source, args) =>
@@ -297,7 +288,7 @@ static class GlobalSignInWindow
                             if (sourceFrame != null && Uri.TryCreate(sourceFrame.Source, UriKind.Absolute, out origin) &&
                                 SafeHttps(origin) && origin.Host == LoginHost) accept(args.Uri);
                         }
-                        else OpenPopup(form, environment, args, () => form.BeginInvoke(showGoogleNotice));
+                        else OpenPopup(form, environment, args);
                     };
                     core.NavigationCompleted += (source, args) =>
                         retry.Visible = !args.IsSuccess && args.WebErrorStatus != CoreWebView2WebErrorStatus.OperationCanceled;

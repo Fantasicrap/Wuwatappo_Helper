@@ -106,7 +106,12 @@ public class Smoke {
    Check(loginUri("IsPopupSource","https://sdk-prod-cdn-aws.kurogame-service.com/pro/h5sdk/login/"),"Official SDK frame could not request a popup");
    Check(!loginUri("IsPopupSource","https://sdk-prod-cdn-aws.kurogame-service.com.example.net/"),"An unrelated site was trusted as the SDK frame");
    Check(loginUri("IsPopupDestination","about:blank")&&loginUri("IsPopupDestination","https://appleid.apple.com/"),"An expected login popup destination was blocked");
-   Check(!loginUri("IsPopupDestination","https://accounts.google.com/")&&loginUri("IsGoogleSignIn","https://accounts.google.com/"),"Google sign-in was allowed in the embedded WebView");
+   Check(loginUri("IsPopupDestination","https://accounts.google.com/")&&!loginUri("IsPopupDestination","https://accounts.google.com.example.net/"),"The Google sign-in host was not matched exactly");
+   Func<string,string,bool> opensLoginPopup=(from,to)=>(bool)loginWindow.GetMethod("IsPopupRequest",flags).Invoke(null,new object[]{new Uri(from),new Uri(to)});
+   const string google="https://accounts.google.com/";
+   const string sdk="https://sdk-prod-cdn-aws.kurogame-service.com/pro/h5sdk/login/";
+   Check(opensLoginPopup(sdk,google)&&opensLoginPopup(google,google)&&opensLoginPopup(google,"about:blank"),"An expected Google sign-in popup was blocked");
+   Check(!opensLoginPopup("https://example.net/",google)&&!opensLoginPopup(google,"https://appleid.apple.com/"),"An unrelated frame was allowed to open a sign-in popup");
    Check(!loginUri("IsPopupDestination","https://appleid.apple.com:8443/")&&!loginUri("IsPopupDestination","https://appleid.apple.com@example.net/"),"An unintended popup destination was allowed");
    using(var res=Request(port,"/region/switch/global","POST",null,false,0,true))Check((int)res.StatusCode==403,"Origin-less region action accepted");
    using(var res=Request(port,"/region/auth/result/"+state,"GET",origin))Check((int)res.StatusCode==403,"Sign-in result did not require the action header");
