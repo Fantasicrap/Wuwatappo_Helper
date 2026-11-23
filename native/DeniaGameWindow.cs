@@ -13,7 +13,7 @@ static class DeniaGameWindow
     static Form window;
     static bool starting;
 
-    internal static bool Show(string address, string profile, Action prepare)
+    internal static bool Show(string address, string profile, Action prepare, bool english)
     {
         lock (Gate)
         {
@@ -29,7 +29,7 @@ static class DeniaGameWindow
                 catch (InvalidOperationException) { window = null; }
             }
             starting = true;
-            var thread = new Thread(() => Run(address, profile, prepare));
+            var thread = new Thread(() => Run(address, profile, prepare, english));
             thread.IsBackground = true;
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
@@ -46,17 +46,17 @@ static class DeniaGameWindow
     }
 
     // Keep preparation outside the method which JIT-compiles WebView2 references.
-    static void Run(string address, string profile, Action prepare)
+    static void Run(string address, string profile, Action prepare, bool english)
     {
         try
         {
             prepare();
-            RunWebView(address, profile);
+            RunWebView(address, profile, english);
         }
         catch (Exception error)
         {
-            MessageBox.Show("无法打开小游戏窗口。请检查 Microsoft Edge WebView2 Runtime。\n" + error.Message,
-                Title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show((english?"Could not open the game. Check the Microsoft Edge WebView2 Runtime.\n":"无法打开小游戏窗口。请检查 Microsoft Edge WebView2 Runtime。\n") + error.Message,
+                english?"Lahai-Roi Blocks":Title, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         finally
         {
@@ -65,12 +65,12 @@ static class DeniaGameWindow
     }
 
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-    static void RunWebView(string address, string profile)
+    static void RunWebView(string address, string profile, bool english)
     {
         var bounds = Screen.FromPoint(Cursor.Position).WorkingArea;
         using (var form = new Form
         {
-            Text = Title, AutoScaleMode = AutoScaleMode.Dpi, MinimumSize = new Size(370, 465),
+            Text = english?"Lahai-Roi Blocks":Title, AutoScaleMode = AutoScaleMode.Dpi, MinimumSize = new Size(370, 465),
             ClientSize = new Size(Math.Min(585, bounds.Width - 36), Math.Min(750, bounds.Height - 70)),
             StartPosition = FormStartPosition.Manual, BackColor = Color.FromArgb(242, 235, 247)
         })
@@ -111,7 +111,7 @@ static class DeniaGameWindow
                 catch (Exception error)
                 {
                     if (form.IsDisposed) return;
-                    MessageBox.Show(form, "无法加载本地小游戏。\n" + error.Message, Title,
+                    MessageBox.Show(form, (english?"Could not load the local game.\n":"无法加载本地小游戏。\n") + error.Message, form.Text,
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     form.Close();
                 }

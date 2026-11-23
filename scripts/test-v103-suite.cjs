@@ -1,5 +1,5 @@
 const fs=require('fs'),cp=require('child_process'),path=require('path');
-const {target,v104}=require('./upstream-fixtures.cjs');
+const {target,v104,v105}=require('./upstream-fixtures.cjs');
 const root=path.resolve(__dirname,'..'),tests=[
  'scripts/test-v103-preview.cjs','scripts/test-v103-bindings.cjs','scripts/test-long-run.cjs','scripts/test-session-lifetime.cjs','scripts/test-network-recovery.cjs','scripts/test-synthesis-reminder.cjs',
  'scripts/test-v103-counter.cjs','scripts/test-v103-room-history.cjs','scripts/test-auto-emotes.cjs','scripts/test-accessory-thrust.cjs','scripts/test-happy-ending.cjs','scripts/test-oath-core.cjs','scripts/test-local-wardrobe.cjs',
@@ -10,6 +10,7 @@ const root=path.resolve(__dirname,'..'),tests=[
 if(v104)tests.push('scripts/test-v104-protocol-races.cjs','scripts/test-helper-update-ui.cjs');
 if(process.argv.includes('--ui'))tests.push('scripts/test-v103-settings-ui.cjs','scripts/test-monitor-settings-ui.cjs','scripts/test-idle-input-ui.cjs','scripts/test-room-render-cycle.cjs','scripts/test-startup-notice.cjs','scripts/test-auto-emotes-ui.cjs','scripts/test-pet-fun-ui.cjs','scripts/test-halo-occlusion-ui.cjs','scripts/test-pet-fun-scaling-ui.cjs','scripts/test-local-wardrobe-ui.cjs','scripts/test-synthesis-reminder-ui.cjs');
 if(v104&&process.argv.includes('--ui'))tests.push('scripts/test-denia-theme-ui.cjs');
+if(v105&&Number(target.split('.')[3])>=3&&process.argv.includes('--ui'))tests.push('scripts/test-region-locale-ui.cjs');
 const out=path.resolve(process.env.WUWA_TEST_DISTRIBUTION_DIR||path.join(root,'dist/local-'+target));fs.mkdirSync(out,{recursive:true});
 const failed=[];
 for(const file of tests){

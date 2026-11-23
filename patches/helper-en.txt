@@ -1,0 +1,558 @@
+基础辅助|Quick actions
+点击补充、宝箱与合成提醒|Click balance, chests and synthesis alerts
+账号与兑换|Account and codes
+账号信息、兑换码和登录操作|Account details, redemption codes and sign-in
+输入与录制|Input and recording
+桌面映射、显示方式和快捷键|Desktop input display and shortcuts
+桌面与游戏模式|Desktop and game mode
+尺寸、透明度、穿透与显示器|Size, opacity, click-through and monitors
+互动与表情|Interactions and emotes
+按键自动表情与外观主题|Input-triggered emotes and appearance themes
+程序与更新|Application and updates
+启动、语言、版本与更新来源|Startup, language, version and download source
+本地点击数 +10000|Add 10,000 local clicks
+自动开箱：已开启|Auto-open chests: On
+自动开箱：已关闭|Auto-open chests: Off
+宝箱到期后延迟 5 秒领取|Claim chests 5 seconds after they become available
+恢复显示全部|Show everyone
+退出仅显示自己，并清除逐人隐藏|Exit self-only mode and show individually hidden pets
+默认显示器设置加载失败，请运行完整 Helper|Could not load display settings. Run the full Helper.
+平阶合成提醒（5 个重复素材）|Same-rarity synthesis alerts (5 duplicates)
+升阶合成提醒（10 个重复素材）|Rarity-upgrade synthesis alerts (10 duplicates)
+低保：剩余点击数低于 10000 时自动 +10000|Auto-refill: add 10,000 when the click balance is below 10,000
+同类别、同稀有度汇总，每种素材保留 1 个；最高稀有度不提醒升阶。库存满足条件时在人物右上方显示，不自动合成。|Groups duplicates by category and rarity and keeps one copy of each item. The highest rarity has no upgrade alert. Alerts appear above the pet without submitting synthesis.
+合成提醒|Synthesis alerts
+可合成|Ready to synthesize
+可合成，点击打开合成页面|Synthesis available. Open the synthesis panel
+点击打开合成页面|Open the synthesis panel
+平阶|Same rarity
+升阶|Upgrade
+平阶 · 升阶|Same rarity · Upgrade
+合成提醒设置保存失败|Could not save synthesis alert settings.
+低保设置保存失败|Could not save the auto-refill setting.
+外观主题|Appearance themes
+原版暖色|Classic warm
+奶油色与棕色|Cream and brown
+爱弥斯|Aemeath
+小爱粉与星光气泡|Soft pink and starlight bubbles
+达妮娅|Denia
+珍珠雾紫与拟态泡泡|Pearl violet and mimic bubbles
+弗洛洛|Phrolova
+彼岸绯红与 i弗TV|Crimson and Phrolova TV
+i弗TV|Phrolova TV
+需导入主题包|Import the theme pack to use this theme
+爱弥斯 · 隧者兵装|Aemeath · Exostrider Armament
+面板背景|Panel background
+选择图片|Choose image
+恢复默认|Restore defaults
+素材署名|Asset credits
+使用中|Active
+计数栏与控件配色|Counter and control colors
+无法读取这张图片，请换一张。|Could not read this image. Try a different image.
+请选择 PNG、JPEG、WebP、BMP 或 GIF 图片。|Choose a PNG, JPEG, WebP, BMP or GIF image.
+图片细节太多，无法保存，请换一张尺寸较小的图片。|Could not save this image. Try a smaller one.
+无法写入本机存储，原背景已保留。|Could not save locally. The previous background has been kept.
+已保存自定义背景。|Custom background saved.
+背景保存失败。|Could not save the background.
+已恢复默认背景。|Default background restored.
+无法恢复默认背景。|Could not restore the default background.
+导入主题包|Import theme pack
+支持 .wttheme 文件|Supports .wttheme files
+主题包导入失败。|Could not import the theme pack.
+无法读取已安装的主题包。|Could not read installed theme packs.
+本机 Helper 服务未响应。|The local Helper service did not respond.
+请先导入达妮娅主题包。|Import the Denia theme pack first.
+仅在装备爱弥斯时可用。若装备后仍未生效，请重新装备一次。|Available when Aemeath is equipped. If it does not appear, equip her again.
+常驻伴飞（总开关）|Flying companion
+待机悬浮|Idle hover
+待机挥剑|Idle sword moves
+自动环绕|Automatic flight paths
+输入联动|React to input
+按下时核心亮起|Light up the core on press
+长按时展开机翼|Spread wings while held
+长按升空发射激光|Hold to launch and fire the laser
+敲击时召唤隧者大剑|Summon the Exostrider greatsword on input
+2.5 秒内按下 6 次，或静置 18–24 秒后触发|Triggers after 6 presses in 2.5 seconds or 18–24 seconds of inactivity.
+长按 1.2 秒触发，间隔至少 20 秒|Hold for 1.2 seconds. At least 20 seconds between activations.
+每次敲击有 1% 概率触发，成功后冷却 10 分钟|1% chance per press, with a 10-minute cooldown after triggering.
+达妮娅动效|Denia effects
+拟态泡泡|Mimic bubbles
+虚质之手|Void hand
+剪纸小人|Paper figures
+生日蛋糕|Birthday cake
+吹蜡烛|Blow out candles
+剪纸小人宝箱提醒|Paper-figure chest alerts
+日常台词气泡|Dialogue bubbles
+闲置动画|Idle animation
+点蛋糕点亮蜡烛，再点吹灭。宝箱可领取时，剪纸小人会去敲对应图标。|Click the cake to light the candles and click again to blow them out. A paper figure taps the chest icon when it is ready.
+长按 0.8 秒触发手影，1.4 秒内按下 3 次触发剪纸舞。停止输入 10 秒后，她会吹泡泡或让剪纸小人绕着跳舞。|Hold for 0.8 seconds for the hand effect. Press 3 times in 1.4 seconds to make the paper figures dance. After 10 idle seconds, Denia blows bubbles or calls the dancers.
+达妮娅的生日蛋糕|Denia’s birthday cake
+吹灭蜡烛|Blow out the candles
+点亮蜡烛|Light the candles
+我可没在等你哦。|I wasn’t waiting for you.
+我是在想题。|I was thinking through a problem.
+就打了个小盹。|It was just a little nap.
+再玩一局方块？|Another round of blocks?
+你才在摸鱼呢。|You’re the one slacking off.
+那块放左边试试。|Try putting that one on the left.
+蛋糕可以留一块吗？|Can we save a slice of cake?
+嘘，等泡泡飘过去。|Shh. Let the bubble float past.
+今天也来游戏室？|Back at the game room today?
+你刚刚什么都没看见。|You didn’t see anything.
+那我陪你坐一会儿。|I’ll sit with you for a while, then.
+看吧，还是同一组。|See? Same group again.
+你慢慢来，我等着。|Take your time. I’ll wait.
+拉海洛方块|Lahai-Roi Blocks
+拉海洛方块・逆转|Lahai-Roi Blocks · Reversal
+无法打开小游戏窗口|Could not open the game window.
+日常台词模式|Dialogue mode
+随机台词|Random dialogue
+按键台词|Key-bound dialogue
+达妮娅触发按键|Denia trigger input
+达妮娅自定义台词|Denia custom dialogue
+选择按键|Choose an input
+输入台词|Enter a line
+保存绑定|Save binding
+移除绑定|Remove binding
+台词保存失败。|Could not save the dialogue.
+已保存这条按键台词。|Dialogue binding saved.
+已移除这条按键台词。|Dialogue binding removed.
+启用 i弗TV|Enable Phrolova TV
+专属互动设置已保存|Interaction settings saved.
+专属互动设置保存或同步失败|Could not save or sync interaction settings.
+弗洛洛 + 指定共鸣回响剑|Phrolova + an eligible Resonance Echo sword
+配件刺出动画|Accessory thrust animation
+弗洛洛漫画气泡|Phrolova speech bubbles
+弗洛洛流泪动画|Phrolova tear animation
+缚誓之核掉落与数量显示|Oathbound Core drops and counter
+自动拾取缚誓之核|Automatically pick up Oathbound Cores
+真实键盘、鼠标、手柄按下有2%概率掉落，5秒内可拾取。自动拾取默认关闭，落稳后收集；消耗5个触发10秒自动动画，自动动画不判掉落。|Real keyboard, mouse and controller presses have a 2% drop chance. Pick up within 5 seconds, or enable auto-pickup. Five cores trigger 10 seconds of animation. Automatic hits do not roll for drops.
+弗洛洛 + 赫卡忒|Phrolova + Hecate
+配件守护动画|Accessory protection animation
+凋落回响上飘动画|Fading Echo float animation
+按下时从人物中心偏下的随机位置飘出凋落回响，向上飞并淡出，配合轻微悬浮和守护光效。飘花仅为动画，不计入缚誓之核；每秒最多3次。|Press an input to send a Fading Echo drifting up from below the pet’s center. This visual effect does not count toward Oathbound Cores and plays up to three times per second.
+即将开始|Starting soon
+拾取缚誓之核|Pick up Oathbound Core
+气泡台词|Speech bubble dialogue
+原版随机台词|Default random lines
+只有绑定的按键会弹出自定义台词。键盘、鼠标和手柄可分别绑定。|Only bound inputs show custom lines. Bind keyboard, mouse and controller inputs separately.
+触发按键|Trigger input
+自定义台词|Custom dialogue
+编辑|Edit
+移除|Remove
+我在海底等你…|I’ll wait for you beneath the sea…
+好疼…|It hurts…
+好冷啊…|It’s so cold…
+终究如此…|So this is how it ends…
+为何…是你…|Why… was it you…?
+别再靠近了…|Don’t come any closer…
+原来，是这样…|So that’s how it is…
+请…停下…|Please… stop…
+连梦也结束了吗…|Is even the dream over…?
+你还在这里。|You’re still here.
+这次，一起回去吧。|Let’s go back together this time.
+这一曲，为你而奏。|This piece is for you.
+再陪我一会儿。|Stay with me a little longer.
+这次，你准时赴约了|You made it on time, this time.
+释怀…|I can let go…
+活动需要登录参与，请选择登录方式|Choose a sign-in method to continue
+关闭登录方式选择|Close sign-in options
+通行证登录|Sign in with KURO account
+游戏UID登录|Sign in with in-game UID
+游戏 UID 登录|Sign in with in-game UID
+通行证登录暂不可用，请稍后再试。|KURO account sign-in is temporarily unavailable. Try again later.
+返回登录方式选择|Back to sign-in options
+游戏特征码或 UID|In-game UID
+请输入游戏特征码/UID|Enter your in-game UID
+请输入正确的游戏特征码/UID|Enter a valid in-game UID.
+请输入UID|Enter your UID.
+请输入正确的UID|Enter a valid UID.
+验证码|Verification code
+请输入验证码|Enter the verification code
+请输入正确的验证码|Enter a valid verification code.
+发送验证码|Send code
+请同意用户协议和隐私政策|Accept the Terms of Service and Privacy Policy.
+同意用户协议和隐私政策|Accept the Terms of Service and Privacy Policy
+我已阅读并同意|I have read and accept the
+《用户协议》|Terms of Service
+《隐私政策》|Privacy Policy
+登录|Sign in
+国服（CN）|China (CN)
+国际服（Global）|Global
+登录区服|Account region
+已切换，请重新打开登录。|Region switched. Reopen sign-in to continue.
+无法切换区服，请重试。|Could not switch regions. Try again.
+取消|Cancel
+关闭|Close
+退出|Exit
+继续|Resume
+暂停|Pause
+清除|Clear
+刷新|Refresh
+保存并切换|Save and switch
+默认显示器|Default monitor
+下载源|Download source
+未设置|Not set
+未设置快捷键|No shortcut set
+正在连接手柄服务…|Connecting to the controller service…
+正在录制|Recording
+录制中|Recording
+开始录制|Start recording
+结束录制|Stop recording
+导出手柄 TXT|Export controller TXT
+导出 TXT|Export TXT
+桌面输入映射|Desktop input display
+映射模式|Display mode
+映射位置|Position
+用气泡显示输入|Show inputs as bubbles
+在桌宠旁显示映射控制|Show controls next to the desktop pet
+不显示|Hidden
+26 字母键|26 letter keys
+26键|26 keys
+鸣潮专属|Wuthering Waves
+鸣潮专属录制 1/2/3、Q/E/R、空格和鼠标左右键。|The Wuthering Waves layout records 1/2/3, Q/E/R, Space and both mouse buttons.
+只录制 1/2/3、Q/E/R、空格与鼠标左右键|Records 1/2/3, Q/E/R, Space and both mouse buttons
+桌面键盘映射|Desktop keyboard display
+键盘映射已切换|Keyboard display switched
+手柄|Controller
+键盘|Keyboard
+鼠标|Mouse
+连接后自动识别|Auto-detect on connection
+未检测到手柄|No controller detected
+开箱|Open chest
+下方|Below
+左侧|Left
+右侧|Right
+空格|Space
+空 格|Space
+左键|LMB
+右键|RMB
+中键|MMB
+鼠标左键|Left mouse button
+鼠标右键|Right mouse button
+鼠标中键|Middle mouse button
+鼠标侧键 1|Mouse button 4
+鼠标侧键 2|Mouse button 5
+侧键 1|Mouse button 4
+侧键 2|Mouse button 5
+截图键|Print Screen
+小键盘 +|Num +
+小键盘 −|Num −
+小键盘 ×|Num ×
+小键盘 ÷|Num ÷
+小键盘 .|Num .
+小键盘 Enter|Num Enter
+映射控制已显示|Input controls shown
+映射控制已隐藏|Input controls hidden
+展开键盘|Show input display
+收起键盘|Hide input display
+开启输入气泡|Enable input bubbles
+关闭输入气泡|Disable input bubbles
+收起键盘，可从计数器左侧展开|Hide the display. Reopen it from the counter.
+快捷键设置|Keyboard shortcuts
+表情快捷键（6 个槽位）|Emote shortcuts (6 slots)
+点击输入框录制，支持 Ctrl / Alt / Shift 组合；Esc 取消。清除后可禁用对应快捷键。|Click a field and press a key or a Ctrl, Alt or Shift combination. Esc cancels. Clear a shortcut to disable it.
+表情槽位按菜单顺序对应当前装备；无需展开菜单。冲突检测覆盖本程序，其他软件占用无法完全检测。|Slots follow the order of equipped emotes. Shortcuts work with the menu closed. Conflict checks cover this app.
+保存快捷键|Save shortcuts
+快捷键已保存|Shortcuts saved
+快捷键保存失败|Could not save shortcuts
+已恢复默认，请点击保存|Defaults restored. Click Save to apply.
+请按新快捷键|Press the new shortcut
+游戏模式|Game mode
+切换屏幕|Switch display
+显示／隐藏桌宠|Show or hide desktop pet
+刷新界面|Refresh interface
+录制开始／结束|Start or stop recording
+联机仅显示自己|Show only my pet online
+按键自动表情|Emotes on key press
+按键自动表情：|Emotes on key press:
+装备栏表情|Equipped emotes
+随机已拥有表情|Random owned emote
+自动表情设置保存或同步失败，请重新打开设置检查|Could not save or sync emote settings. Reopen Settings to check.
+键盘按下触发，长按不连发；任意1秒内最多3次，不补发。装备栏按槽位轮流发送；随机模式需登录并读取库存，联机沿用原版发送流程。|Triggered by new key presses, up to 3 times per second. Equipped emotes cycle by slot. Random mode requires sign-in and a loaded inventory.
+历史房间|Room history
+复制房间号|Copy room code
+请先登录账号|Sign in first
+暂无历史房间。成功加入或创建房间后，会自动记录在这里。|No room history yet. Rooms you join or create appear here.
+当前房间|Current room
+你已经在该房间|You are already in this room.
+横排列（原版）|Horizontal (default)
+纵排列（从右至左）|Vertical (right to left)
+保留自定义排列|Remember custom positions
+联机桌宠排列|Multiplayer pet layout
+批量设置可见性失败，请重试|Could not update pet visibility. Try again.
+我的库存|My inventory
+角色|Characters
+配件|Accessories
+表情|Emotes
+通用|General
+未分类系列|Uncategorized series
+（续）|(continued)
+稀有度占比|Rarity breakdown
+当前库存|Current inventory
+官方参考|Official rates
+种|types
+素材加载失败|Asset failed to load
+素材加载超时|Asset loading timed out
+未找到原版背景，请在库存面板重试|The original background was not found. Retry from the inventory panel.
+原版背景纹理尚未加载，请重试|The original background has not loaded yet. Try again.
+已取消生成|Image generation canceled
+无法创建图片画布|Could not create the image canvas
+PNG导出失败|Could not export the PNG
+无效的图片尺寸|Invalid image size
+图片高度限制过小|The image height limit is too low
+请重试|Try again
+自动|Automatic
+通用设备：请用“目标→学习”校准。|Generic device. Use Target → Learn to calibrate.
+SDL 标准映射；可按需校准。|SDL standard mapping. Calibrate if needed.
+未能保存，请重试|Could not save. Try again.
+按当前库存件数统计，包含重复物品|Based on current inventory, including duplicates
+WuwaTappo · 我的库存|WuwaTappo · My inventory
+保存 PNG|Save PNG
+复制图片|Copy image
+已复制，可以粘贴分享|Copied. Paste to share.
+复制未成功，请使用“保存 PNG”|Could not copy. Use Save PNG instead.
+分享库存长图|Share inventory image
+库存分享|Inventory sharing
+按角色、配件和表情分组生成长图。|Create an image grouped by characters, accessories and emotes.
+请登录后分享已拥有的库存|Sign in to share your inventory.
+库存仍在加载，请稍后重试|Inventory is still loading. Try again shortly.
+账号状态无效，请重新读取库存|Account state changed. Reload your inventory.
+账号已切换，请重新读取库存|Account switched. Reload your inventory.
+当前没有可分享的库存|No inventory to share.
+正在生成…|Generating…
+正在读取 WuwaTappo 背景…|Loading the WuwaTappo background…
+长图已生成，可保存或复制分享|Image ready. Save or copy it to share.
+启用图鉴试装|Enable Collection previews
+恢复云端外观|Restore online appearance
+试装在本机生效。表情最多六槽，再点已选表情可卸下。|Previews apply locally. Equip up to six emotes. Select an equipped emote again to remove it.
+素材目录尚未就绪或素材类型不匹配|The asset catalog is still loading or the item type does not match.
+素材地址尚未加载|The asset address is still loading.
+已恢复云端外观和表情栏|Online appearance and emotes restored.
+恢复外观失败，请重试|Could not restore appearance. Try again.
+本地表情栏已满，请先卸下一格表情|The local emote bar is full. Remove an emote first.
+已从本地表情栏卸下|Removed from the local emote bar.
+已加入本地表情栏|Added to the local emote bar.
+已本地试装，云端角色和配件保持不变|Previewing locally. Your online character and accessory are unchanged.
+图鉴试装已开启|Collection previews enabled.
+图鉴试装已关闭，恢复云端外观|Collection previews disabled. Online appearance restored.
+图鉴试装设置保存失败|Could not save the preview setting.
+恢复外观失败|Could not restore appearance.
+更新服务不可用|Update service unavailable
+正在检查更新…|Checking for updates…
+当前已是此版本系列的最新版。|You have the latest version in this series.
+官方已升版，可手动检查 Helper 适配版。|The official app has been updated. Check for a compatible Helper manually.
+检查或下载失败。可以重试，或前往 GitHub 下载。|Could not check for or download the update. Retry or download it from GitHub.
+加速下载未完成，正在从 GitHub 重试…|Mirror download failed. Retrying from GitHub…
+正在退出并安装 Helper 更新…|Closing the desktop pet and installing the Helper update…
+更新已下载，请手动选择重启并更新。|Update downloaded. Choose Restart and update to install it.
+更新下载源|Update download source
+仅用于下载更新文件|Only used for update downloads
+GitHub（默认）|GitHub (default)
+GH-Proxy（尝试）|GH-Proxy (try)
+重启并更新|Restart and update
+去 GitHub 下载|Download from GitHub
+检查更新失败。请确认正在运行完整 Helper，也可以前往 GitHub 下载。|Could not check for updates. Run the full Helper or download from GitHub.
+加速失败时改用 GitHub|Fall back to GitHub if the mirror fails
+飞行雪绒播放器|Snowfluff Player
+飞行雪绒 · 播放器|Snowfluff · Music player
+纸飞机|Paper Airplane
+靛青宇宙|Indigo Universe
+碎花|Scattered Flowers
+曲目|Tracks
+选择音乐文件夹|Choose music folder
+关闭播放器|Close player
+上一首|Previous track
+下一首|Next track
+播放器设置|Player settings
+官方试听|Official preview
+暂无曲目|No tracks
+播放|Play
+无法打开官方试听页面|Could not open the official preview.
+无法播放这首歌，请检查音频格式|Could not play this track. Check its audio format.
+请用鼠标直接点击，或退出游戏模式后选择文件夹|Click with the mouse or exit game mode before choosing a folder.
+文件夹里没有支持的音频文件|No supported audio files in this folder.
+免责说明|Disclaimer
+我已阅读上述内容，后续不再提示|I have read this notice. Do not show it again.
+同意并启动|Agree and start
+切换区服需要重启桌宠。两个区服的账号独立保存。是否继续？|Switching regions restarts the desktop pet. Each region keeps its own account. Continue?
+与官方快捷键冲突或读取失败，请检查后重试|A shortcut conflicts with an official shortcut or could not be read. Check the shortcuts and try again.
+更新服务未连接，请运行完整 Helper。|The update service is unavailable. Run the full Helper.
+历史房间加载失败，请运行完整 Helper|Could not load room history. Run the full Helper.
+查找手柄|Find controllers
+设备已切换|Controller switched
+自动布局|Automatic layout
+已清除|Cleared
+选项|Options
+等待采集服务…|Waiting for the input service…
+设备校准|Controller calibration
+死区|Dead zone
+配置改变|Configuration changed
+扳机死区|Trigger dead zone
+摇杆死区|Stick dead zone
+目标 A|Target A
+学习|Learn
+正在校准|Calibrating
+请按目标键或移动目标轴|Press the target button or move the target axis
+按键/轴|Button / axis
+反向|Invert
+中心/零点|Center / zero
+设满|Set maximum
+恢复该设备默认|Restore controller defaults
+配置重置|Configuration reset
+未检测到手柄；检查连接及 PC/XInput 模式|No controller found. Check the connection and PC/XInput mode.
+已连接通用手柄；建议先校准|Generic controller connected. Calibrate it before use.
+已结束，可导出手柄 TXT|Recording complete. Export the controller TXT.
+已连接；按键仅显示，未录制|Connected. Inputs are displayed and are not being recorded.
+请先连接手柄并保持手柄界面可见|Connect a controller and keep the controller display visible.
+校准已保存|Calibration saved.
+界面已隐藏|Display hidden.
+服务版本不匹配|Input service version mismatch.
+采集缓存溢出，录制已停止|Input buffer overflow. Recording stopped.
+采集服务已重启|Input service restarted.
+设备已更换|Controller changed.
+设备已断开|Controller disconnected.
+采集连接中断|Input service connection lost.
+手柄服务未连接：请运行新版完整 EXE。|Controller service unavailable. Run the latest full Helper.
+离开手柄界面|Left controller display
+按下|Press
+松开|Release
+触摸|Touch
+左摇杆X|Left stick X
+左摇杆Y|Left stick Y
+右摇杆X|Right stick X
+右摇杆Y|Right stick Y
+左扳机|Left trigger
+右扳机|Right trigger
+手动结束|Stopped manually
+采集服务时间重置|Input service clock reset
+记录达到上限|Recording limit reached
+数值|Value
+手柄操作录制|Controller input recording
+鸣潮专属操作录制|Wuthering Waves input recording
+时间基准：原生采集服务单调采样时钟；开始前已按住的键不记录孤立松开。|Time base: the native input service’s monotonic clock. Releases for inputs held before recording are omitted.
+时间基准：应用收到事件后，从开始录制起计算的毫秒数。|Times are milliseconds since recording began, measured when the app receives each event.
+停止时补记（非实际松开）|Added at stop (not a physical release)
+停止录制时补记（非实际松开）|Added at stop (not a physical release)
+开始时间（UTC）：|Start time (UTC):
+总时长：|Duration:
+总时长（毫秒）：|Duration (ms):
+设备：|Device:
+输入模式：|Input mode:
+结束原因：|Stop reason:
+序号|Index
+时间（毫秒）|Time (ms)
+按键|Input
+控件|Control
+动作|Action
+按住（毫秒）|Held (ms)
+备注|Notes
+毫秒|ms
+事件条数：|Event count:
+录制按键：|Recorded inputs:
+初始按键：|Initially held:
+初始轴值：|Initial axis values:
+PrtScr 截图键已保留，请为程序功能选择其他按键|Print Screen is reserved. Choose another shortcut.
+PrtScr 已放行用于截图，快捷键未改变|Print Screen remains available for screenshots. The shortcut was not changed.
+暂不支持此按键，请使用 Ctrl、Alt、Shift 与普通按键组合|This key is unavailable. Use Ctrl, Alt or Shift with a standard key.
+条目已达上限，录制已结束，请导出|Recording limit reached. Export the recording now.
+手柄服务未启动，请运行新版完整 EXE。|The controller service is not running. Run the latest full Helper.
+未读取到可用显示器|No displays found.
+未读取到可用显示器，请稍后刷新。|No displays found. Refresh in a moment.
+不指定（沿用原版）|Use the default app behavior
+始终使用系统主显示器|Always use the system’s primary monitor
+（主屏）|(primary)
+显示器配置无效，请重新选择|Invalid display setting. Choose a display again.
+所选显示器已断开，请刷新后重选|The selected display disconnected. Refresh the list and choose again.
+未确认切换成功，配置未保存，请重试|The switch could not be confirmed. Try again.
+默认显示器未连接，暂时使用主屏；连接后自动恢复。|The preferred monitor is disconnected. The primary monitor is used until it reconnects.
+默认显示器未连接，暂时使用主屏；连接后自动恢复|The preferred monitor is disconnected. The primary monitor is used until it reconnects.
+已取消指定，启动时沿用原版显示器|Monitor preference cleared. Startup uses the app’s default display behavior.
+已保存默认显示器，并完成切换|Preferred monitor saved and switched.
+桌宠正在启动，请稍后再保存|The desktop pet is starting. Try again shortly.
+切换失败，请重试|Could not switch. Try again.
+已保存的显示器未连接|Preferred monitor is disconnected
+选择后点击“保存并切换”，设置会保存在本机。|Choose a monitor and select Save and switch. Your preference is saved on this device.
+读取显示器失败，请稍后刷新。|Could not read displays. Refresh in a moment.
+请先选择已连接的显示器。|Choose a connected display.
+正在切换并保存…|Switching and saving…
+未收到桌宠的切换确认，请稍后刷新设置。|The desktop pet did not confirm the switch. Refresh settings shortly.
+发送失败，请运行完整 Helper 后重试。|Could not send the request. Run the full Helper and try again.
+已保存|Saved
+无法监听切换结果，请重新打开设置。|Could not monitor the switch. Reopen Settings.
+无效的账号或房间号|Invalid account or room code.
+正在切换房间，请稍候|Switching rooms. Please wait.
+请登录原账号后重试，或等待更新限制解除|Sign back in to the same account or wait for the update restriction to be lifted.
+该房间不在当前账号的历史记录中|This room is not in the current account’s history.
+当前暂时无法退出房间，请稍后重试|Could not leave the room. Try again shortly.
+正在退出当前房间…|Leaving the current room…
+退出原房间失败，未继续加入|Could not leave the previous room. Joining was stopped.
+账号或登录状态已改变，已停止切换|The account or sign-in status changed. Switching was stopped.
+尚未确认退出原房间，已停止切换|Leaving the previous room could not be confirmed. Switching was stopped.
+连接尚未就绪，暂时无法加入；请稍后重试|The connection is not ready. Try again shortly.
+加入失败，房间可能已关闭、已满或连接不可用|Could not join. The room might be closed or full, or the connection is unavailable.
+未收到加入成功确认，请检查当前房间状态后重试|Joining could not be confirmed. Check the current room and try again.
+房间切换失败，请检查连接及当前房间状态|Could not switch rooms. Check the connection and current room.
+账号已切换，请重新打开历史房间|The account changed. Reopen Room history.
+正在处理房间切换…|Switching rooms…
+发送失败，请检查连接后重试|Could not send the request. Check the connection and try again.
+无法监听房间状态，请重试|Could not monitor room status. Try again.
+账号已切换，历史房间已关闭|The account changed. Room history was closed.
+等待结果超时，请检查当前房间状态后再操作|The operation timed out. Check the current room before trying again.
+经典下落 · 拉海洛方块|Classic falling blocks · Lahai-Roi Blocks
+拉海洛方块 · Wuwatappo Helper|Lahai-Roi Blocks · Wuwatappo Helper
+经典下落|Classic falling blocks
+选玩法|Game modes
+选择玩法|Choose game mode
+选择一种玩法开始挑战。|Choose a mode to play.
+拼满一行就会消除。每消三行，攒出一颗泡泡。|Fill a row to clear it. Clearing three rows charges a bubble.
+落块棋盘|Falling-block board
+开始一局|Start a game
+分数与控制|Score and controls
+行数|Lines
+最高|Best
+下一块|Next block
+开始|Start
+重开|Restart
+左移|Move left
+右移|Move right
+下移|Move down
+旋转|Rotate
+旋转 · R|Rotate · R
+落到底 · 空格|Hard drop · Space
+按 B 吹泡泡，清除最底一排。|Press B to blow a bubble and clear the bottom row.
+A/D 或 ←/→ 移动　R 或 ↑ 旋转|A/D or ←/→: Move · R or ↑: Rotate
+↓ 下移　P 暂停　空格落到底|↓: Move down · P: Pause · Space: Hard drop
+已暂停|Paused
+本局结束|Game over
+再来一局|Play again
+方块自动下落，凑满一行即可消除。|Blocks fall automatically. Fill a row to clear it.
+目标|Goal
+积分挑战|Score challenge
+奖章挑战|Medal challenge
+难度|Difficulty
+标准|Standard
+进阶|Advanced
+固定朝向。挑选方块，组合横行和竖列。|Fixed orientation. Place blocks to fill rows and columns.
+可用 R 旋转，拖动方块时也能改变朝向。|Press R to rotate, including while dragging a piece.
+一组方块全用完后，才会补充下一组。一次消除多条线可获得额外积分。|Use all pieces to get the next set. Clearing several lines at once earns bonus points.
+每消除 3 条线充满一次泡泡。吹泡泡只清除棋盘最底一排。|Clear three lines to charge a bubble. A bubble clears only the bottom row.
+正在挑战|Challenge in progress
+方块摆放棋盘|Block-placement board
+选块|Select piece
+方向键|Arrow keys
+移动|Move
+放置|Place
+待放方块|Available pieces
+充满后按 B，清除最底一排。|When charged, press B to clear the bottom row.
+暂时摆不下。可以吹泡泡腾出底行。|No piece fits. Use a bubble to clear the bottom row.
+这里放不下。换个位置或选另一块。|This piece does not fit here. Try another position or piece.
+泡泡清除了最底一排。|The bubble cleared the bottom row.
+积分|Points
+奖章|Medals
+消除带星标的方块即可获得奖章。|Clear starred blocks to earn medals.
+拖动方块，或选中后按空格放置。|Drag a piece or select one and press Space to place it.
+没有可摆放的位置|No placements left
+挑战完成|Challenge complete
+免责说明窗口初始化超时，请退出后重试|The disclaimer did not open. Restart and try again.
+免责说明打开失败，请重试|Could not open the disclaimer. Try again.

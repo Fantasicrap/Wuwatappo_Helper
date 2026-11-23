@@ -15,6 +15,10 @@ if($LASTEXITCODE -ne 0){throw 'Extraction failed'}
 & (Join-Path $PSScriptRoot 'build-theme-packs.ps1') -OutputDirectory $out -SongsDirectory $SongsDirectory
 & node (Join-Path $repoRoot 'patches/v103/build-preview.cjs') $migrationFlag
 if($LASTEXITCODE -ne 0){throw "$upstream resource migration failed"}
+if($upstream -eq '1.0.5' -and ([version]$version -ge [version]'1.0.5.3')){
+ & node (Join-Path $repoRoot 'patches/v103/build-preview.cjs') $migrationFlag --global
+ if($LASTEXITCODE -ne 0){throw 'Global resource migration failed'}
+}
 & node (Join-Path $PSScriptRoot 'test-v103-suite.cjs')
 if($LASTEXITCODE -ne 0){throw "$upstream migration verification failed"}
 & (Join-Path $PSScriptRoot 'build-controller-host.ps1') -OutputDirectory $out -PayloadPath $payload

@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$SdlPath,[string]$PayloadPath,[string]$WebViewSdkPath,[switch]$Lite,[switch]$Alpha,[switch]$OriginalIcon)
+param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$SdlPath,[string]$PayloadPath,[string]$GlobalPayloadPath,[string]$WebViewSdkPath,[switch]$Lite,[switch]$Alpha,[switch]$OriginalIcon)
 $ErrorActionPreference='Stop'
 if($Lite -and $Alpha){throw 'Alpha requires the full Helper launcher'}
 $repoRoot=Split-Path -Parent $PSScriptRoot
@@ -42,8 +42,18 @@ $license=Join-Path $repoRoot 'licenses/SDL3-LICENSE.txt'
 $buildOptions=@()
 $resourcesToVerify=,@('WuwaTappo.exe',$payload)
 if($Lite){$buildOptions+= '/define:HELPER_LITE'}else{
- $deniaGame=Join-Path $repoRoot 'patches/denia-blocks.html'
- $fallingGame=Join-Path $repoRoot 'patches/denia-falling.html'
+ if(!$GlobalPayloadPath -and !$Alpha -and ([version]$pkg.releaseVersion -ge [version]'1.0.5.3')){
+  $GlobalPayloadPath=Join-Path $repoRoot ("dist/migration-"+$pkg.releaseVersion+"-global/payload.exe")
+ }
+ if($GlobalPayloadPath){
+  $globalPayload=(Resolve-Path -LiteralPath $GlobalPayloadPath).Path
+  $buildOptions+=('/resource:'+$globalPayload+',global/WuwaTappo.exe')
+  $resourcesToVerify+=,@('global/WuwaTappo.exe',$globalPayload)
+ }
+ & node (Join-Path $PSScriptRoot 'localize-game.cjs') $hostDir
+ if($LASTEXITCODE -ne 0){throw 'Could not build the localized game pages'}
+ $deniaGame=Join-Path $hostDir 'denia-blocks.html'
+ $fallingGame=Join-Path $hostDir 'denia-falling.html'
  $buildOptions+=@('/resource:'+$SdlPath+',SDL3.dll';'/resource:'+$license+',SDL3-LICENSE.txt';'/resource:'+$uiFile+',controller-ui.js';'/resource:'+$deniaGame+',denia-blocks.html';'/resource:'+$fallingGame+',denia-falling.html')
  $resourcesToVerify+=,@('SDL3.dll',$SdlPath)
  $resourcesToVerify+=,@('controller-ui.js',$uiFile)
@@ -65,8 +75,9 @@ if($Lite){$buildOptions+= '/define:HELPER_LITE'}else{
   if($entry.Key -like 'Microsoft.Web.WebView2.*'){$buildOptions+=('/reference:'+$dll)}
  }
  $buildOptions+=(Join-Path $repoRoot 'native/DeniaGameWindow.cs')
+ $buildOptions+=(Join-Path $repoRoot 'native/GlobalSignInWindow.cs')
 }
-& $compiler /nologo /target:winexe /platform:x64 /optimize+ ('/win32icon:'+$iconFile) /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Core.dll /reference:System.IO.Compression.dll ('/out:'+$exe) ('/resource:'+$payload+',WuwaTappo.exe') ('/resource:'+$runtimeId+',runtime-id') @buildOptions $versionSource (Join-Path $repoRoot 'native/ControllerHost.cs') (Join-Path $repoRoot 'native/MouseCapture.cs') (Join-Path $repoRoot 'native/HelperUpdate.cs') (Join-Path $repoRoot 'native/ThemePackages.cs')
+& $compiler /nologo /target:winexe /platform:x64 /optimize+ ('/win32icon:'+$iconFile) /reference:System.Web.dll /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Core.dll /reference:System.IO.Compression.dll /reference:Microsoft.CSharp.dll ('/out:'+$exe) ('/resource:'+$payload+',WuwaTappo.exe') ('/resource:'+$runtimeId+',runtime-id') @buildOptions $versionSource (Join-Path $repoRoot 'native/ControllerHost.cs') (Join-Path $repoRoot 'native/MouseCapture.cs') (Join-Path $repoRoot 'native/HelperUpdate.cs') (Join-Path $repoRoot 'native/HelperAutostart.cs') (Join-Path $repoRoot 'native/ThemePackages.cs')
 if($LASTEXITCODE -ne 0){throw 'Controller launcher compilation failed'}
 $asm=[Reflection.Assembly]::LoadFile($exe)
 $checks=@{}

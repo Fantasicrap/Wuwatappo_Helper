@@ -47,6 +47,7 @@ Name: "desktopicon"; Description: "创建桌面快捷方式"; Flags: unchecked; 
 [Files]
 Source: "{#SourceDir}\Wuwatappo_Helper-{#AppVersion}.exe"; DestDir: "{app}"; DestName: "Wuwatappo_Helper.exe"; Flags: ignoreversion
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\README.en.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\DISCLAIMER.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\使用说明.md"; DestDir: "{app}"; Flags: ignoreversion

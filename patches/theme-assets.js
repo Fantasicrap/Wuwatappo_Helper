@@ -25,5 +25,6 @@ async function helperThemeAction(route){
 
 export function importThemePack(){return helperThemeAction('/theme-packs/import')}
 export async function openDeniaBlocks(){
- if(!(await helperThemeAction('/denia-blocks/open')).accepted)throw Error('请先导入达妮娅主题包。');
+ const language=document.documentElement.lang==='en'?'?lang=en':'';
+ if(!(await helperThemeAction('/denia-blocks/open'+language)).accepted)throw Error('请先导入达妮娅主题包。');
 }

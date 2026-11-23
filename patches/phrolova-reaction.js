@@ -1,13 +1,13 @@
 const __wtPhrolovaReaction=(()=>{
  const specialDuration=3000,normalDuration=1000,phrases=['好疼…','好冷啊…','终究如此…','为何…是你…','别再靠近了…','原来，是这样…','请…停下…','连梦也结束了吗…'];
  const speechFont='clamp(8px, calc(var(--pet-base-size, 200px) * .055), 16px)';
- function fitSpeech(bubble,label,available,custom){
+ function fitSpeech(bubble,label,available,custom,translated){
   bubble.style.fontSize=speechFont;
-  bubble.style.borderRadius=custom?'0.9em':'50% / 48%';
+  bubble.style.borderRadius=custom||translated?'0.9em':'50% / 48%';
   label.style.maxHeight='';label.style.overflow='';
-  if(!custom)return;
+  if(!custom&&!translated)return;
   const base=parseFloat(getComputedStyle(bubble).fontSize);
-  let size=Math.max(6,base-Math.max(0,Array.from(label.textContent).length-10)*.16);
+  let size=translated?base:Math.max(6,base-Math.max(0,Array.from(label.textContent).length-10)*.16);
   bubble.style.fontSize=size+'px';
   while(bubble.offsetHeight>available&&size>5){
    size=Math.max(5,size-.75);
@@ -40,8 +40,17 @@ const __wtPhrolovaReaction=(()=>{
   function trigger(line="",allowTears=false,priority=false,showBubble=true,custom=false){const current=role(),cfg=settings(),canSpeak=cfg.bubble&&showBubble;if(disposed||!isPhrolova(current)||!canSpeak&&!cfg.tears)return false;const host=root();if(!host||!host.isConnected)return false;const time=now();if(!priority&&time<specialUntil)return false;while(recent.length&&recent[0]<=time-1000)recent.shift();if(recent.length>=3||pendingLine&&!line)return false;recent.push(time);
    if(layer?.parentNode!==host)reset();if(!layer){layer=document.createElement('div');layer.className='wt-phrolova-reaction';Object.assign(layer.style,{position:'absolute',inset:'0',overflow:'hidden',pointerEvents:'none',zIndex:'14'});host.appendChild(layer)}
    if(canSpeak){if(!bubble){bubble=document.createElement('div');bubble.className='wt-phrolova-speech';bubble.setAttribute('aria-live','off');Object.assign(bubble.style,{position:'absolute',left:'2%',top:'3%',maxWidth:'84%',boxSizing:'border-box',padding:'clamp(3px, calc(var(--pet-base-size, 200px) * .027), 7px) clamp(5px, calc(var(--pet-base-size, 200px) * .046), 12px)',border:'1.6px solid #4d4149',borderRadius:'50% / 48%',background:'#fffdf6',color:'#51424c',fontFamily:'"Microsoft YaHei",sans-serif',fontSize:speechFont,lineHeight:'1.45',whiteSpace:'normal',overflowWrap:'anywhere',textAlign:'center',boxShadow:'1px 2px 0 #4b30431a',zIndex:'2'});const text=document.createElement('span');text.className='wt-phrolova-speech-text';text.style.display='block';bubble.appendChild(text);const tail=document.createElement('i');Object.assign(tail.style,{position:'absolute',left:'69%',bottom:'-5px',width:'8px',height:'8px',background:'#fffdf6',borderRight:'1.6px solid #4d4149',borderBottom:'1.6px solid #4d4149',transform:'rotate(45deg)'});bubble.appendChild(tail);layer.appendChild(bubble)}
-   let index=Math.min(phrases.length-1,Math.max(0,Math.floor(random()*phrases.length)));if(index===lastPhrase)index=(index+1)%phrases.length;lastPhrase=index;const label=bubble.querySelector('.wt-phrolova-speech-text');label.textContent=line||phrases[index];const head=profile(current)?.[7]??30,counter=host.querySelector('.wt-oath-core-count'),clearance=counter?counter.offsetTop+counter.offsetHeight+2:2;fitSpeech(bubble,label,Math.max(0,host.clientHeight-clearance-7),custom);bubble.style.top=Math.max(clearance,host.clientHeight*(head/100+.02)-bubble.offsetHeight)+'px';
-   if(priority)specialUntil=time+specialDuration;clearTimeout(bubbleTimer);bubbleTimer=setTimeout(()=>{bubble?.remove();bubble=null;bubbleTimer=null;tidy()},priority?specialDuration:normalDuration);
+   let index=Math.min(phrases.length-1,Math.max(0,Math.floor(random()*phrases.length)));if(index===lastPhrase)index=(index+1)%phrases.length;lastPhrase=index;
+   const label=bubble.querySelector('.wt-phrolova-speech-text'),source=line||phrases[index];
+   const display=custom?source:globalThis.__wtTranslate?.(source)??source;
+   const translated=display!==source;
+   label.toggleAttribute('data-wt-user-text',custom);label.textContent=display;
+   label.style.textWrap=translated?'balance':'';
+   const head=profile(current)?.[7]??30,counter=host.querySelector('.wt-oath-core-count'),clearance=counter?counter.offsetTop+counter.offsetHeight+2:2;
+   fitSpeech(bubble,label,Math.max(0,host.clientHeight-clearance-7),custom,translated);
+   bubble.style.top=Math.max(clearance,host.clientHeight*(head/100+.02)-bubble.offsetHeight)+'px';
+   const duration=translated?Math.min(2300,Math.max(normalDuration,display.length*48)):normalDuration;
+   if(priority)specialUntil=time+specialDuration;clearTimeout(bubbleTimer);bubbleTimer=setTimeout(()=>{bubble?.remove();bubble=null;bubbleTimer=null;tidy()},priority?specialDuration:duration);
    }const p=cfg.tears&&(!line||allowTears)?profile(current):null;if(p){const node=document.createElement('div');node.className='wt-phrolova-tear';node.dataset.series=String(p[0]);Object.assign(node.style,{position:'absolute',left:(p[2]-1.6)+'%',top:p[3]+'%',width:'3.2%',height:'4.8%',imageRendering:p[0]===1005?'pixelated':'auto',pointerEvents:'none'});node.innerHTML=tearSvg(p);layer.appendChild(node);
     const item={node,animation:null};tears.add(item);const distance=Math.max(0,host.clientHeight*(1-p[3]/100-.048));
     item.animation=node.animate([{transform:'translateY(0px) scale(.78)',opacity:.85},{transform:'translateY('+(distance*.25)+'px) scale(1)',opacity:1,offset:.4},{transform:'translateY('+distance+'px) scale(.85)',opacity:0}],{duration:600,easing:'cubic-bezier(.3,0,.65,1)',fill:'forwards'});

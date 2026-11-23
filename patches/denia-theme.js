@@ -81,6 +81,7 @@ export const helperDenia = (() => {
 § .wt-denia-cake:focus-visible{outline:2px solid #7659a1;outline-offset:2px;border-radius:8px}
 § .wt-denia-cake canvas{display:block;width:100%;height:auto;pointer-events:none}
 § .wt-denia-line{position:absolute;top:9%;right:4%;max-width:49%;box-sizing:border-box;padding:3% 4%;border:1px solid #b19aca;border-radius:13px 13px 5px 13px;background:#faf3ffee;color:#54396f;box-shadow:0 2px 6px #684a902f;font:600 clamp(8px,calc(var(--pet-base-size,200px)*.055),16px)/1.25 "Microsoft YaHei",sans-serif;overflow-wrap:anywhere;text-align:center;z-index:14;pointer-events:none}
+§[lang=en] .wt-denia-line{text-wrap:balance}
 § .wt-denia-messenger{position:absolute;top:50%;left:50%;width:clamp(22px,calc(var(--pet-base-size,200px)*.23),54px);aspect-ratio:1;filter:drop-shadow(0 0 1px #fff) drop-shadow(0 2px 2px #38224db3);pointer-events:none;z-index:2}
 § .wt-denia-knock{position:absolute;top:50%;left:50%;width:12px;aspect-ratio:1;border:1.5px solid #fff1b5;border-radius:50%;box-shadow:0 0 4px #ffecc5;pointer-events:none;z-index:1}
 § .wt-denia-dialogue{display:grid;gap:5px;margin:7px 0;padding:8px 0;border-block:1px solid var(--wt-ui-divider)}
@@ -422,15 +423,17 @@ export const helperDenia = (() => {
    if(line){line.remove();line=null;geometry()}
    priorityUntil=0;
   }
-  function say(text,priority=false){
+  function say(text,priority=false,custom=false){
    const host=root();
    if(!host?.isConnected||document.hidden||!priority&&performance.now()<priorityUntil)return false;
+   if(!custom)text=globalThis.__wtTranslate?.(text)??text;
    const duration=priority?2800:Math.max(1150,Math.min(2550,950+text.length*38));
    if(priority)priorityUntil=performance.now()+duration;
    if(line?.parentNode!==host){
     line?.remove();line=document.createElement('div');line.className='wt-denia-line';
     host.append(line);
    }
+   line.toggleAttribute('data-wt-user-text',custom);
    line.textContent=text;
    if(text.length>25)line.style.fontSize='clamp(7px,calc(var(--pet-base-size,200px)*.044),13px)';
    else line.style.removeProperty('font-size');
@@ -530,7 +533,7 @@ export const helperDenia = (() => {
      quoteIndex=(quoteIndex+1+Math.floor(Math.random()*(sampleLines.length-1)))%sampleLines.length;
      text=sampleLines[quoteIndex];
     }
-    if(text&&say(text))quoteAt=now;
+    if(text&&say(text,false,quoteConfig?.mode==='mapped'))quoteAt=now;
    }
    if(cfg.hand&&!holdTimer&&now-handAt>=handCooldown){
     holdToken=token;

@@ -6,16 +6,18 @@ function babelParse(source,file,module){
  catch(error){throw Error(`${file} at ${error.loc?.line}:${error.loc?.column}: ${source.slice(error.pos-100,error.pos+100)}`)}
 }
 const v105=process.argv.includes('--v105');
+const globalRegion=process.argv.includes('--global');
 const v104=v105||process.argv.includes('--v104');
 const lite=process.argv.includes('--lite');
 const alpha=process.argv.includes('--alpha');
 assert(!lite||v104,'Lite requires WuwaTappo 1.0.4');
 assert(!alpha||(v104&&!lite),'Alpha requires the full WuwaTappo 1.0.4 build');
+assert(!globalRegion||(v105&&!lite),'Global region requires the complete 1.0.5 build');
 const base=v105?'1.0.5':v104?'1.0.4':'1.0.3';
 const configuredTarget=require('../../package.json').releaseVersion;
-const target=configuredTarget.startsWith(base+'.')?configuredTarget:v105?'1.0.5.2':v104?'1.0.4.7':'1.0.3.4';
+const target=configuredTarget.startsWith(base+'.')?configuredTarget:v105?'1.0.5.3':v104?'1.0.4.7':'1.0.3.4';
 const edition=lite?'lite':alpha?'alpha':'full';
-const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-'+base),out=path.join(root,'dist/migration-'+target+(edition==='full'?'':'-'+edition));fs.mkdirSync(out,{recursive:true});
+const root=path.resolve(__dirname,'../..'),input=process.env.WUWA_SOURCE_EXE||'F:/WuwaTappo/WuwaTappo.exe',stage=path.join(root,'dist/upstream-'+base),out=path.join(root,'dist/migration-'+target+(globalRegion?'-global':edition==='full'?'':'-'+edition));fs.mkdirSync(out,{recursive:true});
 const original=fs.readFileSync(input),hash=b=>crypto.createHash('sha256').update(b).digest('hex'),manifest=JSON.parse(fs.readFileSync(path.join(stage,'extraction-manifest.json'),'utf8'));
 const sourceHashes={
  '1.0.5':'06a7222645e5da3a86baeaea3bb61a1f63c0408df1e21d5b985a9eb01054b7ae',
@@ -38,6 +40,7 @@ function upstream(filename){
  return bindingNames[filename]?require('../v104/normalize-bindings.cjs')(source,filename,bindingNames[filename]):source;
 }
 const read=name=>{let code=fs.readFileSync(path.join(root,'patches',name),'utf8');const comments=babelParse(code,'helper.mjs',true).comments??[];for(const c of comments.slice().reverse())code=code.slice(0,c.start)+code.slice(c.end);return code};
+const readText=name=>fs.readFileSync(path.join(root,'patches',name),'utf8').replace(/\r\n/g,'\n');
 const mapping=JSON.parse(fs.readFileSync(path.join(__dirname,'panel-symbols.json'),'utf8'));
 function translate(code,renames={}){const ast=babelParse(code,'helper.mjs',true),edits=new Map();traverse(ast,{Identifier(p){const name=p.node.name,b=p.scope.getBinding(name);let to;if(b&&renames[name]&&(p.node===b.identifier||b.referencePaths.includes(p)))to=renames[name];else if(!b&&p.isReferencedIdentifier())to=mapping[name];if(to&&to!==name)edits.set(p.node.start,{end:p.node.end,to})}});for(const[start,{end,to}]of [...edits].sort((a,b)=>b[0]-a[0]))code=code.slice(0,start)+to+code.slice(end);return code}
 function once(s,a,b){assert.equal(s.split(a).length-1,1,'Changed migration anchor: '+a);return s.replace(a,b)}
@@ -315,9 +318,10 @@ function groupSettings(source){
   return matches[0];
  };
  const group=(id,items)=>'__wtPanelLayout.group(e,"'+id+'",['+items.join(',')+']'+(id==='interaction'?',__wtPhrolovaPanel':'')+')';
+ const region=v105&&!lite?['__wtRegionUi.render(e,"'+(globalRegion?'global':'cn')+'",Oe,()=>import("./quitApp-KiLkJnLY.js").then(m=>m.quitApp()))']:[];
  const sections=[
   group('basic',[take('__wtPanelLayout.basic'),take('__wtSynthesis.renderBasicSettings')]),
-  group('account',[take('"setting_nickname"'),take('"setting_total_click"'),take('"setting_redeem_code"'),take('"setting_view_log"')])
+  group('account',[take('"setting_nickname"'),take('"setting_total_click"'),take('"setting_redeem_code"'),...region,take('"setting_view_log"')])
  ];
  if(!lite)sections.push(group('input',[take('__wtKeyboardUi.renderSettings'),take('__wtHotkeys.render')]));
  sections.push(group('desktop',[
@@ -337,6 +341,28 @@ function groupSettings(source){
  const args=source.slice(panelCall.arguments[0].start,rows.start);
  const content='(i(!0),m('+args+'['+sections.concat(available).join(',')+'],-2))';
  return source.slice(0,panelCall.start)+content+source.slice(panelCall.end);
+}
+if(v105){
+ const localeCode=read('helper-locale.js').replace('__WT_LOCALE_MESSAGES__',JSON.stringify(readText('helper-en.txt'))).replace('__WT_LOCALE_ENDPOINT__',JSON.stringify(lite?null:'http://127.0.0.1:48642/region/language'));
+ common=editFunction(common,'getInitialAppLocale',()=>localeCode+'\nfunction getInitialAppLocale(){return __wtLocale.read()}');
+ common=common.replace(/GLOBAL_LOCALE_OPTIONS=\[[^\]]+\]/,'GLOBAL_LOCALE_OPTIONS=[{locale:"zh",label:"简体中文"},{locale:"en",label:"English"}]');
+ common=editFunction(common,'setAppLocale',source=>once(source,'emitSettingsLocale(e)}','emitSettingsLocale(e);return __wtLocale.remember(e)}'));
+ common=once(common,'i18n=createI18n({legacy:!1,locale:initialLocale,messages});','i18n=createI18n({legacy:!1,locale:initialLocale,messages});\nconst __wtSetDocumentLocale=__wtLocale.install(document,initialLocale);watch(()=>i18n.global.locale.value,__wtSetDocumentLocale);globalThis.__wtTranslate=value=>__wtLocale.translate(value,i18n.global.locale.value);\n');
+ common+='\nglobalThis.__wtLaunchLanguage={restore:__wtLocale.restore,current:()=>i18n.global.locale.value,select:setAppLocale,apply:locale=>{applyAppLocaleLocally(locale);return emitSettingsLocale(locale).catch(console.warn)}};\n';
+ settings=once(settings,'p(Yt)?(i(),m("div",ai,[e("div",hl,[e("div",wl,S(p(t)("setting_language"))','true?(i(),m("div",ai,[e("div",hl,[e("div",wl,S(p(t)("setting_language"))');
+ if(!lite){
+  common+='\n'+read('helper-region.js');
+  settings+='\nimport{__wtRegionUi}from"./index-CuzHFfJW.js";\n';
+ }
+ if(globalRegion){
+  common=once(common,'const APP_REGION="CN"','const APP_REGION="GLOBAL"');
+  common=once(common,'"cn-prod"','"global-prod"');
+  common=common.replaceAll('api-mc-wuwatappo.kurogames-global.com','api-wutheringwaves-wuwatappo.kurogames-global.com')
+   .replaceAll('mc-wuwatappo.kurogames-global.com','wutheringwaves-wuwatappo.kurogames-global.com')
+   .replaceAll('/app/json-host/latest_host.json','/app/json-host/latest-global_host.json')
+   .replaceAll('kuro_${e}=', 'kuro_global_${e}=')
+   .replaceAll('"wuwatappo-login-cuid"','"wuwatappo-global-login-cuid"');
+ }
 }
 if(v104)settings=groupSettings(settings);
 if(alpha){
@@ -371,6 +397,12 @@ traverse(babelParse(about,'about.mjs',true),{ReturnStatement(p){const a=p.node.a
 assert(aboutRender);about=about.slice(0,aboutRender.start)+'__wtLegal.active.value?__wtNotice.render(__wtLegal):('+about.slice(aboutRender.start,aboutRender.end)+')'+about.slice(aboutRender.end);
 about+='\nimport{__wtNotice}from"./index-CuzHFfJW.js";\n';
 let bridge=upstream(assets.bridge);
+if(v105&&!lite){
+ common+='\n'+read('helper-autostart.js');
+ bridge=once(bridge,'await u("is_elevated_autostart_enabled")','await __wtAutostart.enabled(()=>u("is_elevated_autostart_enabled"))');
+ bridge=once(bridge,'await u("set_elevated_autostart",{enabled:e})','await __wtAutostart.configure(e,()=>u("set_elevated_autostart",{enabled:e}))');
+ bridge+='\nimport{__wtAutostart}from"./index-CuzHFfJW.js";\n';
+}
 if(!lite){
 bridge=once(bridge,'async function Ha(e){await u("open_panel_window",{payload:{tab:e??null}})}','async function Ha(e){await u("set_skip_panel_outside_click_close",{skip:true}).catch(()=>{});await u("open_panel_window",{payload:{tab:e??null}});await u("set_skip_panel_outside_click_close",{skip:true}).catch(()=>{})}');
 const raisePanel=v105?'en':'$a',switchImpl=v105?'Na':'Aa',switchPublic=v105?'On':'An';
@@ -391,6 +423,29 @@ const watchUpdate=v104?'m.watchAutomaticHelperUpdate(()=>import("./quitApp-KiLkJ
 bridge+=`\nimport{D as __wtWindow}from"./index-CuzHFfJW.js";if(__wtWindow().label==="main")import("http://127.0.0.1:48642/ui.js").then(m=>{${watchUpdate}return m.installDefaultMonitor({${monitor}})}).catch(console.warn);\n`;
 }
 const resources=[{name:panelAsset,text:panel},{name:commonAsset,text:common},{name:'/assets/'+assets.settings,text:settings},{name:'/assets/'+assets.bridge,text:bridge},{name:'/assets/'+assets.about,text:about}];
+if(globalRegion){
+ const methodFile='useLogin-Czal3z48.js',loginFile='login-D7Mrat3T.js';
+ let method=upstream(methodFile),login=upstream(loginFile);
+ const start=method.indexOf('handleForeignSDKLogin(e,n){'),end=method.indexOf('overseasDeepLinkReady:',start);
+ assert(start>0&&end>start,'Global login method anchor changed');
+ method=method.slice(0,start)+'async handleForeignSDKLogin(){const login=await __wtRegionUi.signIn();if(login)await this.completeForeignBrowserLogin(login)},'+method.slice(end);
+ method=once(method,'handleForeignSDKLogin(e){f.handleForeignSDKLogin(e)}','handleForeignSDKLogin(e){return f.handleForeignSDKLogin(e)}');
+ for(const key of ['wuwatappo-login-cuid','wuwatappo-user-info-cache','overseas-pending-role-select','__KrSDK_USER_TOKEN__','__KrSDK_USER_INFO__']){
+  method=method.replaceAll(JSON.stringify(key),JSON.stringify('wt-global-'+key.replace('wuwatappo-','')));
+ }
+ method=once(method,'U();const{playerId:c,serverId:u}=se(i);await this.handleForeignLogin(r,c,u),d(!1)','U();ee(O.global.t("server.noRole2")),d(!1)');
+ method+='\nimport{__wtRegionUi}from"./index-BelNnexT.js";';
+ const passportStart=login.indexOf('async function D(){if(u.value)'),passportEnd=login.indexOf('function w(){',passportStart);
+ assert(passportStart>0&&passportEnd>passportStart,'Global login dialog anchor changed');
+ login=login.slice(0,passportStart)+'async function D(){if(u.value)return;u.value=!0;d.value=!1;try{await Q.handleForeignSDKLogin();if(ze())L()}catch{d.value=!0}finally{u.value=!1}}'+login.slice(passportEnd);
+ const uid=login.indexOf('t("div",{class:"login-dialog-button login-dialog-button--uid"'),uidEnd=login.indexOf(',d.value?',uid);
+ assert(uid>0&&uidEnd>uid,'UID control anchor changed');
+ login=login.slice(0,uid)+login.slice(uidEnd+1);
+ const domestic=login.indexOf('const D=X(()=>Z.value.status,(i,h)=>'),local=login.indexOf('function w(){m()}',domestic);
+ assert(domestic>0&&local>domestic,'Domestic SDK mount anchor changed');
+ login=login.slice(0,domestic)+'const D=()=>{};'+login.slice(local);
+ resources.push({name:'/assets/'+methodFile,text:method},{name:'/assets/'+loginFile,text:login});
+}
 if(v104)for(const resource of resources){
  resource.text=resource.text.replaceAll('./index-CuzHFfJW.js','./'+assets.common).replaceAll('cV as __wt',assets.emit+' as __wt');
  if(v105)resource.text=resource.text.replaceAll('./quitApp-KiLkJnLY.js','./quitApp-UMRgPMAI.js');

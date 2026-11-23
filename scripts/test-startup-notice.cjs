@@ -12,6 +12,8 @@ const cuts=[];traverse(babelParse(about,'about.mjs',true),{ImportDeclaration(p){
 const runtime=require('./vue-runtime-fixture.cjs')(common,['defineComponent','computed','watch','onMounted','onUnmounted','createVNode','createStaticVNode','withDirectives','vModelCheckbox','withModifiers','unref']);
 let notice;traverse(babelParse(common,'common.mjs',true),{VariableDeclaration(p){if(p.node.declarations.some(d=>d.id.name==='__wtNotice'))notice=common.slice(p.node.start,p.node.end)}});assert(notice,'Missing bundled disclaimer module');
 assert(notice.includes(JSON.stringify(fs.readFileSync('DISCLAIMER.txt','utf8').replace(/^\uFEFF/,''))),'Bundled and distributed disclaimer must match');
+const localeFixture=v105?`const persistLanguage=locale=>{localStorage.setItem('wuwatappo-locale',locale);document.documentElement.lang=locale;};
+window.__wtLaunchLanguage={restore:async()=>localStorage.getItem('wuwatappo-locale'),current:()=>document.documentElement.lang==='en'?'en':'zh',select:persistLanguage,apply:persistLanguage};`:'';
 const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/startup-notice-1.0.3.4';fs.mkdirSync(output,{recursive:true});
 (async()=>{
  const timedCalls=[],timedListeners=new Set(),timedStorage=new Map(),timed={localStorage:{getItem:k=>timedStorage.get(k)??null,setItem:(k,v)=>timedStorage.set(k,v),removeItem:k=>timedStorage.delete(k)},listen:async(name,fn)=>{timedListeners.add(fn);return()=>timedListeners.delete(fn)},emit:async()=>{},invoke:async name=>timedCalls.push(name),setTimeout:fn=>fn(),console:{warn(){}}};
@@ -30,7 +32,8 @@ const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/startup-notice-1.0.3.
    async function emit(name,payload){for(const fn of listeners.get(name)||[])await fn({payload})}
    async function invoke(name){if(name==='open_about_window'){noticeOpens++;await emit('about-open',{})}else if(name==='close_about_window')noticeClosed++}
    async function openUrl(url){opened.push(url)}
-   window.noticeWindow={setTitle:async()=>{},startDragging:async()=>{},onCloseRequested:async fn=>{closeHandlers.push(fn);return()=>closeHandlers.splice(closeHandlers.indexOf(fn),1)}};
+   window.noticeWindow={setTitle:async value=>{window.noticeTitle=value},startDragging:async()=>{},onCloseRequested:async fn=>{closeHandlers.push(fn);return()=>closeHandlers.splice(closeHandlers.indexOf(fn),1)}};
+   ${localeFixture}
    ${notice}
    window.notice=__wtNotice;localStorage.setItem('about_startup_skip','1');`});
   // Reproduce the real native startup ordering: main mounts before the hidden
@@ -44,13 +47,48 @@ const output=process.env.WUWA_TEST_DISTRIBUTION_DIR||'dist/startup-notice-1.0.3.
    ${about}
    window.aboutApp=__vue.createApp(window.aboutComponent);aboutApp.mount('#app');})()`});
   await page.waitForFunction(()=>closeHandlers.length>0);
+  if(v105){
+   const chooser=page.getByRole('heading',{name:'选择界面语言',exact:true});
+   await chooser.waitFor();
+   assert(await page.getByRole('button',{name:'继续',exact:true}).isDisabled());
+   await page.getByRole('button',{name:'English',exact:true}).click();
+   await page.getByRole('heading',{name:'Choose your language',exact:true}).waitFor();
+   assert.equal(await page.evaluate(()=>noticeTitle),'Choose your language');
+   await page.getByText('Change it anytime in Settings → Application and updates → Language.',{exact:true}).waitFor();
+   assert.equal(await page.getByRole('button',{name:'English',exact:true}).getAttribute('aria-pressed'),'true');
+   assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-locale')),null,'Preview must not save the language');
+   await page.screenshot({path:path.join(output,'first-launch-language-en.png')});
+   await page.setViewportSize({width:425,height:620});
+   assert(await page.locator('.about-page').evaluate(node=>node.scrollWidth<=node.clientWidth+1));
+   await page.setViewportSize({width:700,height:820});
+   await page.getByRole('button',{name:'Continue',exact:true}).click();
+   await page.getByRole('heading',{name:'Disclaimer',exact:true}).waitFor();
+   await page.getByRole('checkbox',{name:'I have read this notice. Do not show it again.',exact:true}).check();
+   await page.getByRole('button',{name:'Exit',exact:true}).click();
+   await page.waitForFunction(()=>answer===false&&noticeClosed>0);
+   assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-locale')),null,'Cancel after choosing must not save the language');
+   await page.evaluate(()=>{answer='pending';notice.confirm().then(v=>answer=v)});
+   await chooser.waitFor();
+   await page.getByRole('button',{name:'简体中文',exact:true}).click();
+   await page.getByRole('button',{name:'继续',exact:true}).click();
+  }
   await page.getByRole('heading',{name:'免责说明',exact:true}).waitFor();const start=page.getByRole('button',{name:'同意并启动',exact:true});assert(await start.isDisabled());assert.equal(await page.getByRole('checkbox').isChecked(),false);
   assert.equal(await page.evaluate(()=>listeners.get('wt-helper-notice-ready').size),0,'Startup handshake listener is released after readiness');
   const text=await page.locator('.about-page').innerText();for(const needle of ['https://github.com/Fantasicrap/Wuwatappo_Helper','DanielToyama','库洛','完全开源','免费','退款','仅供娱乐','创作者概不负责'])assert(text.includes(needle),needle);
   await page.setViewportSize({width:500,height:700});assert.equal(await page.locator('.about-page').evaluate(n=>n.scrollWidth>n.clientWidth+1),false,'Long GitHub links wrap inside the official dialog');await page.screenshot({path:path.join(output,'startup-notice-small-preview.png')});await page.setViewportSize({width:700,height:820});
   await page.getByRole('checkbox',{name:'我已阅读上述内容，后续不再提示',exact:true}).check();assert(await start.isEnabled());assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-helper-notice-accepted-v1')),null,'Checking without confirmation must not persist');await page.screenshot({path:path.join(output,'startup-notice-preview.png')});await start.click();await page.waitForFunction(()=>answer===true&&noticeClosed>0&&document.querySelector('.about-title')?.textContent!=='免责说明');
   const opensBefore=await page.evaluate(()=>noticeOpens);assert.equal(await page.evaluate(()=>notice.confirm()),true);assert.equal(await page.evaluate(()=>noticeOpens),opensBefore,'Subsequent startup skips the native window opener');
-  const restarted=await page.context().newPage();await restarted.goto('http://notice.test/');await restarted.addScriptTag({content:notice+';window.notice=__wtNotice;'});assert.equal(await restarted.evaluate(()=>notice.confirm()),true,'Persisted consent also skips startup in a fresh WebView without any native bridge calls');await restarted.close();
+  if(v105){
+   assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-locale')),'zh');
+   await page.evaluate(()=>{localStorage.removeItem('wuwatappo-locale');answer='pending';notice.confirm().then(v=>answer=v)});
+   await page.getByRole('heading',{name:'选择界面语言',exact:true}).waitFor();
+   await page.getByRole('button',{name:'English',exact:true}).click();
+   await page.getByRole('button',{name:'Start',exact:true}).click();
+   await page.waitForFunction(()=>answer===true&&localStorage.getItem('wuwatappo-locale')==='en');
+   assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-helper-notice-accepted-v1')),'1','An existing disclaimer acceptance remains valid');
+   await page.evaluate(()=>__wtLaunchLanguage.select('zh'));
+  }
+  const restarted=await page.context().newPage();await restarted.goto('http://notice.test/');await restarted.addScriptTag({content:localeFixture+'\n'+notice+';window.notice=__wtNotice;'});assert.equal(await restarted.evaluate(()=>notice.confirm()),true,'Persisted consent also skips startup in a fresh WebView without any native bridge calls');await restarted.close();
   await page.evaluate(()=>{localStorage.removeItem('wuwatappo-helper-notice-accepted-v1');answer='pending';notice.confirm().then(v=>answer=v)});await page.getByRole('heading',{name:'免责说明',exact:true}).waitFor();assert.equal(await page.getByRole('checkbox').isChecked(),false,'A new user must still confirm');await page.getByRole('checkbox').check();await page.getByRole('button',{name:'退出',exact:true}).click();await page.waitForFunction(()=>answer===false&&document.querySelector('.about-title')?.textContent!=='免责说明');assert.equal(await page.evaluate(()=>localStorage.getItem('wuwatappo-helper-notice-accepted-v1')),null,'Closing after checking cannot remember consent');
   await page.evaluate(()=>notice.open());await page.getByRole('heading',{name:'免责说明',exact:true}).waitFor();assert.equal(await page.getByRole('checkbox').count(),0);await page.getByRole('button',{name:'关闭',exact:true}).last().click();await page.evaluate(()=>notice.original());await page.getByRole('heading',{name:'关于Wuwa Tappo',exact:true}).waitFor();
   await page.evaluate(()=>{answer='pending';notice.confirm().then(v=>answer=v)});await page.getByRole('heading',{name:'免责说明',exact:true}).waitFor();await page.evaluate(async()=>{for(const fn of closeHandlers)await fn({preventDefault(){}})});await page.waitForFunction(()=>answer===false);

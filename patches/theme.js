@@ -39,6 +39,7 @@ const __wtTheme=(()=>{
 .wt-theme-text b{font-size:14px;line-height:1.35}
 .wt-theme-text small{font-size:12px;line-height:1.4;opacity:.82}
 .wt-theme-option[aria-pressed=true] b:after{content:'使用中';display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;background:#f6d49d;font-size:11px;font-weight:400;line-height:16px;vertical-align:1px}
+:root[lang=en] .wt-theme-option[aria-pressed=true] b:after{content:'Active'}
 .wt-aemeath-options{margin:12px 0 0;border-top:1px solid var(--wt-ui-divider,#ead7bf);padding-top:8px}
 .wt-aemeath-options>summary{cursor:pointer;color:var(--wt-ui-text,#694832);font-weight:600;padding:4px 0}
 .wt-aemeath-options .wt-theme-picker{margin-top:8px}

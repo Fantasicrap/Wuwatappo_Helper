@@ -6,6 +6,7 @@ const __wtKeyboardUi=(()=>{
  const css=`
 .wt-input-ui[hidden]{display:none!important}
 .wt-input-bubble{position:absolute;left:22%;top:43%;transform:translate(-50%,-50%);max-width:42%;box-sizing:border-box;padding:3px 7px;border:1px solid #bf966f;border-radius:12px;background:#fff5e4;color:#805639;font:600 clamp(10px,calc(var(--pet-base-size,200px) * .075),18px)/1.35 "Microsoft YaHei",sans-serif;text-align:center;overflow-wrap:anywhere;pointer-events:none;box-shadow:0 2px 3px #70442722;z-index:14}
+:root[lang=en] .wt-input-bubble{padding-inline:clamp(4px,calc(var(--pet-base-size,200px) * .035),8px);font-size:clamp(8px,calc(var(--pet-base-size,200px) * .065),17px);text-wrap:balance}
 .wt-input-bubble:after{content:'';position:absolute;width:5px;height:5px;bottom:-4px;left:65%;background:inherit;border-right:1px solid #bf966f;border-bottom:1px solid #bf966f;transform:rotate(45deg)}
 .cat-stack[data-wt-input-bubbles] .wt-phrolova-speech{left:auto!important;right:2%;max-width:47%!important}
 .cat-stack[data-wt-input-bubbles] .wt-phrolova-speech>i{left:24%!important}
@@ -20,6 +21,7 @@ const __wtKeyboardUi=(()=>{
  function readControls(){try{return localStorage.getItem(controlsKey)!=='hidden'}catch{return true}}
  function readPosition(){try{const p=localStorage.getItem(positionKey);return ['left','right'].includes(p)?p:'bottom'}catch{return 'bottom'}}
  const bubbleKey='wuwatappo-input-bubbles-v1';
+ const compactBubbles={'Left mouse button':'LMB','Right mouse button':'RMB','Middle mouse button':'MMB','Mouse button 4':'Mouse 4','Mouse button 5':'Mouse 5'};
  function readBubbles(){try{return localStorage.getItem(bubbleKey)==='1'}catch{return false}}
  function settings(ref,toast){const model={mode:ref(readMode()),controls:ref(readControls()),position:ref(readPosition()),bubbles:ref(readBubbles())};model.set=mode=>{model.mode.value=mode;saveMode(mode);toast('键盘映射已切换')};model.setPosition=p=>{if(!['bottom','left','right'].includes(p))return;model.position.value=p;try{localStorage.setItem(positionKey,p)}catch{}emit('wt-keyboard-config',{position:p}).catch(()=>{})};model.toggleControls=()=>{const visible=!model.controls.value;model.controls.value=visible;try{localStorage.setItem(controlsKey,visible?'visible':'hidden')}catch{}emit('wt-keyboard-config',{controls:visible}).catch(()=>{});toast(visible?'映射控制已显示':'映射控制已隐藏')};
   model.setBubbles=bubbles=>{
@@ -64,7 +66,10 @@ const __wtKeyboardUi=(()=>{
    if(bubble?.parentElement!==host){hideBubble();bubble=doc.createElement('div');bubble.className='wt-input-bubble';host.append(bubble)}
    // A theme may animate the bubble. Replay it for each input because the element is reused.
    else for(const animation of bubble.getAnimations?.({subtree:true})??[]){animation.currentTime=0;animation.play()}
-   bubble.textContent=label;clearTimeout(bubbleTimer);bubbleTimer=setTimeout(hideBubble,1000);
+   const fullLabel=globalThis.__wtTranslate?.(label)??label;
+   bubble.textContent=compactBubbles[fullLabel]??fullLabel;
+   bubble.setAttribute('aria-label',fullLabel);
+   clearTimeout(bubbleTimer);bubbleTimer=setTimeout(hideBubble,1000);
   }
   function inputActive(){return !!root&&!disposed&&(bubbleActive()||mode==='letters'||mode==='wuwa')&&(!deps.visible||deps.visible())}
   function syncActivity(){

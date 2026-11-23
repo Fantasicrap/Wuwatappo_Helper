@@ -23,6 +23,12 @@ static class HelperHost {
  const int DefaultPort=48642; static int Port=DefaultPort; static volatile bool running=true; static long lastRequest=-10000; static readonly object gate=new object(); static readonly Queue<Frame> history=new Queue<Frame>(); static long sequence; static string error=""; static readonly Stopwatch clock=Stopwatch.StartNew(); static readonly Dictionary<uint,Device> devices=new Dictionary<uint,Device>();
  static readonly Lazy<string> UiModule=new Lazy<string>(()=>ReadResourceText("controller-ui.js"));
  static string gameRuntime, gameProfile;
+ static string regionFile, loginProfile, languageFile;
+ static readonly object languageLock=new object();
+ static bool isGlobal, hasGlobal;
+ static volatile bool gameEnglish;
+ static volatile string nextRegion;
+ static long regionSwitchUntil;
  static bool ControllerDemandActive(long now,long last){return now-last<750;}
  static JavaScriptSerializer Serializer(){return new JavaScriptSerializer { MaxJsonLength=8000000 };}
  [DllImport("kernel32",CharSet=CharSet.Unicode)] static extern bool SetDllDirectory(string path);
@@ -109,17 +115,27 @@ static class HelperHost {
  }
  static void Reply(TcpClient client){using(client){client.ReceiveTimeout=2000;client.SendTimeout=2000;try{var stream=client.GetStream();var reader=new StreamReader(stream,Encoding.ASCII,false,1024,true);string first=reader.ReadLine();if(first==null||first.Length>2048)return;var parts=first.Split(' ');if(parts.Length<2)return;string origin="",range="",line;bool updateHeader=false,actionHeader=false;int len=0;while(!string.IsNullOrEmpty(line=reader.ReadLine())){len+=line.Length;if(len>16000)return;if(line.StartsWith("Origin:",StringComparison.OrdinalIgnoreCase))origin=line.Substring(7).Trim();if(line.StartsWith("Range:",StringComparison.OrdinalIgnoreCase))range=line.Substring(6).Trim();if(line.StartsWith("X-Wuwa-Update:",StringComparison.OrdinalIgnoreCase))updateHeader=line.Substring(14).Trim()=="1";if(line.StartsWith("X-Wuwa-Action:",StringComparison.OrdinalIgnoreCase))actionHeader=line.Substring(14).Trim()=="1";}int status=200;string type="application/json; charset=utf-8",body;
  if(!OriginAllowed(origin)){status=403;body="{}";}else if(parts[0]=="OPTIONS")body="{}";
- else if(!Lite&&parts[0]=="GET"&&parts[1]=="/denia-blocks"){type="text/html; charset=utf-8";body=ResourceText("denia-blocks.html");}
- else if(!Lite&&parts[0]=="GET"&&parts[1]=="/denia-blocks/falling"){type="text/html; charset=utf-8";body=ResourceText("denia-falling.html");}
+ else if(!Lite&&(parts[1]=="/autostart/status"||parts[1]=="/autostart/retarget")){
+  if(!UpdateOrigin(origin)||!actionHeader){status=403;body="{}";}
+  else if(parts[0]=="GET"&&parts[1]=="/autostart/status")body=Serializer().Serialize(new {managed=HelperAutostart.IsManaged()});
+  else if(parts[0]=="POST"&&parts[1]=="/autostart/retarget")body=Serializer().Serialize(new {accepted=HelperAutostart.Refresh(true)});
+  else{status=405;body="{}";}
+ }
+ else if(!Lite&&parts[1].StartsWith("/region/",StringComparison.Ordinal)){
+  if(!UpdateOrigin(origin)||!actionHeader){status=403;body="{}";}
+  else body=RegionAction(parts[0],parts[1]);
+ }
+ else if(!Lite&&parts[0]=="GET"&&parts[1]=="/denia-blocks"){type="text/html; charset=utf-8";body=GamePage("denia-blocks.html");}
+ else if(!Lite&&parts[0]=="GET"&&parts[1]=="/denia-blocks/falling"){type="text/html; charset=utf-8";body=GamePage("denia-falling.html");}
  else if(!Lite&&parts[0]=="GET"&&parts[1]=="/theme-packs")body=Serializer().Serialize(ThemePackages.Catalog());
  else if(!Lite&&parts[0]=="GET"&&parts[1].StartsWith("/theme-assets/",StringComparison.Ordinal)){
   if(ServeThemeAsset(stream,parts[1],origin,range))return;status=404;body="{}";
  }
- else if(!Lite&&(parts[1]=="/theme-packs/import"||parts[1]=="/denia-blocks/open")){
+ else if(!Lite&&(parts[1]=="/theme-packs/import"||parts[1]=="/denia-blocks/open"||parts[1]=="/denia-blocks/open?lang=en")){
   if(!UpdateOrigin(origin)){status=403;body="{}";}
   else if(parts[0]!="POST"||!actionHeader){status=405;body="{}";}
   else if(parts[1]=="/theme-packs/import")body=Serializer().Serialize(ThemePackages.Pick());
-  else body=Serializer().Serialize(new { accepted = OpenDeniaGame() });
+  else {gameEnglish=parts[1].EndsWith("?lang=en",StringComparison.Ordinal);body=Serializer().Serialize(new { accepted = OpenDeniaGame() });}
  }
  else if(parts[0]=="GET"&&parts[1].StartsWith("/player-scroll?after=",StringComparison.Ordinal)){
   long after;
@@ -137,12 +153,56 @@ static class HelperHost {
  byte[] bytes=Encoding.UTF8.GetBytes(body);string headers="HTTP/1.1 "+status+" Response\r\nContent-Type: "+type+"\r\nContent-Length: "+bytes.Length+"\r\nCache-Control: no-store\r\nConnection: close\r\nX-Content-Type-Options: nosniff\r\n";
  if(status==200&&type.StartsWith("text/html",StringComparison.Ordinal))headers+="X-Frame-Options: DENY\r\n";
  if(OriginAllowed(origin)&&origin!="")headers+="Access-Control-Allow-Origin: "+origin+"\r\nVary: Origin\r\nAccess-Control-Allow-Methods: GET, "+(UpdateOrigin(origin)?"POST, ":"")+"OPTIONS\r\n"+(UpdateOrigin(origin)?"Access-Control-Allow-Headers: X-Wuwa-Update, X-Wuwa-Action, Range\r\n":"Access-Control-Allow-Headers: Range\r\n")+"Access-Control-Allow-Private-Network: true\r\n";byte[] head=Encoding.ASCII.GetBytes(headers+"\r\n");stream.Write(head,0,head.Length);stream.Write(bytes,0,bytes.Length);}catch{}}}
+ static string GamePage(string resource){
+  string page=ResourceText(resource);
+  return gameEnglish?page.Replace("<html lang=\"zh-CN\">","<html lang=\"en\">"):page;
+ }
  static bool OpenDeniaGame(){
 #if HELPER_LITE
   return false;
 #else
   return gameRuntime!=null&&ThemePackages.HasEffect("denia","blocks")&&DeniaGameWindow.Show(
-   "http://127.0.0.1:"+Port+"/denia-blocks",gameProfile,()=>Extract("WebView2Loader.dll",gameRuntime));
+   "http://127.0.0.1:"+Port+"/denia-blocks",gameProfile,()=>Extract("WebView2Loader.dll",gameRuntime),gameEnglish);
+#endif
+ }
+ static string RegionAction(string method,string path){
+#if HELPER_LITE
+  return "{}";
+#else
+  var fields=path.Split('/');
+  if(fields[2]=="language"&&!String.IsNullOrEmpty(languageFile)){
+   lock(languageLock){
+    try {
+     if(method=="GET"&&fields.Length==3){
+      string locale=File.Exists(languageFile)?File.ReadAllText(languageFile).Trim():null;
+      return Serializer().Serialize(new {locale=locale=="zh"||locale=="en"?locale:null});
+     }
+     if(method=="POST"&&fields.Length==4&&(fields[3]=="zh"||fields[3]=="en")){
+      string staged=languageFile+".tmp";
+      File.WriteAllText(staged,fields[3]);
+      if(File.Exists(languageFile))File.Replace(staged,languageFile,null);
+      else File.Move(staged,languageFile);
+      return "{\"accepted\":true}";
+     }
+    }catch(IOException){}catch(UnauthorizedAccessException){}
+   }
+   return "{\"accepted\":false}";
+  }
+  if(method=="POST"&&fields.Length==4&&fields[2]=="switch"){
+   bool allowed=!String.IsNullOrEmpty(regionFile)&&hasGlobal;
+   if(allowed&&(fields[3]=="cn"||fields[3]=="global"||fields[3]=="cancel")){
+    Interlocked.Exchange(ref regionSwitchUntil,clock.ElapsedMilliseconds+25000);
+    nextRegion=fields[3]=="cancel"?null:fields[3];
+    return "{\"accepted\":true}";
+   }
+  }
+  if(isGlobal&&fields.Length>=5&&fields[2]=="auth"){
+   if(method=="POST"&&fields.Length==6&&fields[3]=="open")
+    return Serializer().Serialize(new {accepted=GlobalSignInWindow.Open(fields[4],fields[5],loginProfile,()=>Extract("WebView2Loader.dll",gameRuntime))});
+   if(method=="GET"&&fields.Length==5&&fields[3]=="result")
+    return Serializer().Serialize(GlobalSignInWindow.Poll(fields[4]));
+  }
+  return "{\"accepted\":false}";
 #endif
  }
  static Assembly ResolveGameAssembly(object sender,ResolveEventArgs args){
@@ -152,7 +212,7 @@ static class HelperHost {
  }
  static string ReadResourceText(string name){using(var s=Assembly.GetExecutingAssembly().GetManifestResourceStream(name))using(var r=new StreamReader(s,Encoding.UTF8))return r.ReadToEnd();}
  static string ResourceText(string name){return name=="controller-ui.js"?UiModule.Value:ReadResourceText(name);}
- static string Extract(string name,string folder){string path=Path.Combine(folder,name);using(var source=Assembly.GetExecutingAssembly().GetManifestResourceStream(name)){
+ static string Extract(string name,string folder,string filename=null){string path=Path.Combine(folder,filename??name);using(var source=Assembly.GetExecutingAssembly().GetManifestResourceStream(name)){
  if(source==null)throw new InvalidOperationException("Missing embedded resource: "+name);
  if(File.Exists(path)&&new FileInfo(path).Length==source.Length){using(var h=SHA256.Create())using(var existing=File.OpenRead(path)){if(h.ComputeHash(existing).SequenceEqual(h.ComputeHash(source)))return path;}}
  // Stream the embedded payload; whole-file arrays otherwise leave hundreds of
@@ -163,11 +223,31 @@ static class HelperHost {
  // The upstream payload requests requireAdministrator. ShellExecute lets Windows
  // request consent instead of CreateProcess immediately failing with error 740.
  static ProcessStartInfo ChildStartInfo(string payload,string folder){return new ProcessStartInfo(payload){WorkingDirectory=folder,UseShellExecute=true};}
+ static Process StartDesktop(string payload,string folder,string helperData){
+  if(!isGlobal)return Process.Start(ChildStartInfo(payload,folder));
+  const string key="WEBVIEW2_USER_DATA_FOLDER";
+  string original=Environment.GetEnvironmentVariable(key);
+  var profile=Path.Combine(helperData,"global-profile");
+  Directory.CreateDirectory(profile);
+  try{
+   Environment.SetEnvironmentVariable(key,profile);
+   return Process.Start(ChildStartInfo(payload,folder));
+  }finally{Environment.SetEnvironmentVariable(key,original);}
+ }
  static bool ElevationCancelled(Win32Exception ex){return ex.NativeErrorCode==1223;}
  static bool KeepAliveAfterExit(bool hasPet,long now,ref long missingSince){if(hasPet){missingSince=-1;return true;}if(missingSince<0)missingSince=now;return now-missingSince<3000;}
  static bool PetAlive(ref Process child,ref long missingSince,ref long nextScan){long now=clock.ElapsedMilliseconds;if(child!=null&&!child.HasExited)return KeepAliveAfterExit(true,now,ref missingSince);if(now>=nextScan){nextScan=now+250;foreach(var candidate in Process.GetProcessesByName("WuwaTappo")){try{if(!candidate.HasExited){if(child!=null)child.Dispose();child=candidate;return KeepAliveAfterExit(true,now,ref missingSince);}}catch{}candidate.Dispose();}}return KeepAliveAfterExit(false,now,ref missingSince);}
  [STAThread] static int Main(string[] args){
  if(!Lite&&HelperUpdate.IsWorker(args))return HelperUpdate.Apply(args);
+ if(!Lite&&args.Length==1&&args[0]==HelperAutostart.Worker)return HelperAutostart.Refresh(false)?0:1;
+ int result=RunDesktop(args);
+ if(result==73){
+  try{Process.Start(ChildStartInfo(Assembly.GetExecutingAssembly().Location,AppDomain.CurrentDomain.BaseDirectory));return 0;}
+  catch(Win32Exception error){MessageBox.Show(error.Message,"Wuwatappo Helper");return 1;}
+ }
+ return result;
+ }
+ static int RunDesktop(string[] args){
  bool probe=args.Contains("--probe");
  int probeProfile=Array.IndexOf(args,"--probe-profile");
  bool isolatedProbe=probe&&probeProfile>=0&&probeProfile+1<args.Length;
@@ -180,7 +260,14 @@ static class HelperHost {
  string mutexName="Local\\WuwatappoHelperControllerHostV1"+(Port==DefaultPort?"":"-probe-"+Port);
  bool created;using(var mutex=new Mutex(true,mutexName,out created)){if(!created){if(!probe)MessageBox.Show("请先退出正在运行的 Helper（包括托盘进程）再启动新版。","Wuwatappo Helper");return 2;}if(!probe&&Process.GetProcessesByName("WuwaTappo").Length>0){MessageBox.Show("检测到桌宠已经运行（可能来自开机启动或旧版）。请先从托盘完全退出桌宠，再运行带版本号的 Helper，否则本地辅助服务无法正确启动。","Wuwatappo Helper");return 2;}TcpListener listener=null;Process child=null;IntPtr ev=IntPtr.Zero;bool initialized=false;try{
  string helperData=isolatedProbe?Path.GetFullPath(args[probeProfile+1]):Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Wuwatappo_Helper");
- string folder=Path.Combine(helperData,"runtime",ResourceText("runtime-id").Trim());Directory.CreateDirectory(folder);string payload=Extract("WuwaTappo.exe",folder);if(!Lite){
+ hasGlobal=!Lite&&Assembly.GetExecutingAssembly().GetManifestResourceInfo("global/WuwaTappo.exe")!=null;
+ regionFile=Path.Combine(helperData,"region.txt");
+ languageFile=Path.Combine(helperData,"language.txt");
+ isGlobal=hasGlobal&&File.Exists(regionFile)&&File.ReadAllText(regionFile).Trim()=="global";
+ HelperUpdate.GlobalRegion=isGlobal;
+ loginProfile=Path.Combine(helperData,"global-sign-in");
+ string folder=Path.Combine(helperData,"runtime",ResourceText("runtime-id").Trim()+(isGlobal?"-global":""));Directory.CreateDirectory(folder);
+ string payload=Extract(isGlobal?"global/WuwaTappo.exe":"WuwaTappo.exe",folder,"WuwaTappo.exe");if(!Lite){
  Extract("SDL3.dll",folder);Extract("SDL3-LICENSE.txt",folder);SetDllDirectory(folder);
  ThemePackages.Initialize(Path.Combine(helperData,"themes"));
  gameRuntime=folder;gameProfile=Path.Combine(helperData,"denia-game");
@@ -189,7 +276,9 @@ static class HelperHost {
  ev=Marshal.AllocHGlobal(256);
  }
  if(!probe){if(!Lite){HelperUpdate.Start(true);MouseCapture.Start();}
- child=Process.Start(ChildStartInfo(payload,folder));
+ child=StartDesktop(payload,folder,helperData);
+ if(child!=null&&!Lite&&!args.Contains(HelperAutostart.LaunchArgument))
+  ThreadPool.QueueUserWorkItem(_=>HelperAutostart.Refresh(true));
  if(child==null)throw new InvalidOperationException("Windows 未返回桌宠进程，请退出旧版后重试。");}long refreshAt=0,probeEnd=clock.ElapsedMilliseconds+60000;
  long missingSince=-1,nextScan=0,retryAt=0;while(running&&(probe?clock.ElapsedMilliseconds<probeEnd:PetAlive(ref child,ref missingSince,ref nextScan))){long now=clock.ElapsedMilliseconds;bool active=!Lite&&ControllerDemandActive(now,Interlocked.Read(ref lastRequest));
  if(active&&!initialized&&now>=retryAt){SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS","1");SDL_SetHint("SDL_JOYSTICK_HIDAPI","1");initialized=SDL_Init(0x2000);retryAt=now+5000;if(!initialized)error=Utf8(SDL_GetError());else{error="";retryAt=0;tickOffset=now-(long)(SDL_GetTicksNS()/1000000);refreshAt=now-750;}}
@@ -199,7 +288,16 @@ static class HelperHost {
  if(type==0x606||type==0x654){if(devices.TryGetValue(id,out device)){Close(device);devices.Remove(id);if(active)Publish(at);}continue;}
  if(type==0x605||type==0x653||type==0x655){if(type==0x655&&devices.TryGetValue(id,out device)){Close(device);devices.Remove(id);if(active)Publish(at);}Refresh();if(active)Publish(at);continue;}
  if(devices.TryGetValue(id,out device)&&ApplyInput(device.state,ev)&&active)Publish(at);}
- if(drained<256){foreach(var device in devices.Values)device.state=Read(device);Publish(clock.ElapsedMilliseconds);}}Thread.Sleep(active?16:150);}if(!probe&&!Lite)HelperUpdate.Handoff();return 0;
+ if(drained<256){foreach(var device in devices.Values)device.state=Read(device);Publish(clock.ElapsedMilliseconds);}}Thread.Sleep(active?16:150);}
+ string selected=nextRegion;
+ if(!probe&&selected!=null&&clock.ElapsedMilliseconds<=Interlocked.Read(ref regionSwitchUntil)&&(selected=="global")!=isGlobal){
+  string staged=regionFile+".tmp";
+  File.WriteAllText(staged,selected);
+  if(File.Exists(regionFile))File.Replace(staged,regionFile,null);
+  else File.Move(staged,regionFile);
+  return 73;
+ }
+ if(!probe&&!Lite)HelperUpdate.Handoff();return 0;
  }catch(Win32Exception ex){if(ElevationCancelled(ex)){if(!args.Contains("--probe"))MessageBox.Show("已取消 Windows 权限确认，桌宠未启动。需要使用时，请重新运行 Helper 并确认系统提示。","Wuwatappo Helper");return 3;}if(args.Contains("--probe")){Console.Error.WriteLine(ex.Message);return 1;}MessageBox.Show("启动失败："+ex.Message,"Wuwatappo Helper");return 1;}catch(Exception ex){if(args.Contains("--probe")){Console.Error.WriteLine(ex.Message);return 1;}MessageBox.Show("启动失败："+ex.Message,"Wuwatappo Helper");return 1;}finally{running=false;
  if(!Lite)MouseCapture.Stop();if(listener!=null)listener.Stop();foreach(var d in devices.Values)Close(d);if(ev!=IntPtr.Zero)Marshal.FreeHGlobal(ev);if(initialized)SDL_Quit();}}}
 }

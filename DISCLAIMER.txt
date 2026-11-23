@@ -19,3 +19,23 @@ PR #4：https://github.com/Fantasicrap/Wuwatappo_Helper/pull/4
 请勿将本项目用于违法违规活动。
 
 确认前请阅读以上内容；同意后才能继续启动桌宠。关闭窗口或选择“退出”将取消本次启动。
+
+--- EN ---
+
+Wuwatappo_Helper disclaimer
+
+Project on GitHub: https://github.com/Fantasicrap/Wuwatappo_Helper
+
+This Helper is free and open source. There are no purchases, paid activation or locked paid features.
+If you paid for a copy, request a refund from the seller immediately.
+
+For entertainment only. The creators accept no liability for its use.
+
+Thanks to KURO GAMES for creating Wuwa Tappo and to every contributor, co-author, reporter and tester, including DanielToyama for merged pull request #4.
+Contributor: https://github.com/DanielToyama
+PR #4: https://github.com/Fantasicrap/Wuwatappo_Helper/pull/4
+
+This unofficial Helper is not affiliated with Wuwa Tappo's creators or rights holders. The original program, names, characters, accessories, emotes, backgrounds and other assets belong to their respective rights holders. Use the Helper at your own discretion. Compatibility with future updates and acceptance of local changes by the server are not guaranteed.
+Inventory images are generated from the current account's inventory. The Helper does not automatically upload or share them. Follow applicable laws when using the project.
+
+Read this notice before confirming. Closing the window or choosing Exit cancels startup.

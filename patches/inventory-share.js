@@ -1,6 +1,7 @@
 // Kept in the shared resource: the panel resource has a fixed compressed footprint.
 const __wtInventoryShare=(()=>{
   const kinds=[['character_skin','角色'],['accessory','配件'],['emote','表情']];
+  const tr=value=>globalThis.__wtTranslate?.(value)??value;
   const rarityOrder=['epic','rare','uncommon','common'];
   const rarityFiles={common:'atlas-thumb-1-BLGUkvwT.png',uncommon:'atlas-thumb-2-CSkXBHLD.png',rare:'atlas-thumb-3-Cf7ixdnU.png',epic:'atlas-thumb-4-CDuzFic3.png'};
   const rarityLegend=[
@@ -109,9 +110,9 @@ const __wtInventoryShare=(()=>{
     ctx.fillStyle='#fff9ed';ctx.strokeStyle='#dfc5a2';ctx.lineWidth=1.5;
     ctx.beginPath();ctx.roundRect(580,18,390,196,16);ctx.fill();ctx.stroke();
     ctx.fillStyle='#8e5e43';ctx.font='bold 19px "Microsoft YaHei",sans-serif';
-    ctx.fillText('稀有度占比',600,49);
+    ctx.fillText(tr('稀有度占比'),600,49);
     ctx.font='12px "Microsoft YaHei",sans-serif';
-    ctx.fillText('当前库存',832,73);ctx.fillText('官方参考',907,73);
+    ctx.fillText(tr('当前库存'),832,73,70);ctx.fillText(tr('官方参考'),907,73,58);
     const cx=667,cy=126,r=56;let angle=-Math.PI/2;
     if(!total){ctx.fillStyle='#ddd3c5';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill()}
     rarityLegend.forEach(([key,name,color,reference],index)=>{
@@ -127,8 +128,8 @@ const __wtInventoryShare=(()=>{
       ctx.fillText(reference,907,y);
     });
     ctx.fillStyle='#8e7b6a';ctx.font='14px "Microsoft YaHei",sans-serif';
-    ctx.fillText('按当前库存件数统计，包含重复物品',pad,112);
-    if(unknown)ctx.fillText('未识别稀有度 '+unknown+' 件，未计入饼图',pad,137);
+    ctx.fillText(tr('按当前库存件数统计，包含重复物品'),pad,112,530);
+    if(unknown)ctx.fillText(tr('未识别稀有度 '+unknown+' 件，未计入饼图'),pad,137,530);
   }
   async function draw(page,groups,options){
     const canvas=options.document.createElement('canvas');canvas.width=width;canvas.height=page.height;
@@ -137,13 +138,13 @@ const __wtInventoryShare=(()=>{
     try{
       ctx.fillStyle=options.background.color;ctx.fillRect(0,0,width,page.height);
       ctx.globalAlpha=options.background.opacity;ctx.fillStyle=ctx.createPattern(options.background.pattern,'repeat');ctx.fillRect(0,0,width,page.height);ctx.globalAlpha=1;
-      ctx.fillStyle='#8e5e43';ctx.font='bold 32px "Microsoft YaHei", sans-serif';ctx.fillText('WuwaTappo · 我的库存',pad,48);
+      ctx.fillStyle='#8e5e43';ctx.font='bold 32px "Microsoft YaHei", sans-serif';ctx.fillText(tr('WuwaTappo · 我的库存'),pad,48,530);
       ctx.font='17px "Microsoft YaHei", sans-serif';
-      ctx.fillText(groups.map(group=>group.title+' '+group.items.length+' 种').join('　'),pad,80);
+      ctx.fillText(groups.map(group=>tr(group.title)+' '+group.items.length+tr(' 种')).join('　'),pad,80,530);
       drawRarity(ctx,options.composition??composition(groups));
       for(const block of page.blocks){
-        ctx.font='bold 25px "Microsoft YaHei", sans-serif';ctx.fillStyle='#8e5e43';ctx.fillText(block.title+'  /  '+block.total+' 种',pad,block.y+31);
-        if(!block.items.length){ctx.font='18px "Microsoft YaHei", sans-serif';ctx.fillText('暂无已拥有的'+block.title,pad,block.y+95)}
+        ctx.font='bold 25px "Microsoft YaHei", sans-serif';ctx.fillStyle='#8e5e43';ctx.fillText(tr(block.title)+'  /  '+block.total+tr(' 种'),pad,block.y+31);
+        if(!block.items.length){ctx.font='18px "Microsoft YaHei", sans-serif';ctx.fillText(tr('暂无已拥有的'+block.title),pad,block.y+95)}
       }
       const slots=positions(page);let next=0;
       async function worker(){
@@ -157,7 +158,7 @@ const __wtInventoryShare=(()=>{
             const size=Math.min((cell-20)/bitmap.width,126/bitmap.height);
             if(!Number.isFinite(size)||size<=0)throw Error('无效的图片尺寸');
             const w=bitmap.width*size,h=bitmap.height*size;ctx.drawImage(bitmap,x+(cell-w)/2,y+7+(126-h)/2,w,h);
-          }catch{if(options.signal?.aborted)return;failed++;ctx.fillStyle='#a44b37';ctx.font='16px "Microsoft YaHei", sans-serif';ctx.fillText('素材加载失败',x+22,y+72)}
+          }catch{if(options.signal?.aborted)return;failed++;ctx.fillStyle='#a44b37';ctx.font='16px "Microsoft YaHei", sans-serif';ctx.fillText(tr('素材加载失败'),x+22,y+72,cell-36)}
           finally{bitmap?.close?.()}
           ctx.fillStyle='#8e5e43';ctx.font='15px "Microsoft YaHei", sans-serif';text(ctx,caption(item),x+9,y+165,cell-18);
           ctx.font='12px "Microsoft YaHei", sans-serif';text(ctx,seriesName(item),x+9,y+185,cell-18);
@@ -168,7 +169,7 @@ const __wtInventoryShare=(()=>{
       await Promise.all(Array.from({length:Math.min(6,slots.length)},worker));
       if(options.signal?.aborted)throw Error('已取消生成');
       ctx.fillStyle='#8e5e43';ctx.font='14px "Microsoft YaHei", sans-serif';
-      ctx.fillText(options.timestamp+(failed?'　有 '+failed+' 个素材未加载，请重试':'')+'　'+options.pageLabel,pad,page.height-15);
+      ctx.fillText(options.timestamp+(failed?'　'+tr('有 '+failed+' 个素材未加载，请重试'):'')+'　'+options.pageLabel,pad,page.height-15);
       const blob=await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(Error('PNG导出失败')),'image/png'));
       return {blob,failed,width,height:page.height};
     }finally{canvas.width=1;canvas.height=1}

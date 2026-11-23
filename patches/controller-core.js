@@ -18,6 +18,17 @@ export const ControllerCore=(()=>{
   function clear(){stop('已清除');last=null;rows=[];before=null}
   return {begin,input,stop,clear,get active(){return active},get last(){return last},get count(){return rows.length},get duration(){return active?Math.max(0,before.ms-start):last?.duration??0}}
  }
- function txt(r){const name=k=>k.startsWith('axis')?axes[+k.slice(4)]:k+'('+r.labels[+k.slice(1)]+')';return '\uFEFF'+['手柄操作录制','开始时间（UTC）：'+r.started,'设备：'+r.name,'输入模式：'+r.mapping,'总时长（毫秒）：'+r.duration,'结束原因：'+r.reason,'初始按键：'+r.initial.buttons.map((v,i)=>v?name('B'+i):'').filter(Boolean).join(' / '),'初始轴值：'+r.initial.axes.join(' / '),'时间基准：原生采集服务单调采样时钟；开始前已按住的键不记录孤立松开。','','时间（毫秒）\t控件\t动作\t数值\t按住（毫秒）\t备注',...r.events.map(e=>[e.t,name(e.control),e.action,e.value,e.hold??'',e.synthetic?'停止时补记（非实际松开）':''].join('\t'))].join('\r\n')+'\r\n'}
+ function txt(r){
+  const t=value=>globalThis.__wtTranslate?.(value)??value;
+  const name=k=>k.startsWith('axis')?t(axes[+k.slice(4)]):k+'('+t(r.labels[+k.slice(1)])+')';
+  const field=(key,value)=>t(key)+(t(key)===key?'':' ')+value;
+  const cols=['时间（毫秒）','控件','动作','数值','按住（毫秒）','备注'].map(t).join('\t');
+  const lines=[t('手柄操作录制'),field('开始时间（UTC）：',r.started),field('设备：',r.name),field('输入模式：',r.mapping),
+   field('总时长（毫秒）：',r.duration),field('结束原因：',t(r.reason)),
+   field('初始按键：',r.initial.buttons.map((v,i)=>v?name('B'+i):'').filter(Boolean).join(' / ')),
+   field('初始轴值：',r.initial.axes.join(' / ')),t('时间基准：原生采集服务单调采样时钟；开始前已按住的键不记录孤立松开。'),'',cols];
+  for(const e of r.events)lines.push([e.t,name(e.control),t(e.action),e.value,e.hold??'',e.synthetic?t('停止时补记（非实际松开）'):''].join('\t'));
+  return '\uFEFF'+lines.join('\r\n')+'\r\n';
+ }
  return {names,axes,config,layout,labels,profile,normalise,recorder,txt,clamp};
 })();

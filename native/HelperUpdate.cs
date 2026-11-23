@@ -16,16 +16,18 @@ static class HelperUpdate
     const string Releases = "https://github.com/" + Repo + "/releases";
     const string MirrorHost = "gh-proxy.com";
     const string GitHubSource = "github", MirrorSource = "gh-proxy";
-    const string OfficialHost = "mc-wuwatappo.kurogames-global.com";
-    const string OfficialIndex = "https://" + OfficialHost + "/app/json-host/latest_host.json";
+    const string ChinaHost = "mc-wuwatappo.kurogames-global.com";
+    const string GlobalHost = "wutheringwaves-wuwatappo.kurogames-global.com";
     const string InstalledName = "Wuwatappo_Helper.exe";
     const string Worker = "--apply-helper-update";
     const long MaxDownload = 256L * 1024 * 1024;
     static readonly object Gate = new object();
     static readonly string Folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Wuwatappo_Helper", "update");
     static readonly string Exe = Assembly.GetExecutingAssembly().Location;
-    static readonly string CheckedPath = Path.Combine(Folder, "checked-" + Current + ".txt");
-    static readonly string OfficialPath = Path.Combine(Folder, "official.txt");
+    internal static bool GlobalRegion { get; set; }
+    static string OfficialHost { get { return GlobalRegion ? GlobalHost : ChinaHost; } }
+    static string CheckedPath { get { return Path.Combine(Folder, "checked-" + Current + (GlobalRegion ? "-global" : "") + ".txt"); } }
+    static string OfficialPath { get { return Path.Combine(Folder, GlobalRegion ? "official-global.txt" : "official.txt"); } }
     static readonly string SourcePath = Path.Combine(Folder, "download-source.txt");
     static string downloadSource = ReadText(SourcePath) == MirrorSource ? MirrorSource : GitHubSource;
     static string state = "idle", message = "", releaseUrl = Releases;
@@ -160,7 +162,8 @@ static class HelperUpdate
 
     static Version ReadOfficial()
     {
-        var data = Object(ReadJson(new Uri(OfficialIndex + "?v=" + DateTime.UtcNow.Ticks)));
+        string index = "https://" + OfficialHost + "/app/json-host/" + (GlobalRegion ? "latest-global_host.json" : "latest_host.json");
+        var data = Object(ReadJson(new Uri(index + "?v=" + DateTime.UtcNow.Ticks)));
         Uri uri;
         if (!Uri.TryCreate(Value(data, "url") as string, UriKind.Absolute, out uri) || !SecureHost(uri, OfficialHost))
             throw new InvalidDataException("官方版本清单地址无效。");
