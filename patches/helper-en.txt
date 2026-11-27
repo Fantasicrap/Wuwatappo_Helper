@@ -574,3 +574,89 @@ A/D 或 ←/→ 移动　R 或 ↑ 旋转|A/D or ←/→: Move · R or ↑: Rota
 当前装扮素材尚未就绪，请稍后重试|The current outfit is still loading. Please try again.
 来自桌面的一张明信片|A postcard from my desktop
 账号已切换，请重试|Account changed. Please try again.
+卸载当前主题包|Remove active theme
+在线获取主题包|Download theme packs
+下载爱弥斯|Download Aemeath
+下载达妮娅|Download Denia
+下载弗洛洛|Download Phrolova
+正在查询主题包…|Checking theme pack…
+请运行新版完整 Helper 以在线下载主题包。|Run the latest full Helper to download theme packs online.
+无法启动主题包下载。|Could not start theme pack download.
+主题包下载失败。|Could not download the theme pack.
+主题包下载失败，请检查网络或手动导入。|Could not download the theme pack. Check your network or import manually.
+确定卸载当前主题包并切回原版暖色吗？|Remove the current theme pack and switch back to Classic warm?
+无法卸载主题包，请重试。|Could not remove the theme pack. Try again.
+主题包卸载失败。|Failed to remove the theme pack.
+正在查询主题包发布信息…|Checking theme pack release…
+正在下载主题包…|Downloading theme pack…
+正在校验并安装主题包…|Verifying and installing theme pack…
+主题包安装完成。|Theme pack installed.
+已有主题包正在下载，请稍候。|Another theme pack download is in progress.
+未知主题包。|Unknown theme pack.
+下载失败，请检查网络后重试。|Download failed. Check your network and try again.
+主题包下载校验失败，请重试。|Theme pack verification failed. Please try again.
+当前发布页未找到该主题包。|This theme pack was not found on the release page.
+未能连接到 GitHub 发布页。|Could not reach the GitHub release page.
+播放进度|Playback progress
+播放器音量|Player volume
+静音|Mute
+取消静音|Unmute
+顺序循环|Repeat all
+单曲循环|Repeat one
+随机播放|Shuffle
+播放模式：顺序循环|Playback mode: Repeat all
+播放模式：单曲循环|Playback mode: Repeat one
+播放模式：随机播放|Playback mode: Shuffle
+清除文件夹|Clear folder
+已清除本地音乐文件夹|Local music folder cleared
+无法打开音乐文件夹|Could not open the music folder
+搜索房间号或备注|Search room ID or note
+搜索房间号或备注…|Search room ID or note…
+当前账号 · 最近 100 个房间|Current account · Last 100 rooms
+点击房间号即可进入；切换时会先退出当前房间。|Click a room to join; switching leaves your current room first.
+仅记录本机开启此功能后成功进入的房间。|Records only rooms you successfully enter on this device.
+没有匹配的房间记录。|No matching rooms found.
+已置顶|Pinned
+复制|Copy
+已复制|Copied
+复制房间号失败|Could not copy the room ID
+删除|Delete
+已删除该历史记录|History entry deleted
+附加日期与计数印章|Include date and click stamp
+融合自定义面板背景|Blend custom panel background
+点击|Clicks
+配置备份与恢复|Backup and restore
+仅含 Helper 本地设置、备注与快捷键，不含账号登录凭据|Includes local Helper settings, notes and shortcuts only. No sign-in credentials.
+导出配置|Export
+导入配置|Import
+包含自定义面板背景|Include custom panel backgrounds
+导出配置失败，请重试。|Could not export settings. Try again.
+导入配置失败。|Could not import settings.
+配置文件过大或格式无效。|Backup file is too large or invalid.
+无法解析 JSON 配置文件。|Could not parse the JSON backup file.
+不是有效的 Wuwatappo Helper 备份文件。|Not a valid Wuwatappo Helper backup file.
+正在下载更新…|Downloading update…
+自定义鸣潮专属键位|Customize Wuthering Waves 9-key layout
+点击任意槽位后按下键盘按键，或下方快捷填入鼠标中键/侧键。与已有槽位重复时会自动互换。|Click a slot and press a key, or pick a mouse button below. Duplicates swap automatically.
+上排 1|Top 1
+上排 2|Top 2
+上排 3|Top 3
+中排 1|Middle 1
+中排 2|Middle 2
+中排 3|Middle 3
+底宽键|Bottom
+右侧键 1|Side 1
+右侧键 2|Side 2
+请按键盘按键或点下方鼠标键…|Press a key or pick a mouse button below…
+请按键…|Press key…
+暂不支持此按键，请使用字母、数字、F1–F12、Shift/Tab/Ctrl/Alt、空格或鼠标键。|Key not supported. Use letters, digits, F1–F12, Shift/Tab/Ctrl/Alt, Space or mouse buttons.
+恢复默认 9 键|Reset default 9 keys
+已恢复默认 9 键。|Restored default 9 keys.
+侧键1|MB4
+侧键2|MB5
+鸣潮专属仅录制当前面板配置的 9 个键位，默认 1/2/3、Q/E/R、空格和鼠标左右键。|Records only the 9 configured keys (default: 1/2/3, Q/E/R, Space and left/right click).
+录制鸣潮专属面板上的 9 个键位|Record the 9 configured Wuthering Waves keys
+复制摘要|Copy summary
+复制摘要失败，请使用导出 TXT|Could not copy summary. Use Export TXT instead.
+次按键|presses
+平均节奏：|Average pace:

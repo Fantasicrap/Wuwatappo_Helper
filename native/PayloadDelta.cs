@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -56,6 +57,17 @@ static class PayloadDelta
         };
     }
 
+    static void ReadMeta(Stream meta, out long length, out byte[] sha256)
+    {
+        var buf = new byte[40];
+        ReadExact(meta, buf, 0, 40);
+        if (meta.ReadByte() != -1) throw new InvalidDataException("Unexpected trailing bytes in resource metadata.");
+        length = BitConverter.ToInt64(buf, 0);
+        if (length < 0) throw new InvalidDataException("Invalid resource length.");
+        sha256 = new byte[32];
+        Buffer.BlockCopy(buf, 8, sha256, 0, 32);
+    }
+
     static bool FileMatches(string path, long expectedLength, byte[] expectedSha256)
     {
         if (!File.Exists(path) || new FileInfo(path).Length != expectedLength) return false;
@@ -79,10 +91,56 @@ static class PayloadDelta
         }
     }
 
+    internal static Stream OpenResourceStream(Assembly assembly, string name)
+    {
+        string compressed = name + ".deflate";
+        var deflate = assembly.GetManifestResourceStream(compressed);
+        if (deflate != null) return new DeflateStream(deflate, CompressionMode.Decompress, false);
+        var raw = assembly.GetManifestResourceStream(name);
+        if (raw == null) throw new InvalidOperationException("Missing embedded resource: " + name);
+        return raw;
+    }
+
+    internal static string TryExtractCompressed(Assembly assembly, string name, string folder, string filename)
+    {
+        string compressed = name + ".deflate";
+        string metaName = name + ".meta";
+        if (assembly.GetManifestResourceInfo(compressed) == null || assembly.GetManifestResourceInfo(metaName) == null)
+            return null;
+        long expectedLength;
+        byte[] expectedSha256;
+        using (var meta = assembly.GetManifestResourceStream(metaName))
+            ReadMeta(meta, out expectedLength, out expectedSha256);
+        string path = Path.Combine(folder, filename ?? name);
+        if (FileMatches(path, expectedLength, expectedSha256)) return path;
+
+        string temp = path + "." + Process.GetCurrentProcess().Id + ".tmp";
+        var buffer = new byte[BufferSize];
+        try
+        {
+            using (var rawCompressed = assembly.GetManifestResourceStream(compressed))
+            using (var decompressor = new DeflateStream(rawCompressed, CompressionMode.Decompress, false))
+            using (var sha = SHA256.Create())
+            using (var target = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                CopyAndHash(decompressor, target, expectedLength, buffer, sha, null);
+                if (decompressor.ReadByte() != -1)
+                    throw new InvalidDataException("Unexpected trailing bytes in compressed resource: " + name);
+                sha.TransformFinalBlock(new byte[0], 0, 0);
+                if (!sha.Hash.SequenceEqual(expectedSha256))
+                    throw new InvalidDataException("Decompressed resource SHA-256 verification failed: " + name);
+            }
+            if (File.Exists(path)) File.Delete(path);
+            File.Move(temp, path);
+            return path;
+        }
+        finally { if (File.Exists(temp)) File.Delete(temp); }
+    }
+
     internal static byte[] ApplyStream(Stream baseStream, Stream deltaStream, Stream output)
     {
         var header = ReadHeader(deltaStream);
-        if (baseStream.Length != header.BaseLength)
+        if (baseStream.CanSeek && baseStream.Length != header.BaseLength)
             throw new InvalidDataException("Base payload length mismatch.");
         var buffer = new byte[BufferSize];
         var segHead = new byte[12];
@@ -125,6 +183,8 @@ static class PayloadDelta
             if (pos < header.BaseLength)
                 CopyAndHash(baseStream, null, header.BaseLength - pos, buffer, baseSha, null);
 
+            if (baseStream.ReadByte() != -1)
+                throw new InvalidDataException("Base payload length exceeds expected size.");
             if (deltaStream.ReadByte() != -1)
                 throw new InvalidDataException("Unexpected trailing bytes in payload delta.");
 
@@ -157,9 +217,8 @@ static class PayloadDelta
             var header = ReadHeader(deltaStream);
             if (FileMatches(path, header.TargetLength, header.TargetSha256)) return path;
             deltaStream.Position = 0;
-            using (var baseStream = assembly.GetManifestResourceStream(baseResource))
+            using (var baseStream = OpenResourceStream(assembly, baseResource))
             {
-                if (baseStream == null) throw new InvalidOperationException("Missing embedded resource: " + baseResource);
                 string temp = path + "." + Process.GetCurrentProcess().Id + ".tmp";
                 try
                 {

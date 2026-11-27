@@ -4,12 +4,65 @@ export async function openRoomHistory({state,send,listen,toast=()=>{}}){
  const first=state(),accountId=__wtRoomHistoryCore.account(first.accountId);
  if(!accountId){toast('请先登录账号');return}
  const data=__wtRoomHistoryCore.create(),root=document.createElement('div');
- root.className='wt-history-overlay';root.innerHTML='<style>.wt-history-overlay{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#493a302e;font:14px "Microsoft YaHei",sans-serif;color:var(--wt-ui-text,#74513e);user-select:none}.wt-history-card{width:min(360px,calc(100vw - 32px));max-height:calc(100vh - 32px);display:flex;flex-direction:column;border:1px solid var(--wt-ui-border,#dec6a6);border-radius:18px;background:var(--wt-ui-field,#fff9ee);box-shadow:0 12px 40px #493a3029;padding:16px;box-sizing:border-box}.wt-history-header{display:flex;align-items:center;justify-content:space-between;gap:12px}.wt-history-title{font-size:18px;font-weight:600}.wt-history-overlay button{position:static;display:block;height:auto;width:auto;min-width:0;transform:none;filter:none;margin:0;font:inherit;line-height:1.4;color:inherit;cursor:pointer}.wt-history-close{border:0;border-radius:50%;background:var(--wt-ui-hover,#f2e5d0);padding:4px 10px}.wt-history-caption{font-size:12px;line-height:1.6;color:var(--wt-ui-muted,#987a60);margin:8px 0 12px}.wt-history-list{overflow:auto;min-height:40px;max-height:330px;display:flex;flex-direction:column;gap:8px}.wt-history-room{display:flex!important;align-items:center;justify-content:space-between;gap:12px;width:100%!important;border:1px solid var(--wt-ui-divider,#e6d4b8);border-radius:10px;padding:11px 12px;background:var(--wt-ui-surface,#fffdf7);text-align:left}.wt-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px;margin-bottom:4px}.wt-history-row>button:not(.wt-history-room),.wt-history-editor button{border:1px solid var(--wt-ui-border,#dec6a6);border-radius:9px;padding:4px 7px;background:var(--wt-ui-field,#fffaf1)}.wt-history-room{flex-wrap:wrap}.wt-history-editor{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.wt-history-editor[hidden]{display:none}.wt-history-editor input{min-width:0;flex:1}.wt-history-room:hover{background:var(--wt-ui-hover,#fff0d8);border-color:var(--wt-ui-border,#c8a57d)}.wt-history-card button:focus-visible{outline:2px solid var(--wt-ui-focus,#976137);outline-offset:1px}.wt-history-id{font-size:16px;font-weight:600;overflow-wrap:anywhere;min-width:0}.wt-history-meta{font-size:11px;color:var(--wt-ui-muted,#9a7d62);flex:none}.wt-history-current{background:var(--wt-ui-hover,#edf1e1);border-color:var(--wt-ui-border,#bdcba7)}.wt-history-overlay button:disabled{opacity:.6;cursor:wait}.wt-history-message{min-height:34px;line-height:1.5;font-size:12px;padding-top:12px;overflow-wrap:anywhere}.wt-history-empty{font-size:13px;color:var(--wt-ui-muted,#987a60);padding:12px 0;line-height:1.6}</style><section class="wt-history-card" role="dialog" aria-modal="true" aria-label="历史房间"><div class="wt-history-header"><span class="wt-history-title">历史房间</span><button class="wt-history-close" aria-label="关闭历史房间">×</button></div><p class="wt-history-caption">当前账号 · 最近 100 个房间<br>点击房间号即可进入；切换时会先退出当前房间。</p><form class="wt-history-editor" hidden><input maxlength="40" aria-label="房间备注" placeholder="房间备注"><button type="submit">保存备注</button><button type="button">取消</button></form><div class="wt-history-list"></div><div class="wt-history-message" role="status">仅记录本机开启此功能后成功进入的房间。</div></section>';
- document.body.append(root);const list=root.querySelector('.wt-history-list'),message=root.querySelector('.wt-history-message');let busy=false,requestId='',disposed=false,unlisten=null,timer=null,deadline=0,signature='';
+ root.className='wt-history-overlay';
+ root.innerHTML=`<style>
+.wt-history-overlay{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#493a302e;font:14px "Microsoft YaHei",sans-serif;color:var(--wt-ui-text,#74513e);user-select:none}
+.wt-history-card{width:min(390px,calc(100vw - 28px));max-height:calc(100vh - 28px);display:flex;flex-direction:column;border:1px solid var(--wt-ui-border,#dec6a6);border-radius:18px;background:var(--wt-ui-field,#fff9ee);box-shadow:0 12px 40px #493a3029;padding:16px;box-sizing:border-box}
+.wt-history-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wt-history-title{font-size:18px;font-weight:700}
+.wt-history-overlay button{position:static;display:inline-flex;align-items:center;justify-content:center;height:auto;width:auto;min-width:0;transform:none;filter:none;margin:0;font:inherit;line-height:1.35;color:inherit;cursor:pointer}
+.wt-history-close{border:0;border-radius:50%;background:var(--wt-ui-hover,#f2e5d0);padding:4px 10px}
+.wt-history-caption{font-size:12px;line-height:1.55;color:var(--wt-ui-muted,#987a60);margin:6px 0 10px}
+.wt-history-search{width:100%;box-sizing:border-box;padding:7px 10px;margin:0 0 8px;border:1px solid var(--wt-ui-border,#dec6a6);border-radius:10px;background:var(--wt-ui-surface,#fffdf7);color:var(--wt-ui-text,#74513e);font:13px "Microsoft YaHei",sans-serif}
+.wt-history-search:focus-visible,.wt-history-editor input:focus-visible{outline:2px solid var(--wt-ui-focus,#976137);outline-offset:1px}
+.wt-history-list{overflow:auto;min-height:40px;max-height:330px;display:flex;flex-direction:column;gap:8px;padding-right:2px}
+.wt-history-row{display:flex;flex-direction:column;gap:5px;border:1px solid var(--wt-ui-divider,#e6d4b8);border-radius:12px;padding:8px 10px;background:var(--wt-ui-surface,#fffdf7);transition:border-color .15s,background .15s}
+.wt-history-row:hover{border-color:var(--wt-ui-border,#c8a57d)}
+.wt-history-row.wt-history-row--current{background:var(--wt-ui-hover,#edf1e1);border-color:var(--wt-ui-accent,#c8a57d)}
+.wt-history-room{display:flex!important;align-items:center;justify-content:space-between;gap:8px;width:100%!important;border:0;border-radius:8px;padding:3px 2px;background:transparent;text-align:left;flex-wrap:wrap}
+.wt-history-room:hover .wt-history-id{text-decoration:underline}
+.wt-history-main{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;flex:1 1 auto}
+.wt-history-pin-badge{font-size:10px;padding:1px 6px;border-radius:99px;background:var(--wt-ui-accent-fill,#f6d49d);color:var(--wt-ui-text,#68452f);font-weight:600;flex:none}
+.wt-history-id{font-size:15px;font-weight:600;overflow-wrap:anywhere;min-width:0}
+.wt-history-subid{font-size:11px;padding:1px 6px;border-radius:6px;background:var(--wt-ui-field,#fff9ee);color:var(--wt-ui-muted,#8f7359);font-family:Consolas,monospace;user-select:text}
+.wt-history-meta{font-size:11px;color:var(--wt-ui-muted,#9a7d62);flex:none}
+.wt-history-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding-top:4px;border-top:1px solid var(--wt-ui-divider,#efdfca)}
+.wt-history-actions button,.wt-history-editor button{border:1px solid var(--wt-ui-border,#dec6a6);border-radius:8px;padding:3px 8px;font-size:12px;background:var(--wt-ui-field,#fffaf1)}
+.wt-history-actions button:hover:not(:disabled),.wt-history-editor button:hover:not(:disabled){background:var(--wt-ui-hover,#f9e7c9)}
+.wt-history-actions button[aria-pressed=true]{background:var(--wt-ui-accent-fill,#f6d49d);border-color:var(--wt-ui-accent,#cfa374)}
+.wt-history-actions button[data-action=delete]{margin-inline-start:auto;opacity:.85}
+.wt-history-editor{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px}
+.wt-history-editor[hidden]{display:none}
+.wt-history-editor input{min-width:0;flex:1;padding:5px 8px;border:1px solid var(--wt-ui-border,#dec6a6);border-radius:8px;background:var(--wt-ui-surface,#fffdf7);color:var(--wt-ui-text,#74513e);font:inherit}
+.wt-history-card button:focus-visible{outline:2px solid var(--wt-ui-focus,#976137);outline-offset:1px}
+.wt-history-overlay button:disabled{opacity:.6;cursor:wait}
+.wt-history-message{min-height:28px;line-height:1.45;font-size:12px;padding-top:10px;overflow-wrap:anywhere;color:var(--wt-ui-muted,#7d614b)}
+.wt-history-empty{font-size:13px;color:var(--wt-ui-muted,#987a60);padding:12px 0;line-height:1.6;margin:0}
+</style>
+<section class="wt-history-card" role="dialog" aria-modal="true" aria-label="历史房间">
+ <div class="wt-history-header"><span class="wt-history-title">历史房间</span><button class="wt-history-close" aria-label="关闭历史房间">×</button></div>
+ <p class="wt-history-caption">当前账号 · 最近 100 个房间<br>点击房间号即可进入；切换时会先退出当前房间。</p>
+ <input class="wt-history-search" type="search" aria-label="搜索房间号或备注" placeholder="搜索房间号或备注…">
+ <form class="wt-history-editor" hidden><input maxlength="40" aria-label="房间备注" placeholder="房间备注"><button type="submit">保存备注</button><button type="button">取消</button></form>
+ <div class="wt-history-list"></div>
+ <div class="wt-history-message" role="status">仅记录本机开启此功能后成功进入的房间。</div>
+</section>`;
+ document.body.append(root);
+ const list=root.querySelector('.wt-history-list'),message=root.querySelector('.wt-history-message'),search=root.querySelector('.wt-history-search');
+ let busy=false,requestId='',disposed=false,unlisten=null,timer=null,deadline=0,signature='',query='';
  const oldFocus=document.activeElement;
  function close(){if(disposed)return;disposed=true;clearInterval(timer);window.removeEventListener('storage',onStorage);unlisten?.();root.remove();if(__wtHistoryClose===close)__wtHistoryClose=null;if(oldFocus?.isConnected)oldFocus.focus?.()}
  __wtHistoryClose=close;root.querySelector('.wt-history-close').onclick=close;
- root.onmousedown=event=>event.stopPropagation();root.onclick=event=>event.stopPropagation();root.onkeydown=event=>{if(event.key==='Escape')close();if(event.key==='Tab'){const nodes=[...root.querySelectorAll('button:not(:disabled),input:not(:disabled)')].filter(el=>!el.closest('[hidden]'));if(!nodes.length)return;const i=nodes.indexOf(document.activeElement),next=(i+(event.shiftKey?-1:1)+nodes.length)%nodes.length;event.preventDefault();nodes[next].focus()}};
+ root.onmousedown=event=>event.stopPropagation();root.onclick=event=>event.stopPropagation();
+ root.onkeydown=event=>{
+  if(event.key==='Escape')close();
+  if(event.key==='Tab'){
+   const nodes=[...root.querySelectorAll('button:not(:disabled),input:not(:disabled)')].filter(el=>!el.closest('[hidden]'));
+   if(!nodes.length)return;
+   const i=nodes.indexOf(document.activeElement),next=(i+(event.shiftKey?-1:1)+nodes.length)%nodes.length;
+   event.preventDefault();nodes[next].focus();
+  }
+ };
  const editor=root.querySelector('form'),input=editor.querySelector('input');
  let editing='',rows=data.read(accountId);
  const sameAccount=()=>__wtRoomHistoryCore.account(state().accountId)===accountId;
@@ -24,27 +77,56 @@ export async function openRoomHistory({state,send,listen,toast=()=>{}}){
   if(!data.annotate(accountId,id,change)){message.textContent='保存失败，请重试';return false}
   refresh();return true;
  }
+ async function copyId(id,btn){
+  try{
+   if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(id);
+   else{const ta=document.createElement('textarea');ta.value=id;ta.style.cssText='position:fixed;opacity:0';document.body.append(ta);ta.select();document.execCommand('copy');ta.remove()}
+   const prev=btn.textContent;btn.textContent='已复制';message.textContent='已复制房间号 '+id;
+   setTimeout(()=>{if(btn.isConnected)btn.textContent=prev},1200);
+  }catch{message.textContent='复制房间号失败'}
+ }
+ search.oninput=()=>{query=search.value.trim().toLowerCase();signature='';render()};
  editor.onsubmit=event=>{event.preventDefault();if(save(editing,{note:input.value}))endEdit()};
  editor.querySelector('[type=button]').onclick=endEdit;
  function render(){
-  const current=state(),sig=JSON.stringify([current.roomId,current.mode,busy]);
+  const current=state(),sig=JSON.stringify([current.roomId,current.mode,busy,query]);
   if(sig===signature)return;signature=sig;list.replaceChildren();
-  if(!rows.length){const empty=document.createElement('p');empty.textContent='暂无历史房间。成功加入或创建房间后，会自动记录在这里。';list.append(empty)}
-  for(const item of rows){
-   const row=document.createElement('div');row.className='wt-history-row';row.dataset.room=item.id;
+  const visible=query?rows.filter(item=>item.id.toLowerCase().includes(query)||(item.note||'').toLowerCase().includes(query)):rows;
+  if(!visible.length){
+   const empty=document.createElement('p');empty.className='wt-history-empty';
+   empty.textContent=rows.length?'没有匹配的房间记录。':'暂无历史房间。成功加入或创建房间后，会自动记录在这里。';
+   list.append(empty);return;
+  }
+  for(const item of visible){
+   const here=current.mode!=='idle'&&current.roomId===item.id;
+   const row=document.createElement('div');row.className='wt-history-row'+(here?' wt-history-row--current':'');row.dataset.room=item.id;
+   const join=document.createElement('button');join.type='button';join.dataset.action='join';join.disabled=busy;join.onclick=()=>enter(item.id);
+   join.className='wt-history-room'+(here?' wt-history-current':'');
+   const main=document.createElement('span');main.className='wt-history-main';
+   if(item.pinned){const badge=document.createElement('span');badge.className='wt-history-pin-badge';badge.textContent='已置顶';main.append(badge)}
+   const title=document.createElement('span');title.className='wt-history-id';
+   if(item.note)title.setAttribute('data-wt-user-text','');
+   title.textContent=item.note||item.id;
+   main.append(title);
+   if(item.note){const sub=document.createElement('small');sub.className='wt-history-subid';sub.setAttribute('data-wt-user-text','');sub.textContent=item.id;main.append(sub)}
+   const meta=document.createElement('span');meta.className='wt-history-meta';meta.textContent=here?'当前房间':new Date(item.visitedAt).toLocaleDateString();
+   join.append(main,meta);row.append(join);
+
+   const actions=document.createElement('div');actions.className='wt-history-actions';
    const make=(action,label,handler)=>{
     const button=document.createElement('button');button.type='button';button.dataset.action=action;
-    button.textContent=label;button.disabled=busy;button.onclick=handler;row.append(button);return button;
+    button.textContent=label;button.disabled=busy;button.onclick=handler;actions.append(button);return button;
    };
-   const here=current.mode!=='idle'&&current.roomId===item.id;
-   const join=make('join','',()=>enter(item.id));join.className='wt-history-room'+(here?' wt-history-current':'');
-   const title=document.createElement('span'),meta=document.createElement('span');
-   title.className='wt-history-id';title.textContent=item.note||item.id;
-   meta.className='wt-history-meta';meta.textContent=here?'当前房间':new Date(item.visitedAt).toLocaleDateString();
-   join.append(title);if(item.note){const id=document.createElement('small');id.textContent=item.id;join.append(id)}join.append(meta);
    const pin=make('pin',item.pinned?'取消置顶':'置顶',()=>{if(save(item.id,{pinned:!item.pinned}))focusRoom(item.id,'pin')});
    pin.setAttribute('aria-pressed',String(!!item.pinned));
    make('note','备注',()=>{editing=item.id;input.value=item.note||'';editor.hidden=false;input.focus()});
+   const copyBtn=make('copy','复制',()=>copyId(item.id,copyBtn));
+   make('delete','删除',()=>{
+    if(!sameAccount()){close();return}
+    if(editing===item.id)endEdit();
+    if(data.remove(accountId,item.id)){message.textContent='已删除该历史记录';refresh()}
+   });
+   row.append(actions);
    list.append(row);
   }
  }

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -26,6 +28,10 @@ static class ThemePackages
     static readonly Regex Digest = new Regex(@"\A[0-9a-f]{64}\z", RegexOptions.CultureInvariant);
     static string folder;
     static int picking;
+    static readonly object DownloadGate = new object();
+    static string dlState = "idle", dlId = "", dlMessage = "", dlError = "";
+    static long dlDone, dlTotal;
+    static bool dlBusy;
 
     internal sealed class Manifest
     {
@@ -232,6 +238,167 @@ static class ThemePackages
             }
         }
         finally { if (File.Exists(temp)) File.Delete(temp); }
+    }
+
+    internal static bool Remove(string id)
+    {
+        if (String.IsNullOrEmpty(id) || !Profiles.ContainsKey(id)) return false;
+        lock (Gate)
+        {
+            if (folder == null) return false;
+            string dest = Path.Combine(folder, id + ".wttheme");
+            try
+            {
+                if (File.Exists(dest)) File.Delete(dest);
+            }
+            catch (IOException) { return false; }
+            catch (UnauthorizedAccessException) { return false; }
+            Installed.Remove(id);
+            return true;
+        }
+    }
+
+    internal static object DownloadStatus()
+    {
+        lock (DownloadGate)
+        {
+            long done = Interlocked.Read(ref dlDone);
+            long total = Interlocked.Read(ref dlTotal);
+            int progress = dlState == "downloading" && total > 0 ? (int)Math.Min(100, done * 100L / total) : -1;
+            return new { state = dlState, id = dlId, progress, downloadedBytes = done, totalBytes = total, message = dlMessage, error = dlError };
+        }
+    }
+
+    internal static object StartDownload(string id)
+    {
+        if (String.IsNullOrEmpty(id) || !Profiles.ContainsKey(id))
+            return new { accepted = false, error = "未知的主题包标识。" };
+        if (folder == null)
+            return new { accepted = false, error = "主题存储尚未初始化。" };
+        bool preferMirror = HelperUpdate.PreferMirror;
+        lock (DownloadGate)
+        {
+            if (dlBusy) return new { accepted = false, error = "已有主题包正在下载，请稍候。" };
+            dlBusy = true;
+            dlState = "checking";
+            dlId = id;
+            dlMessage = "正在查询主题包…";
+            dlError = "";
+            Interlocked.Exchange(ref dlDone, 0);
+            Interlocked.Exchange(ref dlTotal, 0);
+        }
+        ThreadPool.QueueUserWorkItem(_ => RunDownload(id, preferMirror));
+        return new { accepted = true };
+    }
+
+    static void SetDownload(string state, string message, string error = "")
+    {
+        lock (DownloadGate) { dlState = state; dlMessage = message; dlError = error; }
+    }
+
+    static Dictionary<string, object> SelectThemeAsset(object payload, string id)
+    {
+        var rows = payload as object[];
+        if (rows == null) throw Invalid("GitHub 发布清单格式异常。");
+        string fileName = id + ".wttheme";
+        string preferredTag = "v" + HelperUpdate.Current;
+        Dictionary<string, object> fallback = null;
+        foreach (var row in rows)
+        {
+            var release = row as Dictionary<string, object>;
+            if (release == null || !Equals(release["draft"], false) || !Equals(release["prerelease"], false)) continue;
+            string tag = release["tag_name"] as string;
+            var assets = release["assets"] as object[];
+            if (String.IsNullOrEmpty(tag) || assets == null) continue;
+            foreach (var item in assets)
+            {
+                var asset = item as Dictionary<string, object>;
+                if (asset == null || !Equals(asset["name"], fileName)) continue;
+                string digest = asset["digest"] as string;
+                string url = asset["browser_download_url"] as string;
+                long size;
+                string expectedUrl = "https://github.com/" + HelperUpdate.RepositoryName + "/releases/download/" + tag + "/" + fileName;
+                if (url != expectedUrl || !long.TryParse(Convert.ToString(asset["size"]), out size) ||
+                    size <= 0 || size > PackLimit || digest == null || !Regex.IsMatch(digest, @"\Asha256:[0-9a-f]{64}\z"))
+                    continue;
+                var picked = new Dictionary<string, object> { { "url", url }, { "size", size }, { "digest", digest.Substring(7) } };
+                if (tag == preferredTag) return picked;
+                if (fallback == null) fallback = picked;
+                break;
+            }
+        }
+        return fallback;
+    }
+
+    static string FileSha256(string path)
+    {
+        using (var sha = SHA256.Create())
+        using (var stream = File.OpenRead(path))
+            return Hex(sha.ComputeHash(stream));
+    }
+
+    static void FetchThemeFile(Uri uri, string temp, long size, string expectedDigest)
+    {
+        bool mirror = String.Equals(uri.Host, "gh-proxy.com", StringComparison.OrdinalIgnoreCase);
+        var deadline = mirror ? Stopwatch.StartNew() : null;
+        Interlocked.Exchange(ref dlDone, 0);
+        Interlocked.Exchange(ref dlTotal, size);
+        using (var response = HelperUpdate.OpenAllowed(uri, true, mirror))
+        {
+            if (response.ContentLength >= 0 && response.ContentLength != size)
+                throw Invalid("主题包文件大小不符。");
+            using (var input = response.GetResponseStream())
+            using (var output = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
+                HelperUpdate.CopyStreamLimited(input, output, size, deadline, n => Interlocked.Exchange(ref dlDone, n));
+        }
+        if (FileSha256(temp) != expectedDigest) throw Invalid("主题包 SHA-256 校验失败。");
+    }
+
+    static void RunDownload(string id, bool preferMirror)
+    {
+        string temp = null;
+        try
+        {
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+            var releases = HelperUpdate.ReadAllowedJson(new Uri("https://api.github.com/repos/" + HelperUpdate.RepositoryName + "/releases?per_page=15"));
+            var asset = SelectThemeAsset(releases, id);
+            if (asset == null) throw Invalid("GitHub 发布中未找到该主题包。");
+            string directUrl = (string)asset["url"];
+            long size = (long)asset["size"];
+            string digest = (string)asset["digest"];
+            Directory.CreateDirectory(folder);
+            temp = Path.Combine(folder, Guid.NewGuid().ToString("N") + ".wttheme");
+            bool fetched = false;
+            if (preferMirror)
+            {
+                SetDownload("downloading", "正在通过 GH-Proxy 下载主题包…");
+                try { FetchThemeFile(new Uri("https://gh-proxy.com/" + directUrl), temp, size, digest); fetched = true; }
+                catch (Exception ex)
+                {
+                    if (!(ex is WebException || ex is IOException || ex is InvalidDataException)) throw;
+                    if (File.Exists(temp)) File.Delete(temp);
+                }
+            }
+            if (!fetched)
+            {
+                SetDownload("downloading", preferMirror ? "加速下载未完成，正在从 GitHub 下载…" : "正在从 GitHub 下载主题包…");
+                FetchThemeFile(new Uri(directUrl), temp, size, digest);
+            }
+            SetDownload("verifying", "正在校验并导入主题包…");
+            string imported = Import(temp);
+            if (imported != id) throw Invalid("下载的主题包标识不匹配。");
+            SetDownload("done", "主题包下载并导入完成。");
+        }
+        catch (Exception ex)
+        {
+            string reason = ex is InvalidDataException ? ex.Message : "下载失败，可重试或手动导入 .wttheme 文件。";
+            SetDownload("error", reason, reason);
+        }
+        finally
+        {
+            if (temp != null && File.Exists(temp)) try { File.Delete(temp); } catch { }
+            lock (DownloadGate) dlBusy = false;
+        }
     }
 
     internal static object Pick()

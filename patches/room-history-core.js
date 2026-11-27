@@ -30,6 +30,19 @@ const __wtRoomHistoryCore=(()=>{
   for(const [name,entry] of entries)if(!entry.pinned&&!recentIds.has(name))entries.delete(name);
   try{storage.setItem(detailKey(id),JSON.stringify([...entries]));return true}catch{return false}
  }
+ function remove(id,key){
+  id=account(id);key=room(key);
+  if(!id||!key)return false;
+  const before=recent(id),rows=before.filter(item=>item.id!==key);
+  const entries=labels(id);
+  const had=entries.delete(key)||rows.length!==before.length;
+  if(!had)return false;
+  try{
+   storage.setItem(prefix+id,JSON.stringify(rows));
+   storage.setItem(detailKey(id),JSON.stringify([...entries]));
+   return true;
+  }catch{return false}
+ }
  function remember(id,value){id=account(id);value=room(value);if(!id||!value)return false;confirmed={accountId:id,roomId:value,serial:++serial};const rows=[{id:value,visitedAt:now()},...recent(id).filter(item=>item.id!==value)].slice(0,100);try{storage.setItem(prefix+id,JSON.stringify(rows));return true}catch{return false}}
   async function enter(id,value,{state,leave,join,setInput,notify=()=>{},timeout=12000}){
    id=account(id);value=room(value);const result=(code,message)=>({code,message});
@@ -61,7 +74,7 @@ const __wtRoomHistoryCore=(()=>{
     return result('account','账号或登录状态已改变，已停止切换');
    }catch{return result('error','房间切换失败，请检查连接及当前房间状态')}finally{busy=false}
   }
-  return {read,remember,annotate,enter,get busy(){return busy}};
+  return {read,remember,annotate,remove,enter,get busy(){return busy}};
  }
  return {prefix,account,room,create};
 })();

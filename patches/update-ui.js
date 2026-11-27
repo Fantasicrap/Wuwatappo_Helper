@@ -19,9 +19,21 @@ async function installHelperUpdate(quit){
  catch(error){clearTimeout(guard);await cancel();throw error}
 }
 
+function formatUpdateProgress(status){
+ if(status?.state!=='downloading'||!(status.totalBytes>0))return null;
+ const pct=Math.max(0,Math.min(100,status.progress>=0?status.progress:Math.floor(status.downloadedBytes*100/status.totalBytes)));
+ const mb=n=>(n/1048576).toFixed(1);
+ return {pct,label:pct+'% · '+mb(status.downloadedBytes)+' / '+mb(status.totalBytes)+' MB'};
+}
+
 function mountDownloadSource(root,change){
  if(!root)return;
- const doc=root.ownerDocument,label=doc.createElement('div'),hint=doc.createElement('div'),select=doc.createElement('select');
+ const doc=root.ownerDocument;
+ root.replaceChildren();
+ root.className='';
+ const sourceRow=doc.createElement('div');
+ sourceRow.className='setting-item';sourceRow.style.gap='8px';sourceRow.style.flexWrap='wrap';
+ const label=doc.createElement('div'),hint=doc.createElement('div'),select=doc.createElement('select');
  label.className='setting-label';
  const title=doc.createElement('div');title.className='setting-title';title.textContent='更新下载源';
  hint.className='setting-sub';hint.textContent='仅用于下载更新文件';hint.id='wt-us-hint';hint.setAttribute('aria-live','polite');
@@ -31,8 +43,30 @@ function mountDownloadSource(root,change){
   const option=doc.createElement('option');option.value=value;option.textContent=text;select.append(option);
  }
  select.disabled=true;select.addEventListener('change',()=>change(select.value));
- label.append(title,hint);root.className='setting-item';root.style.gap='8px';root.style.flexWrap='wrap';root.append(label,select);
- return {select,hint,remove:()=>root.replaceChildren()};
+ label.append(title,hint);sourceRow.append(label,select);
+
+ const progressBox=doc.createElement('div');
+ progressBox.className='setting-item wt-update-progress';progressBox.hidden=true;
+ progressBox.style.cssText='display:grid;gap:6px;width:100%;box-sizing:border-box';
+ progressBox.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--wt-ui-text,#694832)"><span data-wt-up-msg style="min-width:0;overflow-wrap:anywhere"></span><strong data-wt-up-pct style="font-variant-numeric:tabular-nums;white-space:nowrap;flex:none"></strong></div><div style="height:7px;border-radius:99px;background:var(--wt-ui-divider,#ead7bf);overflow:hidden"><i data-wt-up-fill style="display:block;height:100%;width:0;border-radius:99px;background:var(--wt-ui-accent,#c98d55);transition:width .25s ease"></i></div>';
+ const upMsg=progressBox.querySelector('[data-wt-up-msg]'),upPct=progressBox.querySelector('[data-wt-up-pct]'),upFill=progressBox.querySelector('[data-wt-up-fill]');
+
+ const backupHost=doc.createElement('div');
+ root.append(sourceRow,progressBox,backupHost);
+ const disposeBackup=typeof mountSettingsBackup==='function'?mountSettingsBackup(backupHost):null;
+
+ return {
+  select,hint,
+  progress(status){
+   const info=formatUpdateProgress(status);
+   progressBox.hidden=!info;
+   if(!info)return;
+   upMsg.textContent=globalThis.__wtTranslate?.(status.message)||status.message||'正在下载更新…';
+   upPct.textContent=info.label;
+   upFill.style.width=info.pct+'%';
+  },
+  remove(){disposeBackup?.();root.replaceChildren()}
+ };
 }
 
 export function mountHelperUpdate(publish,quit){
@@ -46,14 +80,16 @@ export function mountHelperUpdate(publish,quit){
   let status;
   try{status=await updateRequest('status')}catch{status=failed()}
   if(stopped||current!==revision)return;
-  publish(status);
+  const prog=formatUpdateProgress(status);
+  publish(prog?{...status,message:(globalThis.__wtTranslate?.(status.message)||status.message)+' ('+prog.label+')'}:status);
   if(sourceUi){
    const {select,hint}=sourceUi;
    if(!saving)select.value=status.downloadSource==='gh-proxy'?'gh-proxy':'github';
    select.disabled=!status.downloadSource||saving||active(status);
    hint.textContent=saveFailed?'未能保存，请重试':select.value==='gh-proxy'?'加速失败时改用 GitHub':'仅用于下载更新文件';
+   sourceUi.progress(status);
   }
-  if(active(status))timer=setTimeout(refresh,1200);
+  if(active(status))timer=setTimeout(refresh,status.state==='downloading'&&status.totalBytes>0?500:1200);
  }
  async function setSource(source){
   if(stopped||saving||!['github','gh-proxy'].includes(source))return;

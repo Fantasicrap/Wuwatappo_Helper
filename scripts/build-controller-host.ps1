@@ -27,10 +27,11 @@ $roomUi=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/room-history-ui.js'
 $uiFile=Join-Path $hostDir 'controller-ui.js'
 $monitor=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/monitor-preference.js'))
 $updateUi=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/update-ui.js'))
+$backupUi=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/settings-backup.js'))
 $themeAssets=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/theme-assets.js'))
 $deniaEffects=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/denia-theme.js'))
 $phrolovaTheme=[IO.File]::ReadAllText((Join-Path $repoRoot 'patches/phrolova-theme.js'))
-[IO.File]::WriteAllText($uiFile,(@($core,$ui,$roomCore,$roomUi,$monitor,$updateUi,$themeAssets,$deniaEffects,$phrolovaTheme) -join "`n"),[Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($uiFile,(@($core,$ui,$roomCore,$roomUi,$monitor,$backupUi,$updateUi,$themeAssets,$deniaEffects,$phrolovaTheme) -join "`n"),[Text.UTF8Encoding]::new($false))
 }
 $versionSource=Join-Path $hostDir 'Version.cs'
 [IO.File]::WriteAllText($versionSource,('[assembly: System.Reflection.AssemblyVersion("{0}")] [assembly: System.Reflection.AssemblyFileVersion("{0}")]' -f $pkg.releaseVersion))
@@ -40,7 +41,18 @@ $runtimeId=Join-Path $hostDir 'runtime-id'
 $exe=Join-Path $out ("Wuwatappo_Helper-"+$pkg.releaseVersion+$suffix+".exe")
 $license=Join-Path $repoRoot 'licenses/SDL3-LICENSE.txt'
 $buildOptions=@()
-$resourcesToVerify=,@('WuwaTappo.exe',$payload)
+$resourcesToVerify=@()
+$compressedToVerify=@()
+function Add-CompressedResource([string]$sourcePath,[string]$resourceName){
+ $safeName=$resourceName -replace '[^A-Za-z0-9_.-]','_'
+ $deflatePath=Join-Path $hostDir ($safeName+'.deflate')
+ $metaPath=Join-Path $hostDir ($safeName+'.meta')
+ & node (Join-Path $PSScriptRoot 'compress-resource.cjs') $sourcePath $deflatePath $metaPath | Out-Null
+ if($LASTEXITCODE -ne 0){throw ('Compression failed for '+$resourceName)}
+ $script:buildOptions+=@('/resource:'+$deflatePath+','+$resourceName+'.deflate';'/resource:'+$metaPath+','+$resourceName+'.meta')
+ $script:compressedToVerify+=,@($resourceName,$sourcePath)
+}
+Add-CompressedResource $payload 'WuwaTappo.exe'
 $globalPayload=$null
 $globalDelta=$null
 if($Lite){$buildOptions+= '/define:HELPER_LITE'}else{
@@ -59,8 +71,8 @@ if($Lite){$buildOptions+= '/define:HELPER_LITE'}else{
  if($LASTEXITCODE -ne 0){throw 'Could not build the localized game pages'}
  $deniaGame=Join-Path $hostDir 'denia-blocks.html'
  $fallingGame=Join-Path $hostDir 'denia-falling.html'
- $buildOptions+=@('/resource:'+$SdlPath+',SDL3.dll';'/resource:'+$license+',SDL3-LICENSE.txt';'/resource:'+$uiFile+',controller-ui.js';'/resource:'+$deniaGame+',denia-blocks.html';'/resource:'+$fallingGame+',denia-falling.html')
- $resourcesToVerify+=,@('SDL3.dll',$SdlPath)
+ Add-CompressedResource $SdlPath 'SDL3.dll'
+ $buildOptions+=@('/resource:'+$license+',SDL3-LICENSE.txt';'/resource:'+$uiFile+',controller-ui.js';'/resource:'+$deniaGame+',denia-blocks.html';'/resource:'+$fallingGame+',denia-falling.html')
  $resourcesToVerify+=,@('controller-ui.js',$uiFile)
  $resourcesToVerify+=,@('denia-blocks.html',$deniaGame)
  $resourcesToVerify+=,@('denia-falling.html',$fallingGame)
@@ -75,23 +87,30 @@ if($Lite){$buildOptions+= '/define:HELPER_LITE'}else{
  foreach($entry in $sdkFiles.GetEnumerator()){
   $dll=Join-Path $WebViewSdkPath $entry.Value
   if(!(Test-Path -LiteralPath $dll)){throw ('Missing WebView2 SDK file: '+$entry.Value)}
-  $buildOptions+=('/resource:'+$dll+','+$entry.Key)
-  $resourcesToVerify+=,@($entry.Key,$dll)
+  if($entry.Key.EndsWith('.dll')){
+   Add-CompressedResource $dll $entry.Key
+  }else{
+   $buildOptions+=('/resource:'+$dll+','+$entry.Key)
+   $resourcesToVerify+=,@($entry.Key,$dll)
+  }
   if($entry.Key -like 'Microsoft.Web.WebView2.*'){$buildOptions+=('/reference:'+$dll)}
  }
  $buildOptions+=(Join-Path $repoRoot 'native/DeniaGameWindow.cs')
  $buildOptions+=(Join-Path $repoRoot 'native/GlobalSignInWindow.cs')
+ $buildOptions+=(Join-Path $repoRoot 'native/MusicLibrary.cs')
 }
-& $compiler /nologo /target:winexe /platform:x64 /optimize+ ('/win32icon:'+$iconFile) /reference:System.Web.dll /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Core.dll /reference:System.IO.Compression.dll /reference:Microsoft.CSharp.dll ('/out:'+$exe) ('/resource:'+$payload+',WuwaTappo.exe') ('/resource:'+$runtimeId+',runtime-id') @buildOptions $versionSource (Join-Path $repoRoot 'native/ControllerHost.cs') (Join-Path $repoRoot 'native/PayloadDelta.cs') (Join-Path $repoRoot 'native/MouseCapture.cs') (Join-Path $repoRoot 'native/HelperUpdate.cs') (Join-Path $repoRoot 'native/HelperAutostart.cs') (Join-Path $repoRoot 'native/ThemePackages.cs')
+& $compiler /nologo /target:winexe /platform:x64 /optimize+ ('/win32icon:'+$iconFile) /reference:System.Web.dll /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Core.dll /reference:System.IO.Compression.dll /reference:Microsoft.CSharp.dll ('/out:'+$exe) ('/resource:'+$runtimeId+',runtime-id') @buildOptions $versionSource (Join-Path $repoRoot 'native/ControllerHost.cs') (Join-Path $repoRoot 'native/PayloadDelta.cs') (Join-Path $repoRoot 'native/CacheCleanup.cs') (Join-Path $repoRoot 'native/MouseCapture.cs') (Join-Path $repoRoot 'native/HelperUpdate.cs') (Join-Path $repoRoot 'native/HelperAutostart.cs') (Join-Path $repoRoot 'native/ThemePackages.cs')
 if($LASTEXITCODE -ne 0){throw 'Controller launcher compilation failed'}
 $asm=[Reflection.Assembly]::LoadFile($exe)
 $checks=@{}
-foreach($item in $resourcesToVerify){$stream=$asm.GetManifestResourceStream($item[0]);$sha=[Security.Cryptography.SHA256]::Create();try{$digest=[BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','').ToLowerInvariant()}finally{$stream.Dispose();$sha.Dispose()};$expected=(Get-FileHash -LiteralPath $item[1] -Algorithm SHA256).Hash.ToLowerInvariant();if($digest -ne $expected){throw 'Embedded resource differs'};$checks[$item[0]]=$digest}
+foreach($item in $resourcesToVerify){$stream=$asm.GetManifestResourceStream($item[0]);$sha=[Security.Cryptography.SHA256]::Create();try{$digest=[BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','').ToLowerInvariant()}finally{$stream.Dispose();$sha.Dispose()};$expected=(Get-FileHash -LiteralPath $item[1] -Algorithm SHA256).Hash.ToLowerInvariant();if($digest -ne $expected){throw ('Embedded resource differs: '+$item[0])};$checks[$item[0]]=$digest}
+$openStream=$asm.GetType('PayloadDelta',$true).GetMethod('OpenResourceStream',[Reflection.BindingFlags]'Static,NonPublic')
+foreach($item in $compressedToVerify){$stream=[IO.Stream]$openStream.Invoke($null,[object[]]@($asm,$item[0]));$sha=[Security.Cryptography.SHA256]::Create();try{$digest=[BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','').ToLowerInvariant()}finally{$stream.Dispose();$sha.Dispose()};$expected=(Get-FileHash -LiteralPath $item[1] -Algorithm SHA256).Hash.ToLowerInvariant();if($digest -ne $expected){throw ('Decompressed embedded resource differs: '+$item[0])};$checks[$item[0]]=$digest}
 $globalVerifiedHash=$null
 if($globalPayload){
  if($asm.GetManifestResourceInfo('global/WuwaTappo.exe') -ne $null){throw 'Duplicate full global executable should not be embedded'}
  $apply=$asm.GetType('PayloadDelta',$true).GetMethod('ApplyStream',[Reflection.BindingFlags]'Static,NonPublic')
- $baseStream=$asm.GetManifestResourceStream('WuwaTappo.exe')
+ $baseStream=[IO.Stream]$openStream.Invoke($null,[object[]]@($asm,'WuwaTappo.exe'))
  $deltaStream=$asm.GetManifestResourceStream('global/WuwaTappo.delta')
  try{
   $reconstructedHashBytes=[byte[]]$apply.Invoke($null,[object[]]@($baseStream,$deltaStream,[IO.Stream]::Null))
@@ -100,5 +119,5 @@ if($globalPayload){
  $expectedGlobal=(Get-FileHash -LiteralPath $globalPayload -Algorithm SHA256).Hash.ToLowerInvariant()
  if($globalVerifiedHash -ne $expectedGlobal){throw 'Reconstructed global payload SHA-256 differs'}
 }
-$json=[ordered]@{passed=$true;singleExe=$true;lite=[bool]$Lite;alpha=[bool]$Alpha;icon='original';deduplicatedGlobal=[bool]$globalPayload;globalPayloadSha256=$globalVerifiedHash;resources=$checks;sdlVersion=$(if(!$Lite){'3.4.18'});controllerRealHardwareTested=$false}|ConvertTo-Json -Depth 4
+$json=[ordered]@{passed=$true;singleExe=$true;lite=[bool]$Lite;alpha=[bool]$Alpha;icon='original';compressedResources=$true;deduplicatedGlobal=[bool]$globalPayload;globalPayloadSha256=$globalVerifiedHash;resources=$checks;sdlVersion=$(if(!$Lite){'3.4.18'});controllerRealHardwareTested=$false}|ConvertTo-Json -Depth 4
 [IO.File]::WriteAllText((Join-Path $out 'controller-bundle-verification.json'),$json,[Text.UTF8Encoding]::new($false))

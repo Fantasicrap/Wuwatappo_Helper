@@ -135,7 +135,7 @@ public class Smoke {
   using(var res=Request(port,"/update/install","OPTIONS",origin))Check(res.StatusCode==HttpStatusCode.OK&&res.Headers["Access-Control-Allow-Private-Network"]=="true"&&(res.Headers["Access-Control-Allow-Headers"]??"").Contains("X-Wuwa-Update"),"Update preflight failed");
   string selected;
   using(var res=Request(port,"/update/status","GET",origin)){
-   string body=Body(res);Check(res.StatusCode==HttpStatusCode.OK&&body.Contains(asm.GetName().Version.ToString())&&body.Contains("\"downloadSource\":"),"Update status, source or version failed");
+   string body=Body(res);Check(res.StatusCode==HttpStatusCode.OK&&body.Contains(asm.GetName().Version.ToString())&&body.Contains("\"downloadSource\":")&&body.Contains("\"progress\":"),"Update status, source, progress or version failed");
    selected=body.Contains("\"downloadSource\":\"gh-proxy\"")?"gh-proxy":"github";
   }
   using(var res=Request(port,"/update/install","GET",origin))Check((int)res.StatusCode==405,"GET performed an update action");
@@ -170,7 +170,53 @@ public class Smoke {
   var invalid=Path.Combine(themeFolder,"invalid.wttheme");File.WriteAllText(invalid,"not a theme package");
   try{import.Invoke(null,new object[]{invalid});throw new Exception("Invalid theme was accepted");}
   catch(TargetInvocationException failure){Check(failure.InnerException is InvalidDataException,"Unexpected invalid theme failure");}
-  listener.Stop();thread.Join(1000);Console.WriteLine("PASS: loopback routes, theme import and ranged assets, native action gating");return 0;
+  // Theme remove & download gating
+  using(var res=Request(port,"/theme-packs/download-status","GET",origin))Check((int)res.StatusCode==403,"Theme download status did not require action header");
+  using(var res=Request(port,"/theme-packs/download-status","GET",origin,false,0,true))Check(res.StatusCode==HttpStatusCode.OK&&Body(res).Contains("\"idle\""),"Theme download status failed");
+  using(var res=Request(port,"/theme-packs/download/unknown","POST",origin,false,0,true))Check(res.StatusCode==HttpStatusCode.OK&&Body(res).Contains("false"),"Unknown theme download accepted");
+  using(var res=Request(port,"/theme-packs/remove/denia","POST",null,false,0,true))Check((int)res.StatusCode==403,"Origin-less theme remove accepted");
+  using(var res=Request(port,"/theme-packs/remove/denia","POST",origin,false,0,true))Check(res.StatusCode==HttpStatusCode.OK&&Body(res).Contains("true"),"Theme remove failed");
+  using(var res=Request(port,"/theme-packs","GET",origin))Check(!Body(res).Contains("\"denia\""),"Removed theme still listed");
+  // Persistent MusicLibrary routes & Range serving
+  var music=asm.GetType("MusicLibrary",true);
+  string musicData=Path.Combine(distribution,"http-smoke","music-data-"+Guid.NewGuid().ToString("N"));
+  string musicDir=Path.Combine(musicData,"tracks");
+  Directory.CreateDirectory(musicDir);
+  byte[] fakeMp3=new byte[128];fakeMp3[0]=(byte)'I';fakeMp3[1]=(byte)'D';fakeMp3[2]=(byte)'3';for(int i=3;i<128;i++)fakeMp3[i]=(byte)(i&255);
+  File.WriteAllBytes(Path.Combine(musicDir,"01-TestSong.mp3"),fakeMp3);
+  music.GetMethod("Initialize",flags).Invoke(null,new object[]{musicData});
+  music.GetMethod("SetFolder",flags).Invoke(null,new object[]{musicDir});
+  using(var res=Request(port,"/music/list","GET",origin))Check((int)res.StatusCode==403,"Music list did not require action header");
+  using(var res=Request(port,"/music/list","GET",origin,false,0,true)){string body=Body(res);Check(res.StatusCode==HttpStatusCode.OK&&body.Contains("01-TestSong")&&body.Contains("\"hasFolder\":true"),"Music list failed");}
+  using(var res=Request(port,"/music/track/0","GET",origin,false,32))
+  using(var reader=new BinaryReader(res.GetResponseStream())){
+   Check((int)res.StatusCode==206&&res.ContentLength==32&&res.Headers["Content-Range"]=="bytes 0-31/128","Music track range failed");
+   var got=reader.ReadBytes(32);Check(got[0]==(byte)'I'&&got[1]==(byte)'D'&&got[2]==(byte)'3'&&got[31]==31,"Music track bytes mismatch");
+  }
+  using(var res=Request(port,"/music/clear","POST",origin,false,0,true))Check(res.StatusCode==HttpStatusCode.OK&&Body(res).Contains("\"hasFolder\":false"),"Music clear failed");
+  // CacheCleanup verification
+  var cleanup=asm.GetType("CacheCleanup",true);
+  string cleanRoot=Path.Combine(distribution,"http-smoke","cleanup-"+Guid.NewGuid().ToString("N"));
+  string rtRoot=Path.Combine(cleanRoot,"runtime"),upRoot=Path.Combine(cleanRoot,"update");
+  Directory.CreateDirectory(Path.Combine(rtRoot,"1.0.5.6-aaaaaaaaaaaa"));
+  Directory.CreateDirectory(Path.Combine(rtRoot,"1.0.5.6-aaaaaaaaaaaa-global"));
+  Directory.CreateDirectory(Path.Combine(rtRoot,"1.0.5.5-bbbbbbbbbbbb"));
+  Directory.CreateDirectory(Path.Combine(rtRoot,"1.0.5.4-cccccccccccc"));
+  Directory.CreateDirectory(Path.Combine(rtRoot,"1.0.5.4-cccccccccccc-global"));
+  Directory.CreateDirectory(Path.Combine(rtRoot,"custom-user-folder"));
+  Directory.SetLastWriteTimeUtc(Path.Combine(rtRoot,"1.0.5.5-bbbbbbbbbbbb"),DateTime.UtcNow.AddMinutes(-5));
+  Directory.SetLastWriteTimeUtc(Path.Combine(rtRoot,"1.0.5.4-cccccccccccc"),DateTime.UtcNow.AddDays(-10));
+  Directory.SetLastWriteTimeUtc(Path.Combine(rtRoot,"1.0.5.4-cccccccccccc-global"),DateTime.UtcNow.AddDays(-10));
+  int removedRt=(int)cleanup.GetMethod("CleanRuntime",flags).Invoke(null,new object[]{rtRoot,"1.0.5.6-aaaaaaaaaaaa",1});
+  Check(removedRt==2&&Directory.Exists(Path.Combine(rtRoot,"1.0.5.6-aaaaaaaaaaaa"))&&Directory.Exists(Path.Combine(rtRoot,"1.0.5.6-aaaaaaaaaaaa-global"))&&Directory.Exists(Path.Combine(rtRoot,"1.0.5.5-bbbbbbbbbbbb"))&&Directory.Exists(Path.Combine(rtRoot,"custom-user-folder"))&&!Directory.Exists(Path.Combine(rtRoot,"1.0.5.4-cccccccccccc")),"Runtime cleanup policy mismatch");
+  Directory.CreateDirectory(Path.Combine(upRoot,"v1.0.5.5"));
+  Directory.CreateDirectory(Path.Combine(upRoot,"v1.0.5.6"));
+  Directory.CreateDirectory(Path.Combine(upRoot,"v1.0.5.7"));
+  int removedUp=(int)cleanup.GetMethod("CleanUpdates",flags).Invoke(null,new object[]{upRoot,new Version("1.0.5.6")});
+  Check(removedUp==2&&!Directory.Exists(Path.Combine(upRoot,"v1.0.5.5"))&&!Directory.Exists(Path.Combine(upRoot,"v1.0.5.6"))&&Directory.Exists(Path.Combine(upRoot,"v1.0.5.7")),"Update cache cleanup mismatch");
+  Directory.Delete(cleanRoot,true);
+  Directory.Delete(musicData,true);
+  listener.Stop();thread.Join(1000);Console.WriteLine("PASS: loopback routes, theme import/remove/download gating, music persistence, cache cleanup, native action gating");return 0;
  }catch(Exception e){Console.Error.WriteLine(e);return 1;}}
 }
 '@

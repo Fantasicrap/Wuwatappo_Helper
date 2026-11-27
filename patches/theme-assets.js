@@ -17,13 +17,39 @@ export function loadThemePacks(reload=false){
  return helperThemeIndex;
 }
 
-async function helperThemeAction(route){
- const response=await fetch(helperThemeHost+route,{method:'POST',headers:{'X-Wuwa-Action':'1'}});
+async function helperThemeAction(route,method='POST'){
+ const response=await fetch(helperThemeHost+route,{method,headers:{'X-Wuwa-Action':'1'},cache:'no-store'});
  if(!response.ok)throw Error('本机 Helper 服务未响应。');
  return response.json();
 }
 
 export function importThemePack(){return helperThemeAction('/theme-packs/import')}
+export function removeThemePack(id){return helperThemeAction('/theme-packs/remove/'+encodeURIComponent(id))}
+export function downloadThemePack(id){return helperThemeAction('/theme-packs/download/'+encodeURIComponent(id))}
+export function themePackDownloadStatus(){return helperThemeAction('/theme-packs/download-status','GET')}
+
+function mapMusic(data){
+ return {
+  hasFolder:data?.hasFolder===true,
+  folder:String(data?.folder||''),
+  tracks:Array.isArray(data?.tracks)?data.tracks
+   .filter(t=>typeof t?.url==='string'&&t.url.startsWith('/music/track/'))
+   .map(t=>({id:t.id,name:String(t.name||''),src:helperThemeHost+t.url})):[]
+ };
+}
+
+export async function loadMusicLibrary(){
+ return mapMusic(await helperThemeAction('/music/list','GET'));
+}
+export async function pickMusicFolder(){
+ const res=await helperThemeAction('/music/pick','POST');
+ if(res?.cancelled||res?.error)return res;
+ return mapMusic(res);
+}
+export async function clearMusicFolder(){
+ return mapMusic(await helperThemeAction('/music/clear','POST'));
+}
+
 export async function openDeniaBlocks(){
  const language=document.documentElement.lang==='en'?'?lang=en':'';
  if(!(await helperThemeAction('/denia-blocks/open'+language)).accepted)throw Error('请先导入达妮娅主题包。');

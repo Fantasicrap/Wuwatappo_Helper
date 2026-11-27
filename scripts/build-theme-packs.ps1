@@ -55,7 +55,9 @@ Add-Asset $aemeath 'tides.webp' (Join-Path $images 'aemeath-tides.webp')
 Add-Asset $aemeath 'mech.webp' (Join-Path $images 'aemeath-mech.webp')
 $songs=@()
 if(Test-Path -LiteralPath $SongsDirectory -PathType Container){
- $tracks=@(Get-ChildItem -LiteralPath $SongsDirectory -Filter '*.mp3' -File | Sort-Object Name | Select-Object -First 9)
+ $tracks=@(Get-ChildItem -LiteralPath $SongsDirectory -Filter '*.mp3' -File)
+ [Array]::Sort($tracks,[Comparison[IO.FileInfo]]{param($a,$b)[StringComparer]::Ordinal.Compare($a.Name,$b.Name)})
+ $tracks=@($tracks | Select-Object -First 9)
  for($i=0;$i -lt $tracks.Count;$i++){
   $track=$tracks[$i]
   $artist,$title=$track.BaseName -split ' - ',2

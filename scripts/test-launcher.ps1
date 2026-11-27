@@ -33,7 +33,8 @@ public static class HelperManifestReader {
 $payload=if($PayloadPath){[IO.Path]::GetFullPath($PayloadPath)}else{Join-Path $repoRoot ("dist/migration-"+$pkg.releaseVersion+"/payload.exe")}
 if([HelperManifestReader]::Read($payload) -notmatch 'level="requireAdministrator"'){throw 'Upstream privilege declaration unexpectedly changed'}
 if([HelperManifestReader]::Read($exe) -notmatch 'level="asInvoker"'){throw 'Outer launcher should not force elevation'}
-$embedded=$assembly.GetManifestResourceStream('WuwaTappo.exe')
+$openStream=$assembly.GetType('PayloadDelta',$true).GetMethod('OpenResourceStream',$flags)
+$embedded=[IO.Stream]$openStream.Invoke($null,[object[]]@($assembly,'WuwaTappo.exe'))
 $sha=[Security.Cryptography.SHA256]::Create()
 try{$embeddedHash=[BitConverter]::ToString($sha.ComputeHash($embedded)).Replace('-','')}finally{$embedded.Dispose();$sha.Dispose()}
 if($embeddedHash -ne (Get-FileHash -LiteralPath $payload -Algorithm SHA256).Hash){throw 'Embedded payload differs from reviewed manifest source'}

@@ -35,8 +35,14 @@ static class HelperUpdate
     static Release candidate;
     static string downloaded;
     static bool busy, automatic, requested;
+    static long downloadedBytes, totalBytes;
 
     internal static Version Current { get { return Assembly.GetExecutingAssembly().GetName().Version; } }
+    internal static bool PreferMirror { get { lock (Gate) return downloadSource == MirrorSource; } }
+    internal static string RepositoryName { get { return Repo; } }
+    internal static HttpWebResponse OpenAllowed(Uri uri, bool asset, bool mirror = false) { return Open(uri, asset, mirror); }
+    internal static object ReadAllowedJson(Uri uri) { return ReadJson(uri); }
+    internal static void CopyStreamLimited(Stream input, Stream output, long limit, Stopwatch deadline, Action<long> onProgress) { CopyLimited(input, output, limit, deadline, onProgress); }
 
     sealed class Release
     {
@@ -135,7 +141,7 @@ static class HelperUpdate
         throw new IOException("更新下载重定向次数过多。");
     }
 
-    static void CopyLimited(Stream input, Stream output, long limit, Stopwatch deadline = null)
+    static void CopyLimited(Stream input, Stream output, long limit, Stopwatch deadline = null, Action<long> onProgress = null)
     {
         var buffer = new byte[81920];
         long count = 0;
@@ -146,6 +152,7 @@ static class HelperUpdate
             count += read;
             if (count > limit) throw new InvalidDataException("更新文件超过预期大小。");
             output.Write(buffer, 0, read);
+            if (onProgress != null) onProgress(count);
         }
     }
 
@@ -291,13 +298,15 @@ static class HelperUpdate
     {
         bool mirror = SecureHost(uri, MirrorHost);
         var deadline = mirror ? Stopwatch.StartNew() : null;
+        Interlocked.Exchange(ref downloadedBytes, 0);
+        Interlocked.Exchange(ref totalBytes, size);
         using (var response = Open(uri, true, mirror))
         {
             if (response.ContentLength >= 0 && response.ContentLength != size)
                 throw new InvalidDataException("更新文件大小不符。");
             using (var input = response.GetResponseStream())
             using (var output = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
-                CopyLimited(input, output, size, deadline);
+                CopyLimited(input, output, size, deadline, n => Interlocked.Exchange(ref downloadedBytes, n));
         }
     }
 
@@ -336,7 +345,22 @@ static class HelperUpdate
 
     internal static object Status()
     {
-        lock (Gate) return new { state, message, automatic, current = Current.ToString(), official = official == null ? "" : official.ToString(), releaseUrl, downloadSource };
+        lock (Gate)
+        {
+            long done = Interlocked.Read(ref downloadedBytes);
+            long total = Interlocked.Read(ref totalBytes);
+            int progress = state == "downloading" && total > 0 ? (int)Math.Min(100, done * 100L / total) : -1;
+            return new
+            {
+                state, message, automatic,
+                current = Current.ToString(),
+                official = official == null ? "" : official.ToString(),
+                releaseUrl, downloadSource,
+                downloadedBytes = state == "downloading" ? done : 0L,
+                totalBytes = state == "downloading" ? total : 0L,
+                progress
+            };
+        }
     }
 
     internal static bool RequestInstall()

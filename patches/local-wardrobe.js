@@ -26,7 +26,7 @@ const __wtLocalWardrobe=(()=>{
   }
   return{characterId,accessoryId,emoteIds,select,sync,clear,reapply,start(){started=true;owner=account();record=readRecord();reapply()},accountChanged(){owner=account();record=readRecord();characterId.value=0;accessoryId.value=null;emoteIds.value=null;restore();reapply();changed()},role,offset(original){if(mode.value&&characterId.value){const meta=getAppearanceAssetById(characterId.value);return{x:Number(meta?.offset_x)||0,y:Number(meta?.offset_y)||0}}return original()},dispose(){disposed=true;stop()}};
  }
- function settings(ref,toast,appearance){const model={mode:ref(enabled()),caption:ref(''),appearance};model.toggle=async value=>{try{localStorage.setItem(key,value?'1':'0');model.mode.value=!!value;await emit('wt-wardrobe-mode-updated',{});toast(value?'图鉴试装已开启':'图鉴试装已关闭，恢复云端外观')}catch{toast('图鉴试装设置保存失败')}};model.reset=()=>emit('wt-wardrobe-reset',{}).catch(()=>toast('恢复外观失败'));return model}
+ function settings(ref,toast,appearance){const model={mode:ref(enabled()),caption:ref(''),showStamp:ref(true),useBg:ref(true),appearance};model.toggle=async value=>{try{localStorage.setItem(key,value?'1':'0');model.mode.value=!!value;await emit('wt-wardrobe-mode-updated',{});toast(value?'图鉴试装已开启':'图鉴试装已关闭，恢复云端外观')}catch{toast('图鉴试装设置保存失败')}};model.reset=()=>emit('wt-wardrobe-reset',{}).catch(()=>toast('恢复外观失败'));return model}
  function canEmote(item,ids){const id=resolvePetAssetIdFromAppearanceId(Number(item.asset_id));return ids.includes(id)||ids.length<6}
  function selected(item,name){if(!name)return false;const id=resolvePetAssetIdFromAppearanceId(Number(item.asset_id));return resolveAppearanceAssetFileName(id).replace(/\.png$/i,'')===String(name).replace(/\.png$/i,'')}
  function renderSettings(h,model){

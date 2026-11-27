@@ -33,6 +33,14 @@ const __wtTheme=(()=>{
 .wt-theme-import{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .wt-theme-import[hidden]{display:none}
 .wt-theme-import output{font-size:12px;color:var(--wt-ui-muted,#775e4b)}
+.wt-theme-cloud{grid-column:1/-1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 10px;border:1px dashed var(--wt-ui-border,#e3c9aa);border-radius:10px;background:var(--wt-ui-field,#fffaf1)}
+.wt-theme-cloud[hidden]{display:none}
+.wt-theme-cloud-label{font-size:12px;color:var(--wt-ui-muted,#775e4b);margin-inline-end:2px}
+.wt-theme-dl-bar{grid-column:1/-1;display:grid;gap:4px;padding:7px 10px;border:1px solid var(--wt-ui-border,#e3c9aa);border-radius:10px;background:var(--wt-ui-field,#fffaf1);font-size:12px;color:var(--wt-ui-text,#694832)}
+.wt-theme-dl-bar[hidden]{display:none}
+.wt-theme-dl-track{height:6px;border-radius:99px;background:var(--wt-ui-divider,#ead7bf);overflow:hidden}
+.wt-theme-dl-track i{display:block;height:100%;width:0;border-radius:99px;background:var(--wt-ui-accent,#c98d55);transition:width .25s ease}
+.wt-theme-remove{margin-inline-start:auto}
 .wt-theme-option[aria-pressed=true]{border-color:#c98d55;box-shadow:0 0 0 3px #f6d49d99}
 .wt-theme-option:focus-visible{outline:2px solid #976137;outline-offset:2px}
 .wt-theme-swatch{flex:none;display:flex;width:38px;height:38px;border-radius:50%;overflow:hidden;border:2px solid #fff;box-shadow:0 0 0 1px #0000002b;transform:rotate(-35deg)}
@@ -487,6 +495,14 @@ const __wtTheme=(()=>{
    }
    const credit=root.querySelector('.wt-theme-credit'),text=credit.querySelector('[data-wt-pack-credit]');
    text.textContent=packs[current]?.credit||'';credit.hidden=!text.textContent;
+   const removeBtn=root.querySelector('[data-wt-remove-pack]');
+   if(removeBtn)removeBtn.hidden=current==='default'||!packs[current];
+   const cloud=root.querySelector('.wt-theme-cloud');
+   if(cloud){
+    const missing=['aemeath','denia','phrolova'].filter(id=>!packs[id]);
+    cloud.hidden=!missing.length;
+    for(const btn of cloud.querySelectorAll('[data-wt-download-pack]'))btn.hidden=!missing.includes(btn.dataset.wtDownloadPack);
+   }
   }
   syncDenia(false);
  }
@@ -607,22 +623,90 @@ const __wtTheme=(()=>{
  function mountImport(root){
   const field=document.createElement('div');
   field.className='wt-theme-import';
-  field.innerHTML='<button class="wt-ui-button" type="button">导入主题包</button><output role="status">支持 .wttheme 文件</output>';
-  const button=field.querySelector('button'),status=field.querySelector('output');
+  field.innerHTML='<button class="wt-ui-button" type="button" data-wt-import-pack>导入主题包</button><button class="wt-ui-button wt-theme-remove" type="button" data-wt-remove-pack hidden>卸载当前主题包</button><output role="status">支持 .wttheme 文件</output>';
+  const button=field.querySelector('[data-wt-import-pack]'),removeBtn=field.querySelector('[data-wt-remove-pack]'),status=field.querySelector('output');
+  const cloud=document.createElement('div');
+  cloud.className='wt-theme-cloud';
+  cloud.innerHTML='<span class="wt-theme-cloud-label">在线获取主题包</span>'+['aemeath','denia','phrolova'].map(id=>'<button class="wt-ui-button" type="button" data-wt-download-pack="'+id+'">下载'+themes[id][0]+'</button>').join('');
+  const progressBox=document.createElement('div');
+  progressBox.className='wt-theme-dl-bar';progressBox.hidden=true;
+  progressBox.innerHTML='<span data-wt-dl-text></span><div class="wt-theme-dl-track"><i data-wt-dl-fill></i></div>';
+  const dlText=progressBox.querySelector('[data-wt-dl-text]'),dlFill=progressBox.querySelector('[data-wt-dl-fill]');
+  let dlTimer=0;
+  function broadcastPacks(){
+   try{localStorage.setItem(packsKey,String(Date.now()))}catch{}
+   if(typeof emit==='function')Promise.resolve(emit(packsUpdated)).catch(()=>{});
+  }
+  function setDownloadBusy(busy){
+   button.disabled=busy;removeBtn.disabled=busy;
+   for(const btn of cloud.querySelectorAll('[data-wt-download-pack]'))btn.disabled=busy;
+  }
+  async function pollDownload(module,targetId){
+   clearTimeout(dlTimer);
+   try{
+    const info=await module.themePackDownloadStatus();
+    if(!root.isConnected)return;
+    if(['checking','downloading','verifying'].includes(info.state)){
+     progressBox.hidden=false;
+     const pct=info.progress>=0?info.progress:0;
+     const mb=n=>(n/1048576).toFixed(1);
+     const detail=info.state==='downloading'&&info.totalBytes>0?pct+'% · '+mb(info.downloadedBytes)+' / '+mb(info.totalBytes)+' MB':'';
+     dlText.textContent=(globalThis.__wtTranslate?.(info.message)||info.message)+(detail?' ('+detail+')':'');
+     dlFill.style.width=(info.state==='verifying'?100:pct)+'%';
+     dlTimer=setTimeout(()=>pollDownload(module,targetId),600);
+     return;
+    }
+    progressBox.hidden=true;setDownloadBusy(false);
+    if(info.state==='done'){
+     await refreshPacks(true);broadcastPacks();set(info.id||targetId);
+     status.textContent='已导入'+themes[info.id||targetId][0]+'主题包。';
+    }else if(info.state==='error'){
+     status.textContent=info.error||info.message||'主题包下载失败。';
+    }
+   }catch{
+    progressBox.hidden=true;setDownloadBusy(false);
+    status.textContent='主题包下载失败，请检查网络或手动导入。';
+   }
+  }
   button.addEventListener('click',async()=>{
-   button.disabled=true;
+   setDownloadBusy(true);
    try{
     const module=await import(moduleUrl),result=await module.importThemePack();
     if(result.cancelled)return;
     if(!result.id)throw Error(result.error||'主题包导入失败。');
-    await refreshPacks(true);
-    try{localStorage.setItem(packsKey,String(Date.now()))}catch{}
-    if(typeof emit==='function')await Promise.resolve(emit(packsUpdated)).catch(()=>{});
+    await refreshPacks(true);broadcastPacks();
     set(result.id);status.textContent='已导入'+themes[result.id][0]+'主题包。';
    }catch(error){status.textContent=error.message||'主题包导入失败。'}
-   finally{button.disabled=false}
+   finally{setDownloadBusy(false)}
   });
-  root.append(field);
+  removeBtn.addEventListener('click',async()=>{
+   const target=current;
+   if(target==='default'||!packs[target])return;
+   const tr=globalThis.__wtTranslate||(v=>v);
+   if(!window.confirm(tr('确定卸载当前主题包并切回原版暖色吗？')))return;
+   setDownloadBusy(true);
+   try{
+    const module=await import(moduleUrl),res=await module.removeThemePack(target);
+    if(!res?.removed)throw Error('无法卸载主题包，请重试。');
+    set('default');await refreshPacks(true);broadcastPacks();
+    status.textContent='已卸载'+themes[target][0]+'主题包。';
+   }catch(error){status.textContent=error.message||'主题包卸载失败。'}
+   finally{setDownloadBusy(false)}
+  });
+  cloud.addEventListener('click',async event=>{
+   const btn=event.target.closest('[data-wt-download-pack]');
+   if(!btn||btn.disabled)return;
+   const targetId=btn.dataset.wtDownloadPack;
+   setDownloadBusy(true);progressBox.hidden=false;dlFill.style.width='0%';dlText.textContent='正在查询主题包…';
+   try{
+    const module=await import(moduleUrl);
+    if(typeof module.downloadThemePack!=='function')throw Error('请运行新版完整 Helper 以在线下载主题包。');
+    const started=await module.downloadThemePack(targetId);
+    if(!started?.accepted)throw Error(started?.error||'无法启动主题包下载。');
+    pollDownload(module,targetId);
+   }catch(error){progressBox.hidden=true;setDownloadBusy(false);status.textContent=error.message||'主题包下载失败。'}
+  });
+  root.append(field,cloud,progressBox);
  }
  function mount(root){
   if(!root||root.firstChild)return;

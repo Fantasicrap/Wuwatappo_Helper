@@ -4,6 +4,17 @@
 
 An unofficial Windows companion patch for Wuwa Tappo 1.0.5. Free and open source. For entertainment only. The creators accept no liability for its use.
 
+## What's new in v1.0.5.6
+
+- **Even smaller executables (~66 MiB Full / ~64 MiB Lite) and cache cleanup.** Stream-compressed embedded binaries with SHA-256-verified warm cache checks, plus background cleanup for outdated `runtime/` and `update/` folders.
+- **Update progress bar.** Real-time percentage and MB progress while downloading in-app updates.
+- **Online theme packs & uninstall.** Download and verify official `.wttheme` packs directly inside **Appearance themes**, or uninstall installed packs with one click.
+- **Snowfluff player upgrades.** Added volume/mute, loop/repeat-one/shuffle play modes, seekable mini progress bar, and persistent local music folder across restarts.
+- **Room history upgrades.** Search by room ID or note, copy room ID, delete single entries, and keep user notes untranslated in English mode.
+- **Customizable Wuthering Waves 9-key layout.** Customize all 9 slots (including `Shift`, `Tab`, middle/side mouse buttons `X1`/`X2`) and copy APM summaries after recording.
+- **Settings backup & restore.** Export and import Helper local preferences as JSON (strictly excluding login tokens/cookies).
+- **Theme-aware postcards.** Full 4-theme postcard palettes, multi-line caption wrapping, optional custom background blending, and date/click stamps.
+
 ## What's new in v1.0.5.5
 
 - **Smaller full package (~80 MiB).** Deduplicated the embedded China (CN) and Global executables: the shared binary is stored once and the Global executable is reconstructed on demand from a SHA-256-verified binary delta, cutting the full download almost in half while keeping CN and Global sessions fully isolated.
@@ -28,7 +39,7 @@ An unofficial Windows companion patch for Wuwa Tappo 1.0.5. Free and open source
 
 ## Download and installation
 
-The v1.0.5.5 release includes the full EXE, Lite EXE, setup, portable ZIP, SHA-256 checksums and three optional theme packs. [Download v1.0.5.5 on GitHub](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/v1.0.5.5)
+The v1.0.5.6 release includes the full EXE, Lite EXE, setup, portable ZIP, SHA-256 checksums and three optional theme packs. [Download v1.0.5.6 on GitHub](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/v1.0.5.6)
 
 Exit Wuwa Tappo from the Windows system tray before running the Helper. The single-file EXE does not require installation. Keep Microsoft Edge WebView2 Runtime installed.
 

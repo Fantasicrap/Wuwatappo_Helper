@@ -473,6 +473,8 @@ for(const r of resources){
  const text=v105&&r.name!==commonAsset?require('../v105/compact-bindings.cjs')(r.text,file):r.text;
  const compressed=compressResource(text,meta.compressedBytes);
  assert(compressed.length<=meta.compressedBytes,`${r.name} exceeds reserved space (${compressed.length}/${meta.compressedBytes})`);
+ const remaining=meta.compressedBytes-compressed.length;
+ if(remaining<512)console.warn(`[budget-warning] ${r.name}: only ${remaining} bytes remaining (${compressed.length}/${meta.compressedBytes})`);
  output.fill(0,meta.offset,meta.offset+meta.compressedBytes);compressed.copy(output,meta.offset);
  assert(zlib.brotliDecompressSync(output.subarray(meta.offset,meta.offset+meta.compressedBytes)).equals(Buffer.from(text)));
  checks.push({asset:r.name,syntaxPassed:true,budget:meta.compressedBytes,compressed:compressed.length,fits:true,offset:meta.offset});

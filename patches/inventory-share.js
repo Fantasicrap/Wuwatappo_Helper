@@ -176,12 +176,12 @@ const __wtInventoryShare=(()=>{
   }
   function preview(doc,cancel){
     const root=doc.createElement('div');
-    root.style.cssText='position:fixed;inset:12px;z-index:2147483647;background:#fff3dd;border:2px solid #e7b77c;border-radius:16px;display:flex;flex-direction:column;padding:16px;gap:12px;color:#8e5e43;font:16px "Microsoft YaHei",sans-serif;box-shadow:0 8px 32px #0003;';
+    root.style.cssText='position:fixed;inset:12px;z-index:2147483647;background:var(--wt-ui-field,#fff3dd);border:2px solid var(--wt-ui-border,#e7b77c);border-radius:16px;display:flex;flex-direction:column;padding:16px;gap:12px;color:var(--wt-ui-text,#8e5e43);font:16px "Microsoft YaHei",sans-serif;box-shadow:0 8px 32px #0003;';
     const bar=doc.createElement('div'),status=doc.createElement('span'),close=doc.createElement('button'),list=doc.createElement('div');
     bar.style.cssText='display:flex;align-items:center;gap:10px;flex:none';status.style.flex='1';list.style.cssText='overflow:auto;flex:1;min-height:0;';
     const urls=[];let busy=true;
-    const button=(label,action)=>{const b=doc.createElement('button');b.textContent=label;b.style.cssText='position:static;background:#fed291;color:#8e5e43;border:1px solid #e7b77c;border-radius:14px;padding:8px 14px;cursor:pointer;font:inherit;';b.onclick=action;return b};
-    close.textContent='取消';close.style.cssText='position:static;cursor:pointer;padding:8px 14px;font:inherit;';
+    const button=(label,action)=>{const b=doc.createElement('button');b.textContent=label;b.style.cssText='position:static;background:var(--wt-ui-accent-fill,#fed291);color:var(--wt-ui-text,#8e5e43);border:1px solid var(--wt-ui-border,#e7b77c);border-radius:12px;padding:7px 14px;cursor:pointer;font:inherit;';b.onclick=action;return b};
+    close.textContent='取消';close.style.cssText='position:static;cursor:pointer;padding:7px 14px;font:inherit;background:var(--wt-ui-surface,#fffaf1);color:var(--wt-ui-text,#8e5e43);border:1px solid var(--wt-ui-border,#e7b77c);border-radius:12px;';
     close.onclick=()=>{if(busy)cancel();root.remove();urls.forEach(url=>URL.revokeObjectURL(url))};
     root.addEventListener('mousedown',event=>event.stopPropagation());root.addEventListener('click',event=>event.stopPropagation());
     bar.append(status,close);root.append(bar,list);doc.body.append(root);
@@ -190,13 +190,13 @@ const __wtInventoryShare=(()=>{
       finish(){busy=false;close.textContent='关闭'},
       add(result,name){
         const url=URL.createObjectURL(result.blob);urls.push(url);
-        const tools=doc.createElement('div'),img=doc.createElement('img');tools.style.cssText='display:flex;gap:10px;margin:8px 0;';
-        const save=doc.createElement('a');save.href=url;save.download=name;save.textContent='保存 PNG';save.style.cssText='color:#8e5e43;background:#fed291;border-radius:14px;padding:8px 14px;text-decoration:none;';
+        const tools=doc.createElement('div'),img=doc.createElement('img');tools.style.cssText='display:flex;gap:10px;margin:8px 0;flex-wrap:wrap;';
+        const save=doc.createElement('a');save.href=url;save.download=name;save.textContent='保存 PNG';save.style.cssText='color:var(--wt-ui-text,#8e5e43);background:var(--wt-ui-accent-fill,#fed291);border:1px solid var(--wt-ui-border,#e7b77c);border-radius:12px;padding:7px 14px;text-decoration:none;';
         tools.append(save,button('复制图片',async()=>{
           try{if(!navigator.clipboard?.write||typeof ClipboardItem==='undefined')throw Error();await navigator.clipboard.write([new ClipboardItem({'image/png':result.blob})]);status.textContent='已复制，可以粘贴分享'}
           catch{status.textContent='复制未成功，请使用“保存 PNG”'}
         }));
-        img.src=url;img.alt=name;img.style.cssText='display:block;width:100%;height:auto;';list.append(tools,img);
+        img.src=url;img.alt=name;img.style.cssText='display:block;width:100%;height:auto;border-radius:10px;';list.append(tools,img);
       }
     };
   }

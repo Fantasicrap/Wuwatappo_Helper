@@ -3,6 +3,7 @@ const __wtKeyboardUi=(()=>{
  const lastModeKey='wuwatappo-keyboard-last-mode-v1';
  const controlsKey='wuwatappo-mapping-controls-v1';
  const positionKey='wuwatappo-mapping-position-v1';
+ const wuwaKeysKey='wuwatappo-wuwa-keys-v1';
  const css=`
 .wt-input-ui[hidden]{display:none!important}
 .wt-input-bubble{position:absolute;left:22%;top:43%;transform:translate(-50%,-50%);max-width:42%;box-sizing:border-box;padding:3px 7px;border:1px solid #bf966f;border-radius:12px;background:#fff5e4;color:#805639;font:600 clamp(10px,calc(var(--pet-base-size,200px) * .075),18px)/1.35 "Microsoft YaHei",sans-serif;text-align:center;overflow-wrap:anywhere;pointer-events:none;box-shadow:0 2px 3px #70442722;z-index:14}
@@ -13,30 +14,87 @@ const __wtKeyboardUi=(()=>{
 .wt-input-ui{position:relative;z-index:15;width:200px;box-sizing:border-box;margin:-24px 0 5px;color:#8e5e43;font:11px "Microsoft YaHei",sans-serif;pointer-events:auto;user-select:none;touch-action:none}
 .wt-controls-hidden .wt-input-toolbar,.wt-controls-hidden .wt-record-controls,.wt-controls-hidden .wt-export-controls,.wt-controls-hidden .wt-pad-device,.wt-controls-hidden .wt-pad-actions,.wt-controls-hidden .wt-pad-options,.wt-controls-hidden .wt-pad-exports{display:none!important}.wt-controls-hidden:not(.wt-is-recording)>.wt-status,.wt-controls-hidden .wt-pad:not(.wt-pad-recording-active)>.wt-pad-info{display:none!important}
 .pet-info-container.wt-info-with-keyboard{width:200px;height:32px;margin-top:8px;align-self:center;flex-shrink:0;z-index:1}.pet-info-container.wt-info-with-keyboard.wt-keyboard-collapsed{margin-top:-21px}.wt-info-with-keyboard .pet-info{flex:1 1 0;min-width:0;width:auto}.wt-info-with-keyboard .pet-info .text{padding-left:8px;font-size:16px;white-space:nowrap;text-overflow:ellipsis}.wt-info-with-keyboard .wt-keyboard-toggle{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 28px;width:28px;height:28px;box-sizing:border-box;padding:0;margin:0 4px 0 0;border:1px solid #e7b77c;border-radius:14px;background:#fff3dd;color:#8e5e43;cursor:pointer;line-height:1;filter:none}.wt-keyboard-toggle[aria-expanded=true]{background:#fed291}.wt-keyboard-toggle svg{display:block;width:21px;height:17px;pointer-events:none}.wt-input-ui>.wt-status{position:static;display:block;height:auto;margin:0;line-height:15px;white-space:normal;clear:both}
-.wt-input-ui *{box-sizing:border-box}.wt-input-toolbar{display:flex;align-items:center;gap:3px;padding:0 3px 4px}.wt-input-ui button,.wt-input-ui a{position:static;font:inherit;color:#8e5e43;line-height:1.3;text-align:center;text-decoration:none;cursor:pointer;border:1px solid #e7b77c;border-radius:10px;background:#fff3dd;padding:3px 7px;min-width:0;height:auto;filter:none;white-space:nowrap}.wt-input-ui button:disabled{opacity:.55;cursor:default}.wt-input-ui button[aria-pressed=true]{background:#fed291}.wt-input-ui .wt-close{margin-left:auto;padding:1px 6px}.wt-keyboard-plate{position:relative;border:2px solid #b88764;border-bottom-width:5px;border-radius:18px 19px 21px 15px;padding:8px 7px 6px;background:linear-gradient(160deg,#fff8e9,#ffdcaa);box-shadow:0 3px 0 #ead3b7,0 5px 7px #8e5e4320;transform:perspective(480px) rotateX(12deg);transform-origin:50% 100%}.wt-keyboard-plate:before{content:'';position:absolute;width:14px;height:5px;left:15px;top:-5px;border-radius:4px;background:#e7b77c;border:1px solid #b88764}.wt-keyboard-plate:after{content:'';position:absolute;width:8px;height:8px;right:9px;bottom:7px;border-radius:50%;background:#c8dcc4;border:1px solid #9eb397}.wt-key-row{display:flex;justify-content:center;gap:3px;margin:3px 0}.wt-input-ui kbd{display:flex;align-items:center;justify-content:center;position:relative;flex:none;width:15px;height:19px;border:1px solid #be9879;border-bottom-width:3px;border-radius:5px 5px 6px 5px;background:#fffaf0;color:#8e5e43;font:bold 9px "Microsoft YaHei",sans-serif;box-shadow:0 1px 0 #f0cca3;transition:background .06s,transform .06s,box-shadow .06s}.wt-input-ui kbd.wt-key-on{background:#ffc977;color:#6e452d;border-color:#ba8050;transform:translateY(2px);box-shadow:0 0 5px #ffe391,0 0 0 1px #ffe391}.wt-qer-board{display:flex;gap:8px;align-items:center;padding:4px 3px}.wt-qer-left{width:111px}.wt-qer-row{display:flex;gap:5px}.wt-qer-board kbd{width:33px;height:30px;border-radius:8px;font-size:14px}.wt-qer-board kbd.wt-space{width:109px;height:23px;margin-top:5px;font-size:10px}.wt-mouse{display:flex;width:52px;height:59px;border:2px solid #b88764;border-bottom-width:4px;border-radius:20px 20px 16px 16px;background:#f4e1c8;overflow:hidden}.wt-mouse kbd{width:24px;height:54px;border:0;border-radius:16px 0 0 12px;font-size:9px;box-shadow:none;writing-mode:vertical-rl}.wt-mouse kbd+ kbd{border-left:1px solid #be9879;border-radius:0 16px 12px 0}.wt-record-controls{display:flex;gap:4px;align-items:center;margin-top:8px}.wt-record-controls button{flex:1;background:#fed291}.wt-input-ui .wt-record-button{background:#fff0e8;border-color:#d39d87}.wt-is-recording .wt-record-button{background:#ffd4cc;border-color:#c87664}.wt-status{font-size:10px;line-height:1.45;min-height:15px;padding:5px 6px 0;overflow-wrap:anywhere}.wt-is-recording .wt-status:before{content:'● ';color:#c85545}.wt-export-controls{display:flex;gap:4px;flex-wrap:wrap;margin:5px 4px}.wt-export-controls a{background:#e6efda}.wt-input-ui .wt-event-count{font-variant-numeric:tabular-nums}.wt-letter-extra kbd{width:43px;height:22px;font-size:10px}.wt-letter-extra kbd[data-wt-key=Space]{width:70px}.wt-letter-label{font-size:9px;text-align:center;color:#af8a6e;margin-top:3px;letter-spacing:2px}
+.wt-input-ui *{box-sizing:border-box}.wt-input-toolbar{display:flex;align-items:center;gap:3px;padding:0 3px 4px}.wt-input-ui button,.wt-input-ui a{position:static;font:inherit;color:#8e5e43;line-height:1.3;text-align:center;text-decoration:none;cursor:pointer;border:1px solid #e7b77c;border-radius:10px;background:#fff3dd;padding:3px 7px;min-width:0;height:auto;filter:none;white-space:nowrap}.wt-input-ui button:disabled{opacity:.55;cursor:default}.wt-input-ui button[aria-pressed=true]{background:#fed291}.wt-input-ui .wt-close{margin-left:auto;padding:1px 6px}.wt-keyboard-plate{position:relative;border:2px solid #b88764;border-bottom-width:5px;border-radius:18px 19px 21px 15px;padding:8px 7px 6px;background:linear-gradient(160deg,#fff8e9,#ffdcaa);box-shadow:0 3px 0 #ead3b7,0 5px 7px #8e5e4320;transform:perspective(480px) rotateX(12deg);transform-origin:50% 100%}.wt-keyboard-plate:before{content:'';position:absolute;width:14px;height:5px;left:15px;top:-5px;border-radius:4px;background:#e7b77c;border:1px solid #b88764}.wt-keyboard-plate:after{content:'';position:absolute;width:8px;height:8px;right:9px;bottom:7px;border-radius:50%;background:#c8dcc4;border:1px solid #9eb397}.wt-key-row{display:flex;justify-content:center;gap:3px;margin:3px 0}.wt-input-ui kbd{display:flex;align-items:center;justify-content:center;position:relative;flex:none;width:15px;height:19px;border:1px solid #be9879;border-bottom-width:3px;border-radius:5px 5px 6px 5px;background:#fffaf0;color:#8e5e43;font:bold 9px "Microsoft YaHei",sans-serif;box-shadow:0 1px 0 #f0cca3;transition:background .06s,transform .06s,box-shadow .06s}.wt-input-ui kbd.wt-key-on{background:#ffc977;color:#6e452d;border-color:#ba8050;transform:translateY(2px);box-shadow:0 0 5px #ffe391,0 0 0 1px #ffe391}.wt-qer-board{display:flex;gap:8px;align-items:center;padding:4px 3px}.wt-qer-left{width:111px}.wt-qer-row{display:flex;gap:5px}.wt-qer-board kbd{width:33px;height:30px;border-radius:8px;font-size:13px;overflow:hidden;padding:0 1px}.wt-qer-board kbd.wt-key-compact{font-size:9px;letter-spacing:-.3px}.wt-qer-board kbd.wt-space{width:109px;height:23px;margin-top:5px;font-size:10px}.wt-mouse{display:flex;width:52px;height:59px;border:2px solid #b88764;border-bottom-width:4px;border-radius:20px 20px 16px 16px;background:#f4e1c8;overflow:hidden}.wt-mouse kbd{width:24px;height:54px;border:0;border-radius:16px 0 0 12px;font-size:9px;box-shadow:none;writing-mode:vertical-rl}.wt-mouse kbd+ kbd{border-left:1px solid #be9879;border-radius:0 16px 12px 0}.wt-record-controls{display:flex;gap:4px;align-items:center;margin-top:8px}.wt-record-controls button{flex:1;background:#fed291}.wt-input-ui .wt-record-button{background:#fff0e8;border-color:#d39d87}.wt-is-recording .wt-record-button{background:#ffd4cc;border-color:#c87664}.wt-status{font-size:10px;line-height:1.45;min-height:15px;padding:5px 6px 0;overflow-wrap:anywhere}.wt-is-recording .wt-status:before{content:'● ';color:#c85545}.wt-export-controls{display:flex;gap:4px;flex-wrap:wrap;margin:5px 4px}.wt-export-controls a{background:#e6efda}.wt-input-ui .wt-event-count{font-variant-numeric:tabular-nums}.wt-letter-extra kbd{width:43px;height:22px;font-size:10px}.wt-letter-extra kbd[data-wt-key=Space]{width:70px}.wt-letter-label{font-size:9px;text-align:center;color:#af8a6e;margin-top:3px;letter-spacing:2px}
+.wt-wuwa-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0}
+.wt-wuwa-slot{display:flex;flex-direction:column;gap:2px;align-items:center;padding:6px 5px;border:1px solid var(--wt-ui-border,#d6ae83);border-radius:9px;background:var(--wt-ui-field,#fffaf1);color:var(--wt-ui-text,#68452f);cursor:pointer;font:inherit;min-width:0}
+.wt-wuwa-slot:hover{background:var(--wt-ui-hover,#f9e7c9)}
+.wt-wuwa-slot[aria-pressed=true]{background:var(--wt-ui-accent-fill,#f6d49d);border-color:var(--wt-ui-accent,#cfa374)}
+.wt-wuwa-slot small{font-size:10px;color:var(--wt-ui-muted,#775e4b)}
+.wt-wuwa-slot b{font-size:13px;overflow-wrap:anywhere}
 `;
+ const defaultWuwaKeys=['1','2','3','Q','E','R','Space','MouseLeft','MouseRight'];
+ const slotNames=['上排 1','上排 2','上排 3','中排 1','中排 2','中排 3','底宽键','右侧键 1','右侧键 2'];
+ const capLabels={Space:'空 格',MouseLeft:'左键',MouseRight:'右键',MouseMiddle:'中键',MouseX1:'侧键1',MouseX2:'侧键2',CapsLock:'Caps'};
+ const settingsLabels={Space:'空格',MouseLeft:'鼠标左键',MouseRight:'鼠标右键',MouseMiddle:'鼠标中键',MouseX1:'鼠标侧键 1',MouseX2:'鼠标侧键 2',CapsLock:'CapsLock'};
  function readMode(){try{const value=localStorage.getItem(storageKey);return modes.includes(value)?value:'letters'}catch{return 'letters'}}
  function lastMode(){try{const value=localStorage.getItem(lastModeKey);return ['wuwa','controller'].includes(value)?value:'letters'}catch{return 'letters'}}
  function saveMode(mode){if(!modes.includes(mode))return;try{localStorage.setItem(storageKey,mode)}catch{}return emit('wt-keyboard-config',{mode}).catch(()=>{})}
  function readControls(){try{return localStorage.getItem(controlsKey)!=='hidden'}catch{return true}}
  function readPosition(){try{const p=localStorage.getItem(positionKey);return ['left','right'].includes(p)?p:'bottom'}catch{return 'bottom'}}
+ function readWuwaKeys(){
+  try{
+   const raw=JSON.parse(localStorage.getItem(wuwaKeysKey)||'null');
+   return typeof __wtInputRecorder!=='undefined'?__wtInputRecorder.sanitizeKeys(raw):[...defaultWuwaKeys];
+  }catch{return [...defaultWuwaKeys]}
+ }
+ function saveWuwaKeys(keys){
+  const clean=typeof __wtInputRecorder!=='undefined'?__wtInputRecorder.sanitizeKeys(keys):[...defaultWuwaKeys];
+  try{localStorage.setItem(wuwaKeysKey,JSON.stringify(clean))}catch{}
+  return emit('wt-keyboard-config',{wuwaKeys:clean}).catch(()=>{});
+ }
  const bubbleKey='wuwatappo-input-bubbles-v1';
  const compactBubbles={'Left mouse button':'LMB','Right mouse button':'RMB','Middle mouse button':'MMB','Mouse button 4':'Mouse 4','Mouse button 5':'Mouse 5'};
  function readBubbles(){try{return localStorage.getItem(bubbleKey)==='1'}catch{return false}}
- function settings(ref,toast){const model={mode:ref(readMode()),controls:ref(readControls()),position:ref(readPosition()),bubbles:ref(readBubbles())};model.set=mode=>{model.mode.value=mode;saveMode(mode);toast('键盘映射已切换')};model.setPosition=p=>{if(!['bottom','left','right'].includes(p))return;model.position.value=p;try{localStorage.setItem(positionKey,p)}catch{}emit('wt-keyboard-config',{position:p}).catch(()=>{})};model.toggleControls=()=>{const visible=!model.controls.value;model.controls.value=visible;try{localStorage.setItem(controlsKey,visible?'visible':'hidden')}catch{}emit('wt-keyboard-config',{controls:visible}).catch(()=>{});toast(visible?'映射控制已显示':'映射控制已隐藏')};
+ function settings(ref,toast){
+  const model={mode:ref(readMode()),controls:ref(readControls()),position:ref(readPosition()),bubbles:ref(readBubbles()),wuwaKeys:ref(readWuwaKeys()),pickingSlot:ref(-1),slotMsg:ref('')};
+  model.set=mode=>{model.mode.value=mode;saveMode(mode);toast('键盘映射已切换')};
+  model.setPosition=p=>{if(!['bottom','left','right'].includes(p))return;model.position.value=p;try{localStorage.setItem(positionKey,p)}catch{}emit('wt-keyboard-config',{position:p}).catch(()=>{})};
+  model.toggleControls=()=>{const visible=!model.controls.value;model.controls.value=visible;try{localStorage.setItem(controlsKey,visible?'visible':'hidden')}catch{}emit('wt-keyboard-config',{controls:visible}).catch(()=>{});toast(visible?'映射控制已显示':'映射控制已隐藏')};
   model.setBubbles=bubbles=>{
    model.bubbles.value=bubbles;
    try{localStorage.setItem(bubbleKey,bubbles?'1':'0')}catch{}
    if(bubbles&&model.mode.value==='hidden'){model.mode.value=lastMode();try{localStorage.setItem(storageKey,model.mode.value)}catch{}}
    emit('wt-keyboard-config',{bubbles,mode:model.mode.value}).catch(()=>{});
   };
-  return model
+  model.bindSlot=(index,raw)=>{
+   const key=typeof __wtInputRecorder!=='undefined'?__wtInputRecorder.normalizeAny(raw):'';
+   if(!key){model.slotMsg.value='暂不支持此按键，请使用字母、数字、F1–F12、Shift/Tab/Ctrl/Alt、空格或鼠标键。';return}
+   const next=[...model.wuwaKeys.value];
+   const existing=next.indexOf(key);
+   if(existing>=0&&existing!==index){next[existing]=next[index]}
+   next[index]=key;
+   model.wuwaKeys.value=next;model.pickingSlot.value=-1;
+   model.slotMsg.value='已更新槽位为 '+(settingsLabels[key]??key);
+   saveWuwaKeys(next);
+  };
+  model.resetWuwaKeys=()=>{
+   model.wuwaKeys.value=[...defaultWuwaKeys];model.pickingSlot.value=-1;
+   model.slotMsg.value='已恢复默认 9 键。';saveWuwaKeys(model.wuwaKeys.value);
+  };
+  return model;
  }
  function renderSettings(h,model){
   const active=model.mode.value!=='hidden',visual=active&&!model.bubbles.value;
   const option=(label,checked,onChange)=>h('label',{class:'wt-ui-actions'},[
    h('input',{type:'checkbox',checked,onChange:event=>onChange(event.target.checked)},null,8,['checked']),h('span',null,label)
   ]);
+  const slots=model.wuwaKeys?.value??defaultWuwaKeys;
+  const picking=model.pickingSlot?.value??-1;
+  const wuwaEditor=visual&&model.mode.value==='wuwa'?h('details',{class:'wt-ui-optional'},[
+   h('summary',null,'自定义鸣潮专属键位'),
+   h('p',{class:'wt-ui-card-description'},'点击任意槽位后按下键盘按键，或下方快捷填入鼠标中键/侧键。与已有槽位重复时会自动互换。'),
+   h('div',{class:'wt-wuwa-slots'},slots.map((k,index)=>h('button',{
+    type:'button',class:'wt-wuwa-slot','aria-pressed':picking===index,
+    onClick:()=>{model.pickingSlot.value=picking===index?-1:index;model.slotMsg.value=model.pickingSlot.value===index?'请按键盘按键或点下方鼠标键…':''},
+    onKeydown:event=>{if(model.pickingSlot.value!==index)return;event.preventDefault();event.stopPropagation();if(event.key==='Escape'){model.pickingSlot.value=-1;model.slotMsg.value='';return}model.bindSlot(index,event.code||event.key)}
+   },[h('small',null,slotNames[index]),h('b',null,picking===index?'请按键…':(settingsLabels[k]??k))]))),
+   h('div',{class:'wt-ui-actions',style:{marginTop:'6px'}},[
+    ...[['MouseLeft','左键'],['MouseRight','右键'],['MouseMiddle','中键'],['MouseX1','侧键1'],['MouseX2','侧键2']].map(([code,label])=>
+     h('button',{type:'button',class:'wt-ui-button',disabled:picking<0,onClick:()=>{if(picking>=0)model.bindSlot(picking,code)}},label)),
+    h('button',{type:'button',class:'wt-ui-button',onClick:()=>model.resetWuwaKeys()},'恢复默认 9 键')
+   ]),
+   model.slotMsg?.value?h('p',{role:'status',class:'wt-ui-card-description',style:{marginTop:'6px'}},model.slotMsg.value):null
+  ]):null;
   const node=h('section',null,[
    h('h3',{class:'wt-ui-card-title'},'桌面输入映射'),
    h('div',{class:'wt-ui-mapping-controls',role:'group','aria-label':'映射模式'},
@@ -48,13 +106,16 @@ const __wtKeyboardUi=(()=>{
      [['bottom','下方'],['left','左侧'],['right','右侧']].map(([value,label])=>h('option',{value},label)),8,['value'])]),
     option('在桌宠旁显示映射控制',model.controls.value,model.toggleControls)
    ]):null,
-   visual&&model.mode.value==='wuwa'?h('p',{class:'wt-ui-card-description'},'鸣潮专属录制 1/2/3、Q/E/R、空格和鼠标左右键。'):null
+   visual&&model.mode.value==='wuwa'?h('p',{class:'wt-ui-card-description'},'鸣潮专属仅录制当前面板配置的 9 个键位，默认 1/2/3、Q/E/R、空格和鼠标左右键。'):null,
+   wuwaEditor
   ],512);
   node.patchFlag=-2;
   return node;
  }
  function create(deps={}){
-  const doc=deps.document??document,core=__wtInputRecorder.create(deps.recorderOptions);let mode=readMode(),previousMode=mode==='hidden'?lastMode():mode,root=null,status=null,recordButton=null,exportsBox=null,counter=null,expandButton=null,stopListen=null,stopMouse=null,ticker=null,disposed=false;
+  let wuwaKeys=readWuwaKeys();
+  const doc=deps.document??document,core=__wtInputRecorder.create({...deps.recorderOptions,allowedKeys:wuwaKeys});
+  let mode=readMode(),previousMode=mode==='hidden'?lastMode():mode,root=null,status=null,recordButton=null,exportsBox=null,counter=null,expandButton=null,stopListen=null,stopMouse=null,ticker=null,disposed=false;
   let controller=null,renderId=0,listening=false,bubbles=readBubbles(),bubble=null,bubbleTimer=null;
   const keys=new Map(),onAt=new Map(),timers=new Map(),urls=[],bubbleHeld=new Set();
   const bubbleHost=()=>root?.parentElement?.querySelector('.cat-stack');
@@ -84,13 +145,22 @@ const __wtKeyboardUi=(()=>{
   function allow(){return !deps.blocked?.()}
   function layout(){deps.layout?.()}
   function button(label,action,parent){const node=doc.createElement('button');node.type='button';node.textContent=label;node.onclick=action;parent.append(node);return node}
-  function makeKey(key,label,parent){const node=doc.createElement('kbd');node.textContent=label??key;node.dataset.wtKey=key;node.setAttribute('aria-label',key);parent.append(node);keys.set(key,node);return node}
+  function makeKey(key,label,parent){
+   const text=label??capLabels[key]??key;
+   const node=doc.createElement('kbd');node.textContent=text;node.dataset.wtKey=key;node.setAttribute('aria-label',settingsLabels[key]??key);
+   if(text.length>2&&key!=='Space')node.classList.add('wt-key-compact');
+   parent.append(node);keys.set(key,node);return node;
+  }
   function paint(key,down){
    const node=keys.get(key);if(!node)return;
    const old=timers.get(key);if(old){clearTimeout(old);timers.delete(key)}
    if(down){onAt.set(key,performance.now());node.classList.add('wt-key-on');return}
    const delay=Math.max(0,80-(performance.now()-(onAt.get(key)??0)));
    timers.set(key,setTimeout(()=>{node.classList.remove('wt-key-on');timers.delete(key);onAt.delete(key)},delay));
+  }
+  function formatSummary(result){
+   const stats=__wtInputRecorder.summary(result);
+   return stats.apm?stats.totalEvents+' 条 · '+stats.apm+' APM':stats.totalEvents+' 条';
   }
   function refresh(){
    if(!root)return;
@@ -101,7 +171,7 @@ const __wtKeyboardUi=(()=>{
    root.querySelectorAll('[data-mode]').forEach(node=>{node.disabled=core.active;node.setAttribute('aria-pressed',String(node.dataset.mode===mode))});
    if(recordButton)recordButton.textContent=core.active?'结束录制':'开始录制';
    const shortcut=deps.hotkeys?.read().record||'未设置快捷键';
-   if(status)status.textContent=core.active?'录制中 '+(core.duration/1000).toFixed(1)+'s · '+core.count+' 条':core.last?(core.last.stop_reason==='event_limit'?'条目达上限，已结束 · ':'已结束 · ')+core.last.events.length+' 条，可导出':'未录制 · '+shortcut;
+   if(status)status.textContent=core.active?'录制中 '+(core.duration/1000).toFixed(1)+'s · '+core.count+' 条':core.last?(core.last.stop_reason==='event_limit'?'条目达上限，已结束 · ':'已结束 · ')+formatSummary(core.last)+'，可导出':'未录制 · '+shortcut;
   }
   function revoke(){urls.splice(0).forEach(url=>URL.revokeObjectURL(url));if(exportsBox)exportsBox.replaceChildren()}
   function exportResult(result){
@@ -110,6 +180,17 @@ const __wtKeyboardUi=(()=>{
    for(const[extension,type,content]of [['txt','text/plain;charset=utf-8',__wtInputRecorder.txt(result)]]){
     const url=URL.createObjectURL(new Blob([content],{type}));urls.push(url);const link=doc.createElement('a');link.href=url;link.download='Wuwa-操作录制-'+stamp+'.'+extension;link.textContent='导出 '+extension.toUpperCase();exportsBox.append(link);
    }
+   const copyBtn=button('复制摘要',async()=>{
+    const stats=__wtInputRecorder.summary(result);
+    const tr=globalThis.__wtTranslate||(v=>v);
+    const top=stats.topKeys.map(([k,n])=>(tr(settingsLabels[k]??k))+'×'+n).join(' / ');
+    const line=tr('鸣潮专属操作录制')+' · '+stats.durationSec.toFixed(1)+'s · '+stats.presses+' '+tr('次按键')+(stats.apm?' · '+stats.apm+' APM':'')+(top?' · '+top:'');
+    try{
+     if(window.navigator?.clipboard?.writeText)await window.navigator.clipboard.writeText(line);
+     else throw Error();
+     copyBtn.textContent='已复制';setTimeout(()=>{if(copyBtn.isConnected)copyBtn.textContent='复制摘要'},1400);
+    }catch{if(status)status.textContent='复制摘要失败，请使用导出 TXT'}
+   },exportsBox);
    refresh();if(result.stop_reason==='event_limit'&&status)status.textContent='条目已达上限，录制已结束，请导出';layout();
   }
   function finish(reason='user'){const result=core.stop(reason);syncTicker();exportResult(result);refresh();return result}
@@ -137,9 +218,14 @@ const __wtKeyboardUi=(()=>{
     const extra=doc.createElement('div');extra.className='wt-key-row wt-letter-extra';plate.append(extra);makeKey('MouseLeft','左键',extra);makeKey('Space','空格',extra);makeKey('MouseRight','右键',extra);
     const label=doc.createElement('div');label.className='wt-letter-label';label.textContent='TAP TAP';plate.append(label);
    }else{
-    const board=doc.createElement('div');board.className='wt-qer-board';plate.append(board);const left=doc.createElement('div');left.className='wt-qer-left';board.append(left);const row=doc.createElement('div');row.className='wt-qer-row';left.append(row);const digits=doc.createElement('div');digits.className='wt-qer-row';digits.style.marginBottom='5px';left.insertBefore(digits,row);for(const key of ['1','2','3'])makeKey(key,key,digits);for(const key of ['Q','E','R'])makeKey(key,key,row);makeKey('Space','空 格',left).classList.add('wt-space');
-    const mouse=doc.createElement('div');mouse.className='wt-mouse';board.append(mouse);makeKey('MouseLeft','左键',mouse);makeKey('MouseRight','右键',mouse);
-    const controls=doc.createElement('div');controls.className='wt-record-controls';root.append(controls);recordButton=button('开始录制',toggle,controls);recordButton.className='wt-record-button';recordButton.title='只录制 1/2/3、Q/E/R、空格与鼠标左右键';
+    const board=doc.createElement('div');board.className='wt-qer-board';plate.append(board);const left=doc.createElement('div');left.className='wt-qer-left';board.append(left);const row=doc.createElement('div');row.className='wt-qer-row';left.append(row);const digits=doc.createElement('div');digits.className='wt-qer-row';digits.style.marginBottom='5px';left.insertBefore(digits,row);
+    for(const key of wuwaKeys.slice(0,3))makeKey(key,capLabels[key]??key,digits);
+    for(const key of wuwaKeys.slice(3,6))makeKey(key,capLabels[key]??key,row);
+    makeKey(wuwaKeys[6],capLabels[wuwaKeys[6]]??wuwaKeys[6],left).classList.add('wt-space');
+    const mouse=doc.createElement('div');mouse.className='wt-mouse';board.append(mouse);
+    makeKey(wuwaKeys[7],capLabels[wuwaKeys[7]]??wuwaKeys[7],mouse);
+    makeKey(wuwaKeys[8],capLabels[wuwaKeys[8]]??wuwaKeys[8],mouse);
+    const controls=doc.createElement('div');controls.className='wt-record-controls';root.append(controls);recordButton=button('开始录制',toggle,controls);recordButton.className='wt-record-button';recordButton.title='录制鸣潮专属面板上的 9 个键位';
     button('清除',()=>{if(core.active)finish('cleared');core.clear();revoke();for(const node of keys.values())node.classList.remove('wt-key-on');refresh();layout()},controls);
     exportsBox=doc.createElement('div');exportsBox.className='wt-export-controls';root.append(exportsBox);if(core.last)exportResult(core.last);
    }
@@ -154,14 +240,14 @@ const __wtKeyboardUi=(()=>{
   function key(raw,down,options={}){
    if(!root||(!inputActive()&&!options.control))return;
    if(bubbleActive()){
-    const name=Object.hasOwn(inputLabels,raw)?raw:deps.hotkeys?.displayKey?.(raw)||deps.hotkeys?.normalizeKey?.(raw)||__wtInputRecorder.normalize(raw);
+    const name=Object.hasOwn(inputLabels,raw)?raw:deps.hotkeys?.displayKey?.(raw)||deps.hotkeys?.normalizeKey?.(raw)||__wtInputRecorder.normalizeAny(raw);
     if(!name)return;
     if(!down){bubbleHeld.delete(name);return}
     if(options.control||!allow()||bubbleHeld.has(name))return;
     bubbleHeld.add(name);showBubble(inputLabels[name]??name.replace(/^Numpad(?=\d$)/,'小键盘 '));return;
    }
    if(core.active&&deps.visible&&!deps.visible())finish('pet_hidden');
-   const normalized=__wtInputRecorder.normalize(raw),before=core.active;
+   const normalized=mode==='wuwa'?__wtInputRecorder.normalizeAny(raw):__wtInputRecorder.normalize(raw),before=core.active;
    const changed=core.input(raw,down,{capture:allow()&&!options.control});
    if(changed)paint(normalized,down);if(before&&!core.active){syncTicker();exportResult(core.last)}
   }
@@ -172,7 +258,7 @@ const __wtKeyboardUi=(()=>{
   function releaseInputs(){bubbleHeld.clear();for(const heldKey of core.held)key(heldKey,false,{control:true})}
   function domMouse(event){
    if(event.pointerType&&event.pointerType!=='mouse')return;
-   for(const[buttonName,button,mask]of [['left',0,1],['right',2,2]]){
+   for(const[buttonName,button,mask]of [['left',0,1],['right',2,2],['middle',1,4],['x1',3,8],['x2',4,16]]){
     // Use actual release/button-mask evidence, never a timeout: a real hold
     // must remain highlighted and keep its full recorded duration.
     if(event.type==='pointermove'?!(event.buttons&mask):event.button===button)mouse(buttonName,'release');
@@ -195,6 +281,12 @@ const __wtKeyboardUi=(()=>{
     const payload=event.payload;
     const switched=typeof payload?.bubbles==='boolean'&&payload.bubbles!==bubbles;
     if(switched){if(core.active)finish('mode_changed');releaseInputs();hideBubble();bubbles=payload.bubbles}
+    if(Array.isArray(payload?.wuwaKeys)){
+     if(core.active)finish('mode_changed');
+     wuwaKeys=__wtInputRecorder.sanitizeKeys(payload.wuwaKeys);
+     core.setAllowedKeys(wuwaKeys);
+     if(mode==='wuwa')render();
+    }
     if(modes.includes(payload?.mode)&&payload.mode!==mode)setMode(payload.mode,true);
     else if(switched)render();
     else if(typeof payload?.controls==='boolean'||payload?.position){refresh();layout()}
@@ -207,6 +299,6 @@ const __wtKeyboardUi=(()=>{
   function dispose(){disposed=true;bubbleHost()?.removeAttribute('data-wt-input-bubbles');hideBubble();bubbleHeld.clear();renderId++;controller?.dispose();controller=null;if(core.active)core.stop('app_closed');stopListen?.();stopMouse?.();clearInterval(ticker);doc.removeEventListener('keydown',domKey,true);doc.removeEventListener('keyup',domKey,true);for(const name of ['mouseup','pointerup','pointermove'])doc.removeEventListener(name,domMouse,true);for(const timer of timers.values())clearTimeout(timer);revoke();core.clear();if(root?.parentElement)root.parentElement.style.transform='';root?.remove();expandButton?.remove();counter?.classList.remove('wt-info-with-keyboard','wt-keyboard-collapsed');root=null}
   return {mount,dispose,key,mouse,toggle,setMode,syncActivity,releaseInputs,controllerInput:label=>showBubble('手柄 '+label),stopRecording:finish,get bubbleActive(){return bubbleActive()},get inputActive(){return inputActive()},get recording(){return core.active||!!controller?.recording},get last(){return core.last}};
  }
- return {create,settings,renderSettings,readMode,css};
+ return {create,settings,renderSettings,readMode,readWuwaKeys,css};
 })();
 export {__wtKeyboardUi};
