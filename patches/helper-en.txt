@@ -565,3 +565,12 @@ A/D 或 ←/→ 移动　R 或 ↑ 旋转|A/D or ←/→: Move · R or ↑: Rota
 点一下计数栏的星星，让飞行雪绒陪你听首歌。|Tap the star on the counter to listen with Snowfluff.
 点一下计数栏的星星，试一局拉海洛方块。|Tap the star on the counter to play a round of Lahai-Roi Blocks.
 展开下方的 i弗TV，给弗洛洛的桌面故事开个场。|Open iPhroTV below to start Phrolova’s desktop story.
+桌宠明信片|Pet postcard
+图鉴试装|Atlas preview
+明信片寄语|Postcard message
+生成明信片|Create postcard
+正在制作明信片|Making postcard…
+明信片已生成|Postcard is ready
+当前装扮素材尚未就绪，请稍后重试|The current outfit is still loading. Please try again.
+来自桌面的一张明信片|A postcard from my desktop
+账号已切换，请重试|Account changed. Please try again.

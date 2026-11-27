@@ -245,7 +245,7 @@ const __wtInventoryShare=(()=>{
     node.patchFlag=-2;
     return node;
   }
-  return {owned,layout,positions,composition,draw,create,render,compare,roleName,seriesName,caption,rarityFiles,width,columns,maxHeight};
+  return {image,preview,owned,layout,positions,composition,draw,create,render,compare,roleName,seriesName,caption,rarityFiles,width,columns,maxHeight};
 })();
 async function __wtNormalPanel(panel){
   await panel.setAlwaysOnTop(false);

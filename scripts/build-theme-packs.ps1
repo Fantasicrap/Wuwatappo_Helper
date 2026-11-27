@@ -1,5 +1,7 @@
-param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$SongsDirectory,[string]$DeniaBackground=$env:WUWA_DENIA_BACKGROUND,[string]$PhrolovaBackground=$env:WUWA_PHROLOVA_BACKGROUND,[switch]$WithoutFanBackgrounds)
+﻿param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$SongsDirectory,[string]$DeniaBackground=$env:WUWA_DENIA_BACKGROUND,[string]$PhrolovaBackground=$env:WUWA_PHROLOVA_BACKGROUND,[switch]$WithoutFanBackgrounds)
 $ErrorActionPreference='Stop'
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 $root=Split-Path -Parent $PSScriptRoot
 $out=[IO.Path]::GetFullPath($OutputDirectory)
 $images=Join-Path $root 'dist/theme-assets'

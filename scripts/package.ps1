@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$IsccPath,[string]$OutputDirectory)
+﻿param([Parameter(Mandatory=$true)][string]$IsccPath,[string]$OutputDirectory)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $distDir = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $repoRoot 'dist' }
@@ -25,5 +25,5 @@ if ([version]$helperVersion -ge [version]'1.0.5.2') {
     $releaseNames += @('aemeath.wttheme','denia.wttheme','phrolova.wttheme')
 }
 $checksums = foreach ($name in $releaseNames) { $digest = (Get-FileHash -LiteralPath (Join-Path $distDir $name) -Algorithm SHA256).Hash.ToLower(); "$digest  $name" }
-Set-Content -LiteralPath (Join-Path $distDir 'SHA256SUMS.txt') -Value $checksums -Encoding utf8NoBOM
+[IO.File]::WriteAllLines((Join-Path $distDir 'SHA256SUMS.txt'), [string[]]$checksums, [Text.UTF8Encoding]::new($false))
 Write-Output "Release artifacts: $distDir"

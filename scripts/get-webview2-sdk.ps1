@@ -1,4 +1,6 @@
 $ErrorActionPreference='Stop'
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 $version='1.0.3595.46'
 $root=Split-Path -Parent $PSScriptRoot
 $sdk=Join-Path $root "dist/dependencies/webview2-$version"

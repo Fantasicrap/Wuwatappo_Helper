@@ -59,6 +59,7 @@ try {
  $frames=$hostType.GetField('history',$flags).GetValue($null).ToArray()
  Check ($frames[2].ms -eq 104) 'Host snapshot time moved backwards'
  $report=[ordered]@{passed=$true;syntheticSdlEventDecoding=$true;sameDrainDownUpRetained=$true;hostQueuePreservesOrderAndDuration=$true;duplicateEdgesFiltered=$true;rawAndStandardSeparated=$true;hatDirectTransitions=$true;immutableSnapshots=$true;realHardwareTested=$false;appLaunched=$false}
- $report|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $out 'controller-events-verification.json') -Encoding utf8NoBOM
- $report|ConvertTo-Json
+ $reportJson=$report|ConvertTo-Json
+ [IO.File]::WriteAllText((Join-Path $out 'controller-events-verification.json'),$reportJson,[Text.UTF8Encoding]::new($false))
+ $reportJson
 }finally{[Runtime.InteropServices.Marshal]::FreeHGlobal($event)}

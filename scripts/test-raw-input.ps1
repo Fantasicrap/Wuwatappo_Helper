@@ -31,5 +31,5 @@ foreach($vk in @(49,50,51,81,69,82,32,1,2,37,9,160,123,97,186,44,179)){
 $data=$snapshot.Invoke($null,@([long]0))|ConvertTo-Json -Depth 5|ConvertFrom-Json
 if($data.events.Count -ne $expected.Count*2){throw 'Repeated presses were not deduplicated'}
 for($i=0;$i -lt $expected.Count;$i++){$down=$data.events[$i*2];$up=$data.events[$i*2+1];$name=if($down.key){$down.key}else{$down.button};if($name -ne $expected[$i] -or $down.action -ne 'press' -or $up.action -ne 'release'){throw 'Raw edge mapping mismatch'}}
-@{passed=$true;syntheticRecordTest=$true;allNineControls=$true;duplicatePressesIgnored=$true;realGameTested=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $DistributionDirectory 'raw-input-verification.json') -Encoding utf8NoBOM
+[IO.File]::WriteAllText((Join-Path $DistributionDirectory 'raw-input-verification.json'),(@{passed=$true;syntheticRecordTest=$true;allNineControls=$true;duplicatePressesIgnored=$true;realGameTested=$false}|ConvertTo-Json),[Text.UTF8Encoding]::new($false))
 Write-Output 'PASS: native raw key and mouse mapping preserves press and release edges, including extended keyboard controls.'

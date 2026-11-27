@@ -16,7 +16,7 @@ if(-not [WuwaHelper.IconResources]::MatchesAny((Join-Path $out ("Wuwatappo_Helpe
 if($IncludeInstaller -and -not [WuwaHelper.IconResources]::MatchesAny((Join-Path $out ('Wuwatappo_Helper-'+$pkg.releaseVersion+'-Setup.exe')),$icon)){throw 'Installer icon differs from the frames selected for this build'}
 $frames=for($i=0;$i -lt [BitConverter]::ToUInt16($icon,4);$i++){$at=6+$i*16;[ordered]@{width=if($icon[$at]){[int]$icon[$at]}else{256};height=if($icon[$at+1]){[int]$icon[$at+1]}else{256};bits=[BitConverter]::ToUInt16($icon,$at+6)}}
 $sha=[Security.Cryptography.SHA256]::Create()
-try{$hash=[Convert]::ToHexString($sha.ComputeHash($icon)).ToLowerInvariant()}finally{$sha.Dispose()}
-$report=[ordered]@{passed=$true;iconSource=$(if($isOriginal){'original'}else{'theme'});originalFramesPreserved=$isOriginal;launcherVerified=$true;installerVerified=[bool]$IncludeInstaller;iconSha256=$hash;frames=@($frames);applicationStarted=$false}
-$report|ConvertTo-Json -Depth 4|Set-Content -LiteralPath (Join-Path $out 'icon-verification.json') -Encoding utf8NoBOM
-$report|ConvertTo-Json -Depth 4
+try{$hash=[BitConverter]::ToString($sha.ComputeHash($icon)).Replace('-','').ToLowerInvariant()}finally{$sha.Dispose()}
+$reportJson=[ordered]@{passed=$true;iconSource=$(if($isOriginal){'original'}else{'theme'});originalFramesPreserved=$isOriginal;launcherVerified=$true;installerVerified=[bool]$IncludeInstaller;iconSha256=$hash;frames=@($frames);applicationStarted=$false}|ConvertTo-Json -Depth 4
+[IO.File]::WriteAllText((Join-Path $out 'icon-verification.json'),$reportJson,[Text.UTF8Encoding]::new($false))
+$reportJson

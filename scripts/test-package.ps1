@@ -1,4 +1,4 @@
-param([string]$TestRoot,[string]$DistributionDirectory)
+﻿param([string]$TestRoot,[string]$DistributionDirectory)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $distDir = if ($DistributionDirectory) { [IO.Path]::GetFullPath($DistributionDirectory) } else { Join-Path $repoRoot 'dist' }
@@ -51,5 +51,6 @@ foreach ($name in @('docs/按需运行优化说明.md','docs/内存优化测试�
  if((Get-FileHash -LiteralPath (Join-Path $zipTarget ('Wuwatappo_Helper/'+$name)) -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $files[$name] -Algorithm SHA256).Hash){throw ('Portable documentation differs: '+$name)}
 }
 $result = [ordered]@{ passed=$true; installedFilesMatch=$true; portableExeMatches=$true; appStarted=$false; testModeSkipsShortcutsAndUninstallRegistry=$true; nativeUiTested=$false }
-$result | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $distDir 'package-verification.json') -Encoding utf8NoBOM
-$result | ConvertTo-Json
+$resultJson = $result | ConvertTo-Json
+[IO.File]::WriteAllText((Join-Path $distDir 'package-verification.json'), $resultJson, [Text.UTF8Encoding]::new($false))
+$resultJson

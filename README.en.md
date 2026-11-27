@@ -4,10 +4,13 @@
 
 An unofficial Windows companion patch for Wuwa Tappo 1.0.5. Free and open source. For entertainment only. The creators accept no liability for its use.
 
-## Source update v1.0.5.5
+## What's new in v1.0.5.5
 
-- Give rooms a local note or pin them in the full edition's room history. Pinned rooms remain available after they drop out of the 100 most recent visits. Each account has its own list.
-- Select the Aemeath, Denia or Phrolova theme to see a hint about one of its interactions.
+- **Smaller full package (~80 MiB).** Deduplicated the embedded China (CN) and Global executables: the shared binary is stored once and the Global executable is reconstructed on demand from a SHA-256-verified binary delta, cutting the full download almost in half while keeping CN and Global sessions fully isolated.
+- **Room notes and pinning.** Give rooms a local note or pin them in the full edition's room history. Pinned rooms remain available after they drop out of the 100 most recent visits. Each account has its own list.
+- **Pet postcard.** Open **Pet postcard** under Atlas preview to export an 800×560 PNG postcard of the current outfit with a custom message and theme frame.
+- **Theme hints.** Select the Aemeath, Denia or Phrolova theme to see a hint about one of its interactions.
+- This update is optional. Check for it in the full edition under **Application and updates**, or download it from GitHub.
 
 ## What's new in v1.0.5.4
 
@@ -25,7 +28,7 @@ An unofficial Windows companion patch for Wuwa Tappo 1.0.5. Free and open source
 
 ## Download and installation
 
-The v1.0.5.4 release includes the full EXE, Lite EXE, setup, portable ZIP, SHA-256 checksums and three optional theme packs. [Download v1.0.5.4 on GitHub](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/v1.0.5.4)
+The v1.0.5.5 release includes the full EXE, Lite EXE, setup, portable ZIP, SHA-256 checksums and three optional theme packs. [Download v1.0.5.5 on GitHub](https://github.com/Fantasicrap/Wuwatappo_Helper/releases/tag/v1.0.5.5)
 
 Exit Wuwa Tappo from the Windows system tray before running the Helper. The single-file EXE does not require installation. Keep Microsoft Edge WebView2 Runtime installed.
 

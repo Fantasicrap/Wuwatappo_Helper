@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$DistributionDirectory)
+﻿param([Parameter(Mandatory=$true)][string]$DistributionDirectory)
 $ErrorActionPreference='Stop'
 $out=[IO.Path]::GetFullPath($DistributionDirectory)
 $pkg=Get-Content -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'package.json') -Raw|ConvertFrom-Json
@@ -94,7 +94,8 @@ public class Smoke {
   using(var res=Request(port,"/theme-packs/import","POST",origin))Check((int)res.StatusCode==405,"Import POST did not require the action header");
   using(var res=Request(port,"/denia-blocks/open","GET",origin))Check((int)res.StatusCode==405,"GET could open a new window");
   using(var res=Request(port,"/denia-blocks/open","POST",origin,false,0,true))Check(res.StatusCode==HttpStatusCode.OK&&Body(res).Contains("false"),"Game opened without an installed theme or a configured host");
-  if(asm.GetManifestResourceInfo("global/WuwaTappo.exe")!=null){
+  Check(asm.GetManifestResourceInfo("global/WuwaTappo.exe")==null,"Duplicate full global executable should not be embedded");
+  if(asm.GetManifestResourceInfo("global/WuwaTappo.delta")!=null){
    const string state="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
    var loginWindow=asm.GetType("GlobalSignInWindow");
    var parser=loginWindow.GetMethod("ParseCallback",flags);

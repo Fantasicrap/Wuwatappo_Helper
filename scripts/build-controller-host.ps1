@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$SdlPath,[string]$PayloadPath,[string]$GlobalPayloadPath,[string]$WebViewSdkPath,[switch]$Lite,[switch]$Alpha,[switch]$OriginalIcon)
+﻿param([Parameter(Mandatory=$true)][string]$OutputDirectory,[string]$SdlPath,[string]$PayloadPath,[string]$GlobalPayloadPath,[string]$WebViewSdkPath,[switch]$Lite,[switch]$Alpha,[switch]$OriginalIcon)
 $ErrorActionPreference='Stop'
 if($Lite -and $Alpha){throw 'Alpha requires the full Helper launcher'}
 $repoRoot=Split-Path -Parent $PSScriptRoot
@@ -41,14 +41,19 @@ $exe=Join-Path $out ("Wuwatappo_Helper-"+$pkg.releaseVersion+$suffix+".exe")
 $license=Join-Path $repoRoot 'licenses/SDL3-LICENSE.txt'
 $buildOptions=@()
 $resourcesToVerify=,@('WuwaTappo.exe',$payload)
+$globalPayload=$null
+$globalDelta=$null
 if($Lite){$buildOptions+= '/define:HELPER_LITE'}else{
  if(!$GlobalPayloadPath -and !$Alpha -and ([version]$pkg.releaseVersion -ge [version]'1.0.5.3')){
   $GlobalPayloadPath=Join-Path $repoRoot ("dist/migration-"+$pkg.releaseVersion+"-global/payload.exe")
  }
  if($GlobalPayloadPath){
   $globalPayload=(Resolve-Path -LiteralPath $GlobalPayloadPath).Path
-  $buildOptions+=('/resource:'+$globalPayload+',global/WuwaTappo.exe')
-  $resourcesToVerify+=,@('global/WuwaTappo.exe',$globalPayload)
+  $globalDelta=Join-Path $hostDir 'global-WuwaTappo.delta'
+  & node (Join-Path $PSScriptRoot 'build-payload-delta.cjs') $payload $globalPayload $globalDelta | Out-Null
+  if($LASTEXITCODE -ne 0){throw 'Global payload delta generation failed'}
+  $buildOptions+=('/resource:'+$globalDelta+',global/WuwaTappo.delta')
+  $resourcesToVerify+=,@('global/WuwaTappo.delta',$globalDelta)
  }
  & node (Join-Path $PSScriptRoot 'localize-game.cjs') $hostDir
  if($LASTEXITCODE -ne 0){throw 'Could not build the localized game pages'}
@@ -77,10 +82,23 @@ if($Lite){$buildOptions+= '/define:HELPER_LITE'}else{
  $buildOptions+=(Join-Path $repoRoot 'native/DeniaGameWindow.cs')
  $buildOptions+=(Join-Path $repoRoot 'native/GlobalSignInWindow.cs')
 }
-& $compiler /nologo /target:winexe /platform:x64 /optimize+ ('/win32icon:'+$iconFile) /reference:System.Web.dll /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Core.dll /reference:System.IO.Compression.dll /reference:Microsoft.CSharp.dll ('/out:'+$exe) ('/resource:'+$payload+',WuwaTappo.exe') ('/resource:'+$runtimeId+',runtime-id') @buildOptions $versionSource (Join-Path $repoRoot 'native/ControllerHost.cs') (Join-Path $repoRoot 'native/MouseCapture.cs') (Join-Path $repoRoot 'native/HelperUpdate.cs') (Join-Path $repoRoot 'native/HelperAutostart.cs') (Join-Path $repoRoot 'native/ThemePackages.cs')
+& $compiler /nologo /target:winexe /platform:x64 /optimize+ ('/win32icon:'+$iconFile) /reference:System.Web.dll /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Core.dll /reference:System.IO.Compression.dll /reference:Microsoft.CSharp.dll ('/out:'+$exe) ('/resource:'+$payload+',WuwaTappo.exe') ('/resource:'+$runtimeId+',runtime-id') @buildOptions $versionSource (Join-Path $repoRoot 'native/ControllerHost.cs') (Join-Path $repoRoot 'native/PayloadDelta.cs') (Join-Path $repoRoot 'native/MouseCapture.cs') (Join-Path $repoRoot 'native/HelperUpdate.cs') (Join-Path $repoRoot 'native/HelperAutostart.cs') (Join-Path $repoRoot 'native/ThemePackages.cs')
 if($LASTEXITCODE -ne 0){throw 'Controller launcher compilation failed'}
 $asm=[Reflection.Assembly]::LoadFile($exe)
 $checks=@{}
 foreach($item in $resourcesToVerify){$stream=$asm.GetManifestResourceStream($item[0]);$sha=[Security.Cryptography.SHA256]::Create();try{$digest=[BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','').ToLowerInvariant()}finally{$stream.Dispose();$sha.Dispose()};$expected=(Get-FileHash -LiteralPath $item[1] -Algorithm SHA256).Hash.ToLowerInvariant();if($digest -ne $expected){throw 'Embedded resource differs'};$checks[$item[0]]=$digest}
-$json=[ordered]@{passed=$true;singleExe=$true;lite=[bool]$Lite;alpha=[bool]$Alpha;icon='original';resources=$checks;sdlVersion=$(if(!$Lite){'3.4.18'});controllerRealHardwareTested=$false}|ConvertTo-Json -Depth 4
+$globalVerifiedHash=$null
+if($globalPayload){
+ if($asm.GetManifestResourceInfo('global/WuwaTappo.exe') -ne $null){throw 'Duplicate full global executable should not be embedded'}
+ $apply=$asm.GetType('PayloadDelta',$true).GetMethod('ApplyStream',[Reflection.BindingFlags]'Static,NonPublic')
+ $baseStream=$asm.GetManifestResourceStream('WuwaTappo.exe')
+ $deltaStream=$asm.GetManifestResourceStream('global/WuwaTappo.delta')
+ try{
+  $reconstructedHashBytes=[byte[]]$apply.Invoke($null,[object[]]@($baseStream,$deltaStream,[IO.Stream]::Null))
+  $globalVerifiedHash=[BitConverter]::ToString($reconstructedHashBytes).Replace('-','').ToLowerInvariant()
+ }finally{$deltaStream.Dispose();$baseStream.Dispose()}
+ $expectedGlobal=(Get-FileHash -LiteralPath $globalPayload -Algorithm SHA256).Hash.ToLowerInvariant()
+ if($globalVerifiedHash -ne $expectedGlobal){throw 'Reconstructed global payload SHA-256 differs'}
+}
+$json=[ordered]@{passed=$true;singleExe=$true;lite=[bool]$Lite;alpha=[bool]$Alpha;icon='original';deduplicatedGlobal=[bool]$globalPayload;globalPayloadSha256=$globalVerifiedHash;resources=$checks;sdlVersion=$(if(!$Lite){'3.4.18'});controllerRealHardwareTested=$false}|ConvertTo-Json -Depth 4
 [IO.File]::WriteAllText((Join-Path $out 'controller-bundle-verification.json'),$json,[Text.UTF8Encoding]::new($false))

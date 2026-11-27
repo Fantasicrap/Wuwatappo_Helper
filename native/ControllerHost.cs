@@ -212,6 +212,17 @@ static class HelperHost {
  }
  static string ReadResourceText(string name){using(var s=Assembly.GetExecutingAssembly().GetManifestResourceStream(name))using(var r=new StreamReader(s,Encoding.UTF8))return r.ReadToEnd();}
  static string ResourceText(string name){return name=="controller-ui.js"?UiModule.Value:ReadResourceText(name);}
+ const string GlobalDeltaResource="global/WuwaTappo.delta";
+ static bool HasGlobalResource(){var asm=Assembly.GetExecutingAssembly();return asm.GetManifestResourceInfo(GlobalDeltaResource)!=null||asm.GetManifestResourceInfo("global/WuwaTappo.exe")!=null;}
+ static string ExtractPayload(bool global,string folder){
+  var asm=Assembly.GetExecutingAssembly();
+  if(asm.GetManifestResourceInfo(GlobalDeltaResource)!=null){
+   if(global)return PayloadDelta.Extract(asm,"WuwaTappo.exe",GlobalDeltaResource,folder,"WuwaTappo.exe");
+   string cached=Path.Combine(folder,"WuwaTappo.exe");
+   if(PayloadDelta.MatchesBase(asm,GlobalDeltaResource,cached))return cached;
+  }
+  return Extract(global?"global/WuwaTappo.exe":"WuwaTappo.exe",folder,"WuwaTappo.exe");
+ }
  static string Extract(string name,string folder,string filename=null){string path=Path.Combine(folder,filename??name);using(var source=Assembly.GetExecutingAssembly().GetManifestResourceStream(name)){
  if(source==null)throw new InvalidOperationException("Missing embedded resource: "+name);
  if(File.Exists(path)&&new FileInfo(path).Length==source.Length){using(var h=SHA256.Create())using(var existing=File.OpenRead(path)){if(h.ComputeHash(existing).SequenceEqual(h.ComputeHash(source)))return path;}}
@@ -260,14 +271,14 @@ static class HelperHost {
  string mutexName="Local\\WuwatappoHelperControllerHostV1"+(Port==DefaultPort?"":"-probe-"+Port);
  bool created;using(var mutex=new Mutex(true,mutexName,out created)){if(!created){if(!probe)MessageBox.Show("请先退出正在运行的 Helper（包括托盘进程）再启动新版。","Wuwatappo Helper");return 2;}if(!probe&&Process.GetProcessesByName("WuwaTappo").Length>0){MessageBox.Show("检测到桌宠已经运行（可能来自开机启动或旧版）。请先从托盘完全退出桌宠，再运行带版本号的 Helper，否则本地辅助服务无法正确启动。","Wuwatappo Helper");return 2;}TcpListener listener=null;Process child=null;IntPtr ev=IntPtr.Zero;bool initialized=false;try{
  string helperData=isolatedProbe?Path.GetFullPath(args[probeProfile+1]):Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Wuwatappo_Helper");
- hasGlobal=!Lite&&Assembly.GetExecutingAssembly().GetManifestResourceInfo("global/WuwaTappo.exe")!=null;
+ hasGlobal=!Lite&&HasGlobalResource();
  regionFile=Path.Combine(helperData,"region.txt");
  languageFile=Path.Combine(helperData,"language.txt");
  isGlobal=hasGlobal&&File.Exists(regionFile)&&File.ReadAllText(regionFile).Trim()=="global";
  HelperUpdate.GlobalRegion=isGlobal;
  loginProfile=Path.Combine(helperData,"global-sign-in");
  string folder=Path.Combine(helperData,"runtime",ResourceText("runtime-id").Trim()+(isGlobal?"-global":""));Directory.CreateDirectory(folder);
- string payload=Extract(isGlobal?"global/WuwaTappo.exe":"WuwaTappo.exe",folder,"WuwaTappo.exe");if(!Lite){
+ string payload=ExtractPayload(isGlobal,folder);if(!Lite){
  Extract("SDL3.dll",folder);Extract("SDL3-LICENSE.txt",folder);SetDllDirectory(folder);
  ThemePackages.Initialize(Path.Combine(helperData,"themes"));
  gameRuntime=folder;gameProfile=Path.Combine(helperData,"denia-game");

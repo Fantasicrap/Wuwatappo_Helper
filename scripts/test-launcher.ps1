@@ -35,7 +35,7 @@ if([HelperManifestReader]::Read($payload) -notmatch 'level="requireAdministrator
 if([HelperManifestReader]::Read($exe) -notmatch 'level="asInvoker"'){throw 'Outer launcher should not force elevation'}
 $embedded=$assembly.GetManifestResourceStream('WuwaTappo.exe')
 $sha=[Security.Cryptography.SHA256]::Create()
-try{$embeddedHash=[Convert]::ToHexString($sha.ComputeHash($embedded))}finally{$embedded.Dispose();$sha.Dispose()}
+try{$embeddedHash=[BitConverter]::ToString($sha.ComputeHash($embedded)).Replace('-','')}finally{$embedded.Dispose();$sha.Dispose()}
 if($embeddedHash -ne (Get-FileHash -LiteralPath $payload -Algorithm SHA256).Hash){throw 'Embedded payload differs from reviewed manifest source'}
 
 $testDir=Join-Path $out 'launcher-test'
@@ -57,5 +57,6 @@ $cancel=$hostType.GetMethod('ElevationCancelled',$flags)
 if(-not $cancel.Invoke($null,@([ComponentModel.Win32Exception]::new(1223)))){throw 'UAC cancellation not recognized'}
 if($cancel.Invoke($null,@([ComponentModel.Win32Exception]::new(740)))){throw 'Error 740 must not be treated as cancellation'}
 $report=[ordered]@{passed=$true;upstreamManifest='requireAdministrator';outerManifest='asInvoker';embeddedPayloadHashVerified=$true;childUsesShellExecute=$true;benignChildStartedAndExitCodeObserved=$true;cancel1223Recognized=$true;error740NotSilenced=$true;uacSettingsChanged=$false;elevatedPayloadLaunched=$false;uacConsentTested=$false}
-$report|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $out 'launcher-verification.json') -Encoding utf8NoBOM
-$report|ConvertTo-Json
+$reportJson=$report|ConvertTo-Json
+[IO.File]::WriteAllText((Join-Path $out 'launcher-verification.json'),$reportJson,[Text.UTF8Encoding]::new($false))
+$reportJson
