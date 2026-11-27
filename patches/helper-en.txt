@@ -556,3 +556,12 @@ A/D 或 ←/→ 移动　R 或 ↑ 旋转|A/D or ←/→: Move · R or ↑: Rota
 挑战完成|Challenge complete
 免责说明窗口初始化超时，请退出后重试|The disclaimer did not open. Restart and try again.
 免责说明打开失败，请重试|Could not open the disclaimer. Try again.
+
+房间备注|Room note
+保存备注|Save note
+置顶|Pin
+取消置顶|Unpin
+保存失败，请重试|Could not save. Please try again.
+点一下计数栏的星星，让飞行雪绒陪你听首歌。|Tap the star on the counter to listen with Snowfluff.
+点一下计数栏的星星，试一局拉海洛方块。|Tap the star on the counter to play a round of Lahai-Roi Blocks.
+展开下方的 i弗TV，给弗洛洛的桌面故事开个场。|Open iPhroTV below to start Phrolova’s desktop story.

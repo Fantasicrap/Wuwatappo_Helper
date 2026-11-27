@@ -19,7 +19,13 @@ const __wtTheme=(()=>{
  const dialogue=typeof __wtPetDialogue==='undefined'?null:__wtPetDialogue;
  const scope=':root['+attr+'="aemeath"]';
  // Theme swatches always show their original colors.
+ const discoveries={
+  aemeath:['player','点一下计数栏的星星，让飞行雪绒陪你听首歌。'],
+  denia:['blocks','点一下计数栏的星星，试一局拉海洛方块。'],
+  phrolova:['','展开下方的 i弗TV，给弗洛洛的桌面故事开个场。']
+ };
  const pickerCss=`
+.wt-theme-note{grid-column:1/-1;margin:0;padding:9px 12px;border-inline-start:3px solid var(--wt-ui-border,#d6ae83);background:var(--wt-ui-field,#fffaf1);border-radius:8px;color:var(--wt-ui-text,#694832);font-size:13px}
 .wt-theme-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .wt-theme-option{position:relative;display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;border:1.5px solid #e3c9aa;border-radius:12px;background:#fffdf7;color:#694832;font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
 .wt-theme-option:hover{transform:translateY(-1px)}
@@ -42,7 +48,8 @@ const __wtTheme=(()=>{
 :root[lang=en] .wt-theme-option[aria-pressed=true] b:after{content:'Active'}
 .wt-aemeath-options{margin:12px 0 0;border-top:1px solid var(--wt-ui-divider,#ead7bf);padding-top:8px}
 .wt-aemeath-options>summary{cursor:pointer;color:var(--wt-ui-text,#694832);font-weight:600;padding:4px 0}
-.wt-aemeath-options .wt-theme-picker{margin-top:8px}
+.wt-aemeath-options .wt-theme-note{grid-column:1/-1;margin:0;padding:9px 12px;border-inline-start:3px solid var(--wt-ui-border,#d6ae83);background:var(--wt-ui-field,#fffaf1);border-radius:8px;color:var(--wt-ui-text,#694832);font-size:13px}
+.wt-theme-picker{margin-top:8px}
 .wt-theme-background,.wt-theme-picker>.wt-denia-settings,.wt-theme-picker>.wt-theme-effect{grid-column:1/-1}
 .wt-theme-background{margin:0;min-width:0;padding:8px 10px;border:1px solid var(--wt-ui-border,#e3c9aa);border-radius:12px;background:var(--wt-ui-card-fill,#fff9ed)}
 .wt-theme-background legend{padding:0 5px;font-weight:600}
@@ -467,6 +474,9 @@ const __wtTheme=(()=>{
     option.setAttribute('aria-pressed',String(id===current));
     option.querySelector('small').textContent=option.disabled?'需导入主题包':themes[id][1];
    }
+   const note=root.querySelector('.wt-theme-note'),hint=discoveries[current];
+   note.hidden=!hint||!packs[current]||(hint[0]?!packs[current].effects?.includes(hint[0]):!phrolovaAvailable);
+   if(!note.hidden&&note.dataset.theme!==current){note.textContent=hint[1];note.dataset.theme=current}
    const mech=root.querySelector('.wt-aemeath-mech-options');
    if(!mechSprite)mech?.remove();
    else if(!mech&&typeof __wtAemeathMech!=='undefined'){
@@ -629,6 +639,7 @@ const __wtTheme=(()=>{
    option.addEventListener('click',()=>set(id));
    root.append(option);
   }
+  const note=document.createElement('p');note.className='wt-theme-note';note.hidden=true;root.append(note);
   mountBackground(root);
   const effects=document.createElement('section');effects.className='wt-denia-settings';effects.hidden=true;root.append(effects);
   pickers.push(root);sync();syncBackground();

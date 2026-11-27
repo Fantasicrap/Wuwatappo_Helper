@@ -4,8 +4,33 @@ const __wtRoomHistoryCore=(()=>{
  const room=value=>typeof value==='string'&&value.trim().length<=64&&!/[\u0000-\u001f\u007f]/.test(value)?value.trim():'';
  function create({storage=localStorage,now=()=>Date.now(),pause=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}){
   let busy=false,serial=0,confirmed=null;
-  function read(id){id=account(id);if(!id)return[];try{const data=JSON.parse(storage.getItem(prefix+id)||'[]'),seen=new Set();return(Array.isArray(data)?data:[]).filter(item=>item&&room(item.id)&&Number.isFinite(item.visitedAt)).sort((a,b)=>b.visitedAt-a.visitedAt).filter(item=>{if(seen.has(room(item.id)))return false;seen.add(room(item.id));return true}).slice(0,100).map(item=>({id:room(item.id),visitedAt:item.visitedAt}))}catch{return[]}}
-  function remember(id,value){id=account(id);value=room(value);if(!id||!value)return false;confirmed={accountId:id,roomId:value,serial:++serial};const rows=[{id:value,visitedAt:now()},...read(id).filter(item=>item.id!==value)].slice(0,100);try{storage.setItem(prefix+id,JSON.stringify(rows));return true}catch{return false}}
+  function recent(id){id=account(id);if(!id)return[];try{const data=JSON.parse(storage.getItem(prefix+id)||'[]'),seen=new Set();return(Array.isArray(data)?data:[]).filter(item=>item&&room(item.id)&&Number.isFinite(item.visitedAt)).sort((a,b)=>b.visitedAt-a.visitedAt).filter(item=>{if(seen.has(room(item.id)))return false;seen.add(room(item.id));return true}).slice(0,100).map(item=>({id:room(item.id),visitedAt:item.visitedAt}))}catch{return[]}}
+  const detailKey=id=>'wuwatappo-room-labels-v1:'+id;
+ function labels(id){
+  try{return new Map(JSON.parse(storage.getItem(detailKey(id))||'[]').filter(([key,entry])=>room(key)&&entry&&typeof entry.note==='string'&&Number.isFinite(entry.visitedAt)))}
+  catch{return new Map()}
+ }
+ function read(id){
+  id=account(id);if(!id)return [];
+  const entries=labels(id),rows=new Map(recent(id).map(row=>[row.id,row]));
+  for(const [key,value] of entries)if(value.pinned&&!rows.has(key))rows.set(key,{id:key,visitedAt:value.visitedAt});
+  return [...rows.values()].map(row=>{
+   const label=entries.get(row.id);
+   return label?{...row,note:label.note,pinned:label.pinned===true}:row;
+  }).sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||b.visitedAt-a.visitedAt);
+ }
+ function annotate(id,key,changes){
+  id=account(id);key=room(key);
+  const row=read(id).find(entry=>entry.id===key);
+  if(!row)return false;
+  const entries=labels(id),updated={visitedAt:row.visitedAt,note:row.note||'',pinned:!!row.pinned,...changes};
+  updated.note=String(updated.note).trim().slice(0,40);
+  if(updated.note||updated.pinned)entries.set(key,updated);else entries.delete(key);
+  const recentIds=new Set(recent(id).map(item=>item.id));
+  for(const [name,entry] of entries)if(!entry.pinned&&!recentIds.has(name))entries.delete(name);
+  try{storage.setItem(detailKey(id),JSON.stringify([...entries]));return true}catch{return false}
+ }
+ function remember(id,value){id=account(id);value=room(value);if(!id||!value)return false;confirmed={accountId:id,roomId:value,serial:++serial};const rows=[{id:value,visitedAt:now()},...recent(id).filter(item=>item.id!==value)].slice(0,100);try{storage.setItem(prefix+id,JSON.stringify(rows));return true}catch{return false}}
   async function enter(id,value,{state,leave,join,setInput,notify=()=>{},timeout=12000}){
    id=account(id);value=room(value);const result=(code,message)=>({code,message});
    if(!id||!value)return result('invalid','无效的账号或房间号');
@@ -36,7 +61,7 @@ const __wtRoomHistoryCore=(()=>{
     return result('account','账号或登录状态已改变，已停止切换');
    }catch{return result('error','房间切换失败，请检查连接及当前房间状态')}finally{busy=false}
   }
-  return {read,remember,enter,get busy(){return busy}};
+  return {read,remember,annotate,enter,get busy(){return busy}};
  }
  return {prefix,account,room,create};
 })();

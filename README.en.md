@@ -4,6 +4,11 @@
 
 An unofficial Windows companion patch for Wuwa Tappo 1.0.5. Free and open source. For entertainment only. The creators accept no liability for its use.
 
+## Source update v1.0.5.5
+
+- Give rooms a local note or pin them in the full edition's room history. Pinned rooms remain available after they drop out of the 100 most recent visits. Each account has its own list.
+- Select the Aemeath, Denia or Phrolova theme to see a hint about one of its interactions.
+
 ## What's new in v1.0.5.4
 
 - Global sign-in can open provider pop-ups, including Google. The login window now includes help and a reload option.
